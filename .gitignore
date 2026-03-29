@@ -58,3 +58,6 @@ frontend/yarn-error.log*
 *.xlsx
 *.ppt
 *.pptx
+
+# Global ENV
+*.env
