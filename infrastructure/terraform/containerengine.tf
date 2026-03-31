@@ -88,13 +88,10 @@ resource "oci_containerengine_node_pool" "oke_node_pool" {
     # Opcion de tamano de boot volume (desactivada por defecto):
     # boot_volume_size_in_gbs = "60"
   }
-
-  # Opcion alternativa de clave SSH por variable:
-  # ssh_public_key = var.resUserPublicKey
-  ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsXyGATqdTnvEDe0aYHGL+QQDjUXf6EIBlKiNLYR4gZhStp4yfn/MEWmCMGg3cbne04HlaeO3zGrUnrtfAQE90XccW9Dc4WkhLYf2vucja9NezAVQZE2qBYiwdZSF9G/FwPI1DzfbXF2UAAN3ix/IwJSWN3KZnd1FOcHOA052QMa7jGOIbi8+skKqkys3gcTaor7eXe/wONimkpPevF30FTQZpsQFU7ZzYcFM3C+XVZ2/UVtZ/MaDf73ub6mYNMpDtDCTMo9FyujzK84EKWIytAKofNwJ/Og3Wqr+CKAeLgCMtWp0926w+ff8dJRDuOxlxgJB48YaFSvjIr4lAv/aX rafael_a_g@6ab23190fb98"
+  //quantity_per_subnet = 1
+  ssh_public_key      = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsXyGATqdTnvEDe0aYHGL+QQDjUXf6EIBlKiNLYR4gZhStp4yfn/MEWmCMGg3cbne04HlaeO3zGrUnrtfAQE90XccW9Dc4WkhLYf2vucja9NezAVQZE2qBYiwdZSF9G/FwPI1DzfbXF2UAAN3ix/IwJSWN3KZnd1FOcHOA052QMa7jGOIbi8+skKqkys3gcTaor7eXe/wONimkpPevF30FTQZpsQFU7ZzYcFM3C+XVZ2/UVtZ/MaDf73ub6mYNMpDtDCTMo9FyujzK84EKWIytAKofNwJ/Og3Wqr+CKAeLgCMtWp0926w+ff8dJRDuOxlxgJB48YaFSvjIr4lAv/aX rafael_a_g@6ab23190fb98"
+  //ssh_public_key =  var.resUserPublicKey
 }
-
-# Consulta todas las opciones de cluster disponibles en la region activa.
 data "oci_containerengine_cluster_option" "mtdrworkshop_cluster_option" {
   cluster_option_id = "all"
 }

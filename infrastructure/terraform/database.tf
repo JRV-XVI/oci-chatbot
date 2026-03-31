@@ -77,6 +77,7 @@ data "oci_database_autonomous_databases" "autonomous_databases_atp" {
 
 # Obtiene el namespace de Object Storage usado por procesos auxiliares.
 data "oci_objectstorage_namespace" "test_namespace" {
+  #Optional
   compartment_id = var.ociCompartmentOcid
 }
 
