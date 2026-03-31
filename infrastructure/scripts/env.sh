@@ -1,37 +1,76 @@
 #!/bin/bash
+#
+# Punto de entrada para inicializar el entorno MTDR en la sesion actual.
+# Exporta variables, aliases y funciones compartidas por setup y destroy.
+# Debe cargarse con source para que los cambios persistan en el shell activo.
+#
+# Usage: source env.sh
+# Usage incorrecto: ./env.sh
+#
+# Globals modificados:
+#   MTDRWORKSHOP_LOCATION
+#   MTDRWORKSHOP_STATE_HOME
+#   MTDRWORKSHOP_LOG
+#   JAVA_HOME
+#   PATH
+#
 # Copyright (c) 2022 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 # Make sure this is run via source or .
+# Ejecutar con ./env.sh crea un subshell y las exportaciones se pierden.
 if ! (return 0 2>/dev/null); then
   echo "ERROR: Usage 'source env.sh'"
   exit
 fi
 
 # POSIX compliant find and replace
-function sed_i(){
+#######################################
+# Reemplazo in-place compatible con Linux/macOS.
+# Globals:
+#   (none)
+# Arguments:
+#   $1 - Expresion sed (string)
+#   $2 - Archivo destino (path)
+# Outputs:
+#   Sobrescribe el archivo con el contenido transformado.
+# Returns:
+#   0 si la operacion finaliza correctamente.
+#######################################
+function sed_i() {
   local OP="$1"
   local FILE="$2"
+
+  # Se usa archivo temporal porque sed -i varia entre GNU sed y BSD sed.
   sed -e "$OP" "$FILE" >"/tmp/$FILE"
   mv -- "/tmp/$FILE" "$FILE"
 }
 export -f sed_i
 
-# Java Home
-# -d true if file is a directory, so it's testing if this directory exists, if it does
-# we are on Mac doing local dev
-function set_javahome(){
+#######################################
+# Configura JAVA_HOME para Linux o macOS.
+# Globals:
+#   JAVA_HOME
+#   PATH
+# Arguments:
+#   (none)
+# Outputs:
+#   Exporta JAVA_HOME y antepone su binario en PATH.
+# Returns:
+#   0 si se configuro correctamente.
+#######################################
+function set_javahome() {
   if test -d ~/graalvm-community-openjdk-22.0.2+9.1/bin; then
-    # We are on Linux
+    # Ruta esperada en Linux.
     export JAVA_HOME=~/graalvm-community-openjdk-22.0.2+9.1;
   else
-    # Assume MacOS
+    # Ruta esperada en macOS.
     export JAVA_HOME=~/graalvm-community-openjdk-22.0.2+9.1/Contents/Home
   fi
   export PATH=$JAVA_HOME/bin:$PATH
 }
 
-#set mtdrworkshop_location
+# Resuelve la ruta absoluta del directorio del script sin depender del cwd.
 export MTDRWORKSHOP_LOCATION="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $MTDRWORKSHOP_LOCATION
 echo "MTDRWORKSHOP_LOCATION: $MTDRWORKSHOP_LOCATION"
@@ -45,17 +84,19 @@ else
   set_javahome
 fi
 
-#state directory
+# Define ubicacion de estado persistente para soportar reanudacion por hitos.
 if test -d ~/mtdrworkshop-state; then
   export MTDRWORKSHOP_STATE_HOME=~/mtdrworkshop-state
 else
   export MTDRWORKSHOP_STATE_HOME=$MTDRWORKSHOP_LOCATION
 fi
 echo "MTDRWORKSOP_STATE_HOME: $MTDRWORKSHOP_STATE_HOME"
-#Log Directory
+
+# Crea carpeta de logs para setup/destroy y procesos en background.
 export MTDRWORKSHOP_LOG=$MTDRWORKSHOP_STATE_HOME/log
 mkdir -p $MTDRWORKSHOP_LOG
 
+# Carga funciones de hitos (state_done/state_set/state_get/state_set_done).
 source $MTDRWORKSHOP_LOCATION/utils/state-functions.sh
 
 # SHORTCUT ALIASES AND UTILS...
@@ -71,5 +112,6 @@ alias deployments='kubectl get deployments --all-namespaces'
 alias mtdrworkshop='echo deployments... ; deployments|grep mtdrworkshop ; echo pods... ; pods|grep mtdrworkshop ; echo services... ; services | grep mtdrworkshop ; echo secrets... ; secrets|grep mtdrworkshop ; echo "other shortcut commands... most can take partial podname as argument, such as [logpod front] or [deletepod order]...  pods  services secrets deployments " ; ls $MTDRWORKSHOP_LOCATION/utils/'
 alias sshpod1='kubectl exec -i -t $(kubectl get pod --namespace mtdrworkshop --selector='app=hud' --output jsonpath='{.items[0].metadata.name}') -n mtdrworkshop -- /bin/bash'
 
-
+# TODO(devops@local): validar que cada alias requerido exista cuando kubectl no
+# este instalado para mejorar onboarding en equipos nuevos.
 export PATH=$PATH:$MTDRWORKSHOP_LOCATION/utils/
