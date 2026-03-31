@@ -1,4 +1,4 @@
-# 🛠️ Scripts de Orquestación — MTDR Workshop
+# Scripts de Orquestación
 
 Este directorio contiene todos los scripts Bash y Python que automatizan el
 **ciclo de vida completo** del entorno MTDR sobre Oracle Cloud Infrastructure
@@ -14,7 +14,7 @@ volver a ejecutar el mismo comando.
 
 ---
 
-## 📁 Estructura de Archivos
+## Estructura de Archivos
 ```
 infraestructura/scripts/
 │
@@ -48,7 +48,7 @@ infraestructura/scripts/
 ```
 ---
 
-## 🏗️ Arquitectura del Flujo Completo
+## Arquitectura del Flujo Completo
 ```
 Usuario
 │
@@ -74,7 +74,7 @@ Usuario
 
 ---
 
-## 📄 Descripción Detallada: Scripts Raíz
+## Descripción Detallada: Scripts Raíz
 
 ---
 
@@ -532,7 +532,7 @@ de Terraform**. Terraform no sabe que existe, por lo que no lo elimina en el
 
 ---
 
-## 📄 Descripción Detallada: `utils/python/`
+## Descripción Detallada: `utils/python/`
 
 ---
 
