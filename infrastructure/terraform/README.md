@@ -406,6 +406,84 @@ Como documentación de una decisión de arquitectura. Si en el futuro se necesit
 
 ---
 
-## 🔗 Dependencias Entre Archivos
+## Dependencias Entre Archivos
 
 Terraform resuelve automáticamente el orden de creación basándose en las referencias entre recursos:
+```
+provider.tf
+└── main-var.tf (variables)
+└── availability_domain.tf
+└── core.tf (VCN, subnets, gateways)
+├── containerengine.tf (OKE usa subnets de core.tf)
+├── database.tf (independiente, solo necesita compartment)
+├── object_storage.tf (independiente)
+└── repositories.tf (independiente)
+└── outputs.tf (referencia al cluster de containerengine.tf)
+```
+
+
+---
+
+## Variables de Entrada
+
+Todas declaradas en [`main-var.tf`](./main-var.tf). Son requeridas (sin defaults):
+
+| Variable | Tipo | Ejemplo | Descripción |
+|---|---|---|---|
+| `ociTenancyOcid` | string | `ocid1.tenancy.oc1..aaa` | OCID de la cuenta raíz |
+| `ociUserOcid` | string | `ocid1.user.oc1..aaa` | OCID del usuario ejecutor |
+| `ociCompartmentOcid` | string | `ocid1.compartment.oc1..aaa` | OCID del compartment destino |
+| `ociRegionIdentifier` | string | `mx-queretaro-1` | Región de OCI |
+| `mtdrDbName` | string | `MTDRDB` | Nombre de la Autonomous Database |
+| `runName` | string | `mtdrworkshop` | Prefijo de recursos (max 13 chars, solo letras/números) |
+| `mtdrKey` | string | `abc123` | ID único generado por el sistema |
+
+---
+
+## Outputs
+
+| Output | Descripción | Consumido por |
+|---|---|---|
+| `lab_oke_cluster_id` | OCID del clúster OKE | `main-setup.sh` → `oci ce cluster create-kubeconfig` |
+| `ns_objectstorage_namespace` | Namespace del Object Storage | Logging y scripts de destroy |
+| `autonomous_database_admin_password` | Contraseña de la BD | Configuración de Kubernetes Secrets |
+
+---
+
+## Variables de Entorno de Terraform
+
+El provider de OCI en Cloud Shell usa **Instance Principal** para autenticarse automáticamente. Si ejecutas Terraform fuera de Cloud Shell, necesitas configurar:
+
+```bash
+export OCI_CLI_AUTH=api_key  # O bien configurar ~/.oci/config
+```
+
+La caché de plugins se configura en `~/.terraformrc` por el script `terraform.sh` para evitar re-descargas del provider en cada ejecución.
+
+---
+
+## Consideraciones Importantes
+
+**Costos:**
+- La base de datos ATP está en **Free Tier** (`is_free_tier = true`) — sin costo.
+- Los nodos OKE (`VM.Standard.E3.Flex`, 3 nodos) **sí generan costos**. Ejecutar `terraform destroy` o `source destroy.sh` cuando no se use el entorno.
+
+**Seguridad:**
+- La clave SSH pública del Node Pool está hardcodeada en `containerengine.tf`. Para nuevos proyectos, moverla a una variable (`var.resUserPublicKey`).
+- Nunca subir `terraform.tfvars` al repositorio — contiene OCIDs que son identificadores sensibles de tu cuenta.
+
+**Región Monterrey (mx-queretaro-1):**
+Si el shape `VM.Standard.E3.Flex` no está disponible en tu región, cambiar en `containerengine.tf`:
+```hcl
+# Antes
+node_shape = "VM.Standard.E3.Flex"
+# Después (región Monterrey/Querétaro)
+node_shape = "VM.Standard.E5.Flex"
+```
+
+**Versión del provider fijada:**
+El provider `hashicorp/oci` está fijado en `4.42.0` en `provider.tf`. Para actualizar:
+```bash
+terraform init -upgrade
+```
+Verificar el [changelog del provider](https://registry.terraform.io/providers/hashicorp/oci/latest/docs) antes de actualizar.
