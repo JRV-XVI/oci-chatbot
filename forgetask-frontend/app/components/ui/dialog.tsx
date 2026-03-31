@@ -4,8 +4,42 @@ import * as React from "react";
 
 import { cn } from "./utils";
 
-function Dialog({ children }: React.PropsWithChildren<Record<string, unknown>>) {
-  return <>{children}</>;
+interface DialogProps extends React.ComponentPropsWithoutRef<"div"> {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+}
+
+interface DialogContextValue {
+  onOpenChange: (open: boolean) => void;
+}
+
+const DialogContext = React.createContext<DialogContextValue | null>(null);
+
+function Dialog({ open, onOpenChange, children }: DialogProps) {
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onOpenChange(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onOpenChange]);
+
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <DialogContext.Provider value={{ onOpenChange }}>
+      <div className="fixed inset-0 z-40 bg-black/50" onClick={() => onOpenChange(false)} />
+      {children}
+    </DialogContext.Provider>
+  );
 }
 
 function DialogTrigger({ children, ...props }: React.ComponentPropsWithoutRef<"button">) {
@@ -21,8 +55,20 @@ function DialogPortal({ children }: React.PropsWithChildren<Record<string, unkno
 }
 
 function DialogClose({ children, ...props }: React.ComponentPropsWithoutRef<"button">) {
+  const context = React.useContext(DialogContext);
+
   return (
-    <button type="button" data-slot="dialog-close" {...props}>
+    <button
+      type="button"
+      data-slot="dialog-close"
+      {...props}
+      onClick={(event) => {
+        if (props.onClick) {
+          props.onClick(event);
+        }
+        context?.onOpenChange(false);
+      }}
+    >
       {children}
     </button>
   );
@@ -32,7 +78,7 @@ function DialogOverlay({ className, ...props }: React.ComponentPropsWithoutRef<"
   return (
     <div
       data-slot="dialog-overlay"
-      className={cn("fixed inset-0 z-50 bg-black/50", className)}
+      className={cn("fixed inset-0 z-40 bg-black/50", className)}
       {...props}
     />
   );

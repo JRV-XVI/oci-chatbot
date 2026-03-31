@@ -3,12 +3,15 @@
 import * as React from "react";
 import { useState } from "react";
 import { useDrop } from "react-dnd";
-import { Circle, Layers, CircleDot, Eye, CheckCircle2, FileText, Settings } from "lucide-react";
+import { Circle, Layers, CircleDot, Eye, CheckCircle2, FileText, Settings, AlertTriangle, Users } from "lucide-react";
 import { TaskCard, type Task } from "./task-card";
 import { AddTaskDialog } from "./add-task-dialog";
 import { TaskDetailsDialog } from "./task-details-dialog";
+import { MembersDialog } from "./members-dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Progress } from "../ui/progress";
+import { Badge } from "../ui/badge";
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -239,6 +242,42 @@ const INITIAL_TASKS: Task[] = [
     realTime: 1,
     assignedTo: ["System Administrator"],
   },
+  {
+    id: "20",
+    title: "Integracion de componentes Frontend",
+    description: "Integracion de componentes frontend con el backend.",
+    status: "done",
+    priority: "high",
+    startDate: "2026-03-20",
+    endDate: "2026-03-25",
+    estimatedTime: 5,
+    realTime: 18,
+    assignedTo: ["Frontend Developer"],
+  },
+  {
+    id: "21",
+    title: "Testing exhaustivo del sistema",
+    description: "Testing exhaustivo de todas las caracteristicas del sistema.",
+    status: "done",
+    priority: "high",
+    startDate: "2026-03-18",
+    endDate: "2026-03-24",
+    estimatedTime: 4,
+    realTime: 20,
+    assignedTo: ["QA Engineer"],
+  },
+  {
+    id: "22",
+    title: "Optimizacion de base de datos",
+    description: "Optimizacion y tuning de la base de datos.",
+    status: "done",
+    priority: "medium",
+    startDate: "2026-03-21",
+    endDate: "2026-03-26",
+    estimatedTime: 8,
+    realTime: 15,
+    assignedTo: ["Database Administrator"],
+  },
 ];
 
 interface ColumnProps {
@@ -330,7 +369,7 @@ function Column({
         </div>
 
         <div
-          ref={drop}
+          ref={drop as any}
           className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 ${
             isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
           }`}
@@ -348,6 +387,7 @@ export function ProjectBoard() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
   const [expectedTasks, setExpectedTasks] = useState({
     backlog: 5,
     ready: 3,
@@ -421,18 +461,44 @@ export function ProjectBoard() {
   const inProgressTasks = tasks.filter((task) => task.status === "in-progress");
   const reviewTasks = tasks.filter((task) => task.status === "review");
   const doneTasks = tasks.filter((task) => task.status === "done");
+  const totalEstimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
+  const completedEstimatedHours = doneTasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
+  const progressPercentage = totalEstimatedHours > 0
+    ? Math.round((completedEstimatedHours / totalEstimatedHours) * 100)
+    : 0;
+
+  const isBacklogOverloaded = backlogTasks.length > expectedTasks.backlog;
+  const isReadyOverloaded = readyTasks.length > expectedTasks.ready;
+  const isInProgressOverloaded = inProgressTasks.length > expectedTasks["in-progress"];
+  const isReviewOverloaded = reviewTasks.length > expectedTasks.review;
+  const isDoneOverloaded = doneTasks.length > expectedTasks.done;
 
   return (
     <div className="h-full flex flex-col">
       <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Manage your tasks and track progress
             </p>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex-1 max-w-md">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="font-semibold text-foreground">
+                {completedEstimatedHours}h / {totalEstimatedHours}h ({progressPercentage}%)
+              </span>
+            </div>
+            <Progress value={progressPercentage} className="h-1.5" />
+          </div>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Button onClick={() => setMembersDialogOpen(true)} variant="outline">
+              <Users className="w-4 h-4 mr-2" />
+              Members
+            </Button>
             <Button onClick={handleGenerateReport} variant="outline">
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
@@ -444,61 +510,101 @@ export function ProjectBoard() {
 
       <div className="flex-1 overflow-x-auto p-6 bg-background">
         <div className="flex gap-6 h-full">
-          <Column
-            title="Backlog"
-            status="backlog"
-            tasks={backlogTasks}
-            icon={<Circle className="w-5 h-5 text-muted-foreground" />}
-            onDrop={handleDrop}
-            onDeleteTask={handleDeleteTask}
-            onTaskClick={handleTaskClick}
-            onExpectedChange={handleExpectedChange}
-            expectedTasks={expectedTasks.backlog}
-          />
-          <Column
-            title="Ready"
-            status="ready"
-            tasks={readyTasks}
-            icon={<Layers className="w-5 h-5 text-secondary" />}
-            onDrop={handleDrop}
-            onDeleteTask={handleDeleteTask}
-            onTaskClick={handleTaskClick}
-            onExpectedChange={handleExpectedChange}
-            expectedTasks={expectedTasks.ready}
-          />
-          <Column
-            title="In Progress"
-            status="in-progress"
-            tasks={inProgressTasks}
-            icon={<CircleDot className="w-5 h-5 text-blue-400" />}
-            onDrop={handleDrop}
-            onDeleteTask={handleDeleteTask}
-            onTaskClick={handleTaskClick}
-            onExpectedChange={handleExpectedChange}
-            expectedTasks={expectedTasks["in-progress"]}
-          />
-          <Column
-            title="Review"
-            status="review"
-            tasks={reviewTasks}
-            icon={<Eye className="w-5 h-5 text-accent" />}
-            onDrop={handleDrop}
-            onDeleteTask={handleDeleteTask}
-            onTaskClick={handleTaskClick}
-            onExpectedChange={handleExpectedChange}
-            expectedTasks={expectedTasks.review}
-          />
-          <Column
-            title="Done"
-            status="done"
-            tasks={doneTasks}
-            icon={<CheckCircle2 className="w-5 h-5 text-green-400" />}
-            onDrop={handleDrop}
-            onDeleteTask={handleDeleteTask}
-            onTaskClick={handleTaskClick}
-            onExpectedChange={handleExpectedChange}
-            expectedTasks={expectedTasks.done}
-          />
+          <div className="relative flex-1 min-w-[300px]">
+            {isBacklogOverloaded && (
+              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-xs text-red-400 font-medium">Overloaded</span>
+              </div>
+            )}
+            <Column
+              title="Backlog"
+              status="backlog"
+              tasks={backlogTasks}
+              icon={<Circle className="w-5 h-5 text-muted-foreground" />}
+              onDrop={handleDrop}
+              onDeleteTask={handleDeleteTask}
+              onTaskClick={handleTaskClick}
+              onExpectedChange={handleExpectedChange}
+              expectedTasks={expectedTasks.backlog}
+            />
+          </div>
+          <div className="relative flex-1 min-w-[300px]">
+            {isReadyOverloaded && (
+              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-xs text-red-400 font-medium">Overloaded</span>
+              </div>
+            )}
+            <Column
+              title="Ready"
+              status="ready"
+              tasks={readyTasks}
+              icon={<Layers className="w-5 h-5 text-secondary" />}
+              onDrop={handleDrop}
+              onDeleteTask={handleDeleteTask}
+              onTaskClick={handleTaskClick}
+              onExpectedChange={handleExpectedChange}
+              expectedTasks={expectedTasks.ready}
+            />
+          </div>
+          <div className="relative flex-1 min-w-[300px]">
+            {isInProgressOverloaded && (
+              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-xs text-red-400 font-medium">Overloaded</span>
+              </div>
+            )}
+            <Column
+              title="In Progress"
+              status="in-progress"
+              tasks={inProgressTasks}
+              icon={<CircleDot className="w-5 h-5 text-blue-400" />}
+              onDrop={handleDrop}
+              onDeleteTask={handleDeleteTask}
+              onTaskClick={handleTaskClick}
+              onExpectedChange={handleExpectedChange}
+              expectedTasks={expectedTasks["in-progress"]}
+            />
+          </div>
+          <div className="relative flex-1 min-w-[300px]">
+            {isReviewOverloaded && (
+              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-xs text-red-400 font-medium">Overloaded</span>
+              </div>
+            )}
+            <Column
+              title="Review"
+              status="review"
+              tasks={reviewTasks}
+              icon={<Eye className="w-5 h-5 text-accent" />}
+              onDrop={handleDrop}
+              onDeleteTask={handleDeleteTask}
+              onTaskClick={handleTaskClick}
+              onExpectedChange={handleExpectedChange}
+              expectedTasks={expectedTasks.review}
+            />
+          </div>
+          <div className="relative flex-1 min-w-[300px]">
+            {isDoneOverloaded && (
+              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-xs text-red-400 font-medium">Overloaded</span>
+              </div>
+            )}
+            <Column
+              title="Done"
+              status="done"
+              tasks={doneTasks}
+              icon={<CheckCircle2 className="w-5 h-5 text-green-400" />}
+              onDrop={handleDrop}
+              onDeleteTask={handleDeleteTask}
+              onTaskClick={handleTaskClick}
+              onExpectedChange={handleExpectedChange}
+              expectedTasks={expectedTasks.done}
+            />
+          </div>
         </div>
       </div>
 
@@ -507,6 +613,12 @@ export function ProjectBoard() {
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
         onUpdateTask={handleUpdateTask}
+      />
+
+      <MembersDialog
+        open={membersDialogOpen}
+        onOpenChange={setMembersDialogOpen}
+        tasks={tasks}
       />
     </div>
   );

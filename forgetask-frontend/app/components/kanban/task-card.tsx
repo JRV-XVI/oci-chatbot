@@ -47,7 +47,7 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       className={`bg-card rounded-lg border border-border p-3 group hover:border-accent transition-all ${
         isDragging ? "opacity-50" : "opacity-100"
       }`}

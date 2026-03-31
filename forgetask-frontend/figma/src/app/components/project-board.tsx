@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { Circle, Layers, CircleDot, Eye, CheckCircle2, FileText, Settings } from 'lucide-react';
+import { Circle, Layers, CircleDot, Eye, CheckCircle2, FileText, Settings, Users, AlertTriangle } from 'lucide-react';
 import { TaskCard, type Task } from './task-card';
 import { AddTaskDialog } from './add-task-dialog';
 import { TaskDetailsDialog } from './task-details-dialog';
+import { MembersDialog } from './members-dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Progress } from './ui/progress';
+import { Badge } from './ui/badge';
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -116,6 +119,7 @@ const INITIAL_TASKS: Task[] = [
     realTime: 0,
     assignedTo: ['Java Developer'],
   },
+  // TEST CASE 1: Excellent Efficiency (200% - Super Fast Worker)
   {
     id: '10',
     title: 'Capacitacion con OCI Foundations',
@@ -124,10 +128,11 @@ const INITIAL_TASKS: Task[] = [
     priority: 'high',
     startDate: '2026-02-09',
     endDate: '2026-03-08',
-    estimatedTime: 10,
-    realTime: 18,
-    assignedTo: ['Team Lead'],
+    estimatedTime: 20,
+    realTime: 10,
+    assignedTo: ['Super Fast Worker'],
   },
+  // TEST CASE 2: Great Efficiency (150% - Fast Finisher)
   {
     id: '11',
     title: 'Levantamiento de requerimientos funcionales',
@@ -137,9 +142,10 @@ const INITIAL_TASKS: Task[] = [
     startDate: '2026-02-25',
     endDate: '2026-03-08',
     estimatedTime: 12,
-    realTime: 10,
-    assignedTo: ['Requirements Analyst'],
+    realTime: 8,
+    assignedTo: ['Fast Finisher'],
   },
+  // TEST CASE 3: Good Efficiency (120% - Efficient Worker)
   {
     id: '12',
     title: 'Diagramas de casos de uso',
@@ -148,22 +154,24 @@ const INITIAL_TASKS: Task[] = [
     priority: 'high',
     startDate: '2026-03-05',
     endDate: '2026-03-08',
-    estimatedTime: 4,
-    realTime: 4,
-    assignedTo: ['Requirements Analyst'],
+    estimatedTime: 12,
+    realTime: 10,
+    assignedTo: ['Efficient Worker'],
   },
+  // TEST CASE 4: Perfect Efficiency (100% - Exact Estimator)
   {
     id: '13',
     title: 'Despliegue Web avanzado',
-    description: 'Configuracion y despliegue avanzado de la aplicacion web. Ref: https://github.com/JRV-XVI/forms-app-web/issues/18',
+    description: 'Configuracion y despliegue avanzado de la aplicacion web.',
     status: 'done',
     priority: 'high',
     startDate: '2026-03-07',
     endDate: '2026-03-08',
-    estimatedTime: 6,
-    realTime: 4,
-    assignedTo: ['Team Lead'],
+    estimatedTime: 8,
+    realTime: 8,
+    assignedTo: ['Exact Estimator'],
   },
+  // TEST CASE 5: Good Efficiency (90% - Slightly Over)
   {
     id: '14',
     title: 'Plan de despliegue',
@@ -172,10 +180,11 @@ const INITIAL_TASKS: Task[] = [
     priority: 'high',
     startDate: '2026-03-05',
     endDate: '2026-03-09',
-    estimatedTime: 8,
-    realTime: 5,
-    assignedTo: ['DevOps Engineer'],
+    estimatedTime: 9,
+    realTime: 10,
+    assignedTo: ['Slightly Over'],
   },
+  // TEST CASE 6: Good Efficiency (85% - Minor Delay)
   {
     id: '15',
     title: 'Servicios de Kubernetes y PODS',
@@ -184,22 +193,24 @@ const INITIAL_TASKS: Task[] = [
     priority: 'high',
     startDate: '2026-03-10',
     endDate: '2026-03-12',
-    estimatedTime: 4,
-    realTime: 2,
-    assignedTo: ['Team Lead'],
+    estimatedTime: 17,
+    realTime: 20,
+    assignedTo: ['Minor Delay'],
   },
+  // TEST CASE 7: Needs Improvement (75% - Slow Worker)
   {
     id: '16',
     title: 'Despliegue de la base de datos en OCI',
-    description: 'Creacion y configuracion de la instancia ATP (Autonomous Transaction Processing) en OCI. Ref: https://github.com/JRV-XVI/oci-chatbot/issues/1',
+    description: 'Creacion y configuracion de la instancia ATP en OCI.',
     status: 'done',
     priority: 'high',
     startDate: '2026-03-09',
     endDate: '2026-03-10',
-    estimatedTime: 2,
-    realTime: 2,
-    assignedTo: ['Team Lead'],
+    estimatedTime: 6,
+    realTime: 8,
+    assignedTo: ['Slow Worker'],
   },
+  // TEST CASE 8: Needs Improvement (50% - Major Overrun)
   {
     id: '17',
     title: 'Analisis del codigo de Oracle',
@@ -208,10 +219,11 @@ const INITIAL_TASKS: Task[] = [
     priority: 'medium',
     startDate: '2026-03-09',
     endDate: '2026-03-10',
-    estimatedTime: 6,
-    realTime: 0,
-    assignedTo: ['Team Lead'],
+    estimatedTime: 10,
+    realTime: 20,
+    assignedTo: ['Major Overrun'],
   },
+  // TEST CASE 9: Needs Improvement (25% - Critical Delay)
   {
     id: '18',
     title: 'M2 Delivery (Mara)',
@@ -220,10 +232,11 @@ const INITIAL_TASKS: Task[] = [
     priority: 'medium',
     startDate: '2026-03-07',
     endDate: '2026-03-11',
-    estimatedTime: 1.5,
-    realTime: 2,
-    assignedTo: ['Team Lead'],
+    estimatedTime: 5,
+    realTime: 20,
+    assignedTo: ['Critical Delay'],
   },
+  // TEST CASE 10: Edge Case (realTime = 0, defaults to 100%)
   {
     id: '19',
     title: 'Linux Foundations Chapter 4',
@@ -232,9 +245,48 @@ const INITIAL_TASKS: Task[] = [
     priority: 'low',
     startDate: '2026-03-08',
     endDate: '2026-03-10',
-    estimatedTime: 3,
-    realTime: 1,
-    assignedTo: ['System Administrator'],
+    estimatedTime: 5,
+    realTime: 0,
+    assignedTo: ['Zero Hours Worker'],
+  },
+  // TEST CASE 11: Excellent Efficiency (300% - Ultra Fast)
+  {
+    id: '20',
+    title: 'Security Audit Documentation',
+    description: 'Documentacion completa de la auditoria de seguridad del sistema.',
+    status: 'done',
+    priority: 'high',
+    startDate: '2026-03-01',
+    endDate: '2026-03-05',
+    estimatedTime: 30,
+    realTime: 10,
+    assignedTo: ['Ultra Fast'],
+  },
+  // TEST CASE 12: Needs Improvement (10% - Extreme Overrun)
+  {
+    id: '21',
+    title: 'Performance Optimization',
+    description: 'Optimizacion exhaustiva del rendimiento de la aplicacion.',
+    status: 'done',
+    priority: 'medium',
+    startDate: '2026-02-15',
+    endDate: '2026-03-15',
+    estimatedTime: 5,
+    realTime: 50,
+    assignedTo: ['Extreme Overrun'],
+  },
+  // TEST CASE 13: Good Efficiency (80% - At Threshold)
+  {
+    id: '22',
+    title: 'API Integration Testing',
+    description: 'Pruebas de integracion con las APIs externas del sistema.',
+    status: 'done',
+    priority: 'medium',
+    startDate: '2026-03-10',
+    endDate: '2026-03-15',
+    estimatedTime: 8,
+    realTime: 10,
+    assignedTo: ['At Threshold'],
   },
 ];
 
@@ -279,6 +331,7 @@ function Column({
   };
 
   const isDone = status === 'done';
+  const isOverloaded = !isDone && tasks.length > expectedTasks;
 
   return (
     <div className="flex-1 min-w-[300px] flex flex-col max-h-full">
@@ -289,7 +342,7 @@ function Column({
         </div>
         
         {/* Counter section */}
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
           {isDone ? (
             <span className="text-sm text-muted-foreground">
               Tasks: {tasks.length}
@@ -319,18 +372,26 @@ function Column({
               ) : (
                 <button
                   onClick={() => setIsEditingExpected(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+                  className={`text-sm hover:text-foreground transition-colors flex items-center gap-1 group ${
+                    isOverloaded ? 'text-red-400 font-semibold' : 'text-muted-foreground'
+                  }`}
                 >
                   <span>{tasks.length}/{expectedTasks}</span>
                   <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
+              )}
+              {isOverloaded && (
+                <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  Overload
+                </Badge>
               )}
             </>
           )}
         </div>
 
         <div
-          ref={drop}
+          ref={drop as any}
           className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 ${
             isOver ? 'bg-accent/20 border-2 border-accent border-dashed' : ''
           }`}
@@ -348,6 +409,7 @@ export function ProjectBoard() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
   const [expectedTasks, setExpectedTasks] = useState({
     backlog: 5,
     ready: 3,
@@ -437,17 +499,40 @@ ${tasks.map(task => `- [${task.status.toUpperCase()}] ${task.title} (Priority: $
   const reviewTasks = tasks.filter((task) => task.status === 'review');
   const doneTasks = tasks.filter((task) => task.status === 'done');
 
+  // Calculate project progress
+  const totalEstimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
+  const completedEstimatedHours = doneTasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
+  const progressPercentage = totalEstimatedHours > 0 
+    ? Math.round((completedEstimatedHours / totalEstimatedHours) * 100) 
+    : 0;
+
   return (
     <div className="h-full flex flex-col">
       <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Manage your tasks and track progress
             </p>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Progress Bar - Centered */}
+          <div className="flex-1 max-w-md">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="font-semibold text-foreground">
+                {completedEstimatedHours}h / {totalEstimatedHours}h ({progressPercentage}%)
+              </span>
+            </div>
+            <Progress value={progressPercentage} className="h-1.5" />
+          </div>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Button onClick={() => setMembersDialogOpen(true)} variant="outline">
+              <Users className="w-4 h-4 mr-2" />
+              Members
+            </Button>
             <Button onClick={handleGenerateReport} variant="outline">
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
@@ -522,6 +607,11 @@ ${tasks.map(task => `- [${task.status.toUpperCase()}] ${task.title} (Priority: $
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
         onUpdateTask={handleUpdateTask}
+      />
+      <MembersDialog
+        open={membersDialogOpen}
+        onOpenChange={setMembersDialogOpen}
+        tasks={tasks}
       />
     </div>
   );
