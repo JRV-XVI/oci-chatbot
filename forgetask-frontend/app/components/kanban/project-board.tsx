@@ -323,8 +323,8 @@ function Column({
   const isDone = status === "done";
 
   return (
-    <div className="flex-1 min-w-[300px] flex flex-col max-h-full">
-      <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full">
+    <div className="flex-1 min-w-[300px] flex flex-col max-h-full min-h-0">
+      <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full min-h-0">
         <div className="flex items-center gap-2 mb-2">
           {icon}
           <h2 className="font-semibold text-foreground">{title}</h2>
@@ -358,7 +358,7 @@ function Column({
               ) : (
                 <button
                   onClick={() => setIsEditingExpected(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group cursor-pointer"
                 >
                   <span>{tasks.length}/{expectedTasks}</span>
                   <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -372,7 +372,7 @@ function Column({
           ref={(node) => {
             drop(node);
           }}
-          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 ${
+          className={`space-y-3 flex-1 min-h-0 overflow-y-auto rounded-lg transition-colors p-1 ${
             isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
           }`}
         >
@@ -427,35 +427,55 @@ export function ProjectBoard() {
   const handleDrop = (task: Task, newStatus: Task["status"]) => {
     if (task.status === newStatus) return;
 
-    // Update local state
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-    );
-
-    // Optionally persist to API if available
-    if (apiAvailable) {
-      taskService
-        .updateTask(task.id, { ...task, status: newStatus })
-        .catch((error: unknown) => {
-          console.error("Failed to update task on server:", error);
-          // Revert local change on error
-          setTasks((prevTasks) =>
-            prevTasks.map((t) => (t.id === task.id ? task : t)),
-          );
-        });
-    }
+    // Reuse the same persistence flow used by task detail edits.
+    handleUpdateTask({ ...task, status: newStatus });
   };
 
   const handleAddTask = (newTask: Omit<Task, "id">) => {
+    const tempId = `temp-${Date.now()}`;
     const task: Task = {
       ...newTask,
-      id: Date.now().toString(),
+      id: tempId,
     };
     setTasks((prevTasks) => [...prevTasks, task]);
+
+    taskService
+      .createTask(newTask)
+      .then((createdTask) => {
+        setApiAvailable(true);
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t.id === tempId ? createdTask : t)),
+        );
+      })
+      .catch((error: unknown) => {
+        setApiAvailable(false);
+        console.error("Failed to create task on server:", error);
+        setTasks((prevTasks) => prevTasks.filter((t) => t.id !== tempId));
+      });
   };
 
   const handleDeleteTask = (id: string) => {
+    const previousTasks = tasks;
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+
+    // Client-only temporary tasks are not persisted yet.
+    if (!/^\d+$/.test(id)) {
+      return;
+    }
+
+    taskService
+      .deleteTask(id)
+      .then((deleted) => {
+        setApiAvailable(true);
+        if (!deleted) {
+          setTasks(previousTasks);
+        }
+      })
+      .catch((error: unknown) => {
+        setApiAvailable(false);
+        console.error("Failed to delete task on server:", error);
+        setTasks(previousTasks);
+      });
   };
 
   const handleTaskClick = (task: Task) => {
@@ -464,9 +484,28 @@ export function ProjectBoard() {
   };
 
   const handleUpdateTask = (updatedTask: Task) => {
+    const previousTasks = tasks;
     setTasks((prevTasks) =>
       prevTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
     );
+
+    if (!/^\d+$/.test(updatedTask.id)) {
+      return;
+    }
+
+    taskService
+      .updateTask(updatedTask.id, updatedTask)
+      .then((serverTask) => {
+        setApiAvailable(true);
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t.id === serverTask.id ? serverTask : t)),
+        );
+      })
+      .catch((error: unknown) => {
+        setApiAvailable(false);
+        console.error("Failed to update task on server:", error);
+        setTasks(previousTasks);
+      });
   };
 
   const handleExpectedChange = (status: Task["status"], value: number) => {
@@ -513,10 +552,10 @@ export function ProjectBoard() {
   const isReadyOverloaded = readyTasks.length > expectedTasks.ready;
   const isInProgressOverloaded = inProgressTasks.length > expectedTasks["in-progress"];
   const isReviewOverloaded = reviewTasks.length > expectedTasks.review;
-  const isDoneOverloaded = doneTasks.length > expectedTasks.done;
+  const isDoneOverloaded = false;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full min-h-0 flex flex-col">
       <header className="border-b border-border bg-card px-6 py-4">
         <div className="flex items-center justify-between gap-6">
           <div className="flex-shrink-0">
@@ -561,9 +600,9 @@ export function ProjectBoard() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-x-auto p-6 bg-background">
-        <div className="flex gap-6 h-full">
-          <div className="relative flex-1 min-w-[300px]">
+      <div className="flex-1 min-h-0 overflow-x-auto p-6 bg-background">
+        <div className="flex gap-6 h-full min-h-0">
+          <div className="relative flex-1 min-w-[300px] min-h-0">
             {isBacklogOverloaded && (
               <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
                 <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -582,7 +621,7 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks.backlog}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px]">
+          <div className="relative flex-1 min-w-[300px] min-h-0">
             {isReadyOverloaded && (
               <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
                 <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -601,7 +640,7 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks.ready}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px]">
+          <div className="relative flex-1 min-w-[300px] min-h-0">
             {isInProgressOverloaded && (
               <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
                 <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -620,7 +659,7 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks["in-progress"]}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px]">
+          <div className="relative flex-1 min-w-[300px] min-h-0">
             {isReviewOverloaded && (
               <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
                 <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -639,7 +678,7 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks.review}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px]">
+          <div className="relative flex-1 min-w-[300px] min-h-0">
             {isDoneOverloaded && (
               <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
                 <AlertTriangle className="w-4 h-4 text-red-400" />
