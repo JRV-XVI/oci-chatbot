@@ -24,6 +24,7 @@ interface MemberStats {
   totalReal: number;
 }
 
+// Dialog that shows team members and their productivity metrics based on completed tasks.
 export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps) {
   const memberStatsMap = new Map<string, MemberStats>();
 
@@ -48,6 +49,7 @@ export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps)
     }
   });
 
+  // Compute productivity for each member from done tasks.
   const membersStats = Array.from(memberStatsMap.values()).map((stats) => {
     const productivity =
       stats.totalReal > 0
@@ -89,7 +91,7 @@ export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps)
                 View team members and their productivity metrics
               </DialogDescription>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="cursor-pointer">
               Close
             </Button>
           </div>

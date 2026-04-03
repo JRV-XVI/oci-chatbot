@@ -325,7 +325,7 @@ function Column({
   const isDone = status === "done";
 
   return (
-    <div className="flex-1 min-w-[300px] flex flex-col max-h-full">
+    <div className="flex-1 min-w-[300px] flex flex-col h-[calc(100vh-240px)]">
       <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full">
         <div className="flex items-center gap-2 mb-2">
           {icon}
@@ -360,7 +360,7 @@ function Column({
               ) : (
                 <button
                   onClick={() => setIsEditingExpected(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group cursor-pointer"
                 >
                   <span className={tasks.length > expectedTasks ? "text-red-500" : ""}>{tasks.length}/{expectedTasks}</span>
                   <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -372,7 +372,7 @@ function Column({
 
         <div
           ref={drop as any}
-          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 min-h-[600px] ${
+          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 max-h-[calc(100vh-340px)] ${
             isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
           }`}
         >
@@ -501,11 +501,11 @@ export function ProjectBoard() {
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Button onClick={() => setMembersDialogOpen(true)} variant="outline">
+            <Button onClick={() => setMembersDialogOpen(true)} variant="outline" className="cursor-pointer">
               <Users className="w-4 h-4 mr-2" />
               Members
             </Button>
-            <Button onClick={handleGenerateReport} variant="outline">
+            <Button onClick={handleGenerateReport} variant="outline" className="cursor-pointer">
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>

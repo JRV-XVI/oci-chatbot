@@ -13,6 +13,8 @@ interface AddTaskDialogProps {
   onAddTask: (task: Omit<Task, "id">) => void;
 }
 
+// Modal-style dialog used to create a new task on the board.
+// Contains form fields for title, dates, times and assignment.
 export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -25,6 +27,8 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
   const [realTime, setRealTime] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
+  // Handle form submit for creating a new task.
+  // Normalizes the input values and calls the parent onAddTask callback.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -55,7 +59,7 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
 
   return (
     <>
-      <Button className="gap-2" onClick={() => setOpen(true)}>
+      <Button className="gap-2 cursor-pointer" onClick={() => setOpen(true)}>
         <Plus className="w-4 h-4" />
         New Task
       </Button>
@@ -70,7 +74,7 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                     Add a new task to your project board. Fill in the details below.
                   </p>
                 </div>
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
                   Close
                 </Button>
               </div>
@@ -102,7 +106,7 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                       id="status"
                       value={status}
                       onChange={(e) => setStatus(e.target.value as Task["status"])}
-                      className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                      className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                     >
                       <option value="backlog">Backlog</option>
                       <option value="ready">Ready</option>
@@ -117,7 +121,7 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                       id="priority"
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as Task["priority"])}
-                      className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                      className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -183,10 +187,10 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
                   Cancel
                 </Button>
-                <Button type="submit">Create Task</Button>
+                <Button type="submit" className="cursor-pointer">Create Task</Button>
               </div>
             </form>
           </div>

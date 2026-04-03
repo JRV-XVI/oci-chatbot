@@ -5,6 +5,7 @@ import { GripVertical, Trash2, Calendar, Clock, User } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 
+// Task shape used by the kanban board, dialogs and drag/drop logic.
 export interface Task {
   id: string;
   title: string;
@@ -24,6 +25,8 @@ interface TaskCardProps {
   onClick?: (task: Task) => void;
 }
 
+// Draggable task card component.
+// Supports clicking to open details and deleting the task.
 export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "TASK",
@@ -71,9 +74,9 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
           {task.startDate && task.endDate && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3 flex-shrink-0" />
-              <span>
-                {new Date(task.startDate).toLocaleDateString()} - {new Date(task.endDate).toLocaleDateString()}
-              </span>
+              <div className="inline-block">
+                {new Date(task.startDate).toLocaleDateString('en-US')} - {new Date(task.endDate).toLocaleDateString('en-US')}
+              </div>
             </div>
           )}
 
@@ -102,7 +105,7 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 flex-shrink-0"
+          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 flex-shrink-0 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             onDelete(task.id);

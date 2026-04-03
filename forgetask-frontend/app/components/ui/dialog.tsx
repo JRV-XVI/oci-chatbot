@@ -16,6 +16,8 @@ interface DialogContextValue {
 
 const DialogContext = React.createContext<DialogContextValue | null>(null);
 
+// Custom dialog wrapper. Renders an overlay and listens for Escape key presses.
+// It only renders its children when open is true.
 function Dialog({ open, onOpenChange, children }: DialogProps) {
   React.useEffect(() => {
     if (!open) return;
@@ -42,6 +44,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
   );
 }
 
+// Optional trigger wrapper for opening the dialog.
 function DialogTrigger({ children, ...props }: React.ComponentPropsWithoutRef<"button">) {
   return (
     <button type="button" data-slot="dialog-trigger" {...props}>
@@ -54,6 +57,7 @@ function DialogPortal({ children }: React.PropsWithChildren<Record<string, unkno
   return <>{children}</>;
 }
 
+// Button that closes the dialog using the shared dialog context.
 function DialogClose({ children, ...props }: React.ComponentPropsWithoutRef<"button">) {
   const context = React.useContext(DialogContext);
 
@@ -74,6 +78,7 @@ function DialogClose({ children, ...props }: React.ComponentPropsWithoutRef<"but
   );
 }
 
+// Fullscreen overlay rendered behind dialog content.
 function DialogOverlay({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div
@@ -84,6 +89,7 @@ function DialogOverlay({ className, ...props }: React.ComponentPropsWithoutRef<"
   );
 }
 
+// Container for the main dialog content.
 function DialogContent({ className, children, ...props }: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div

@@ -15,6 +15,8 @@ interface TaskDetailsDialogProps {
   onUpdateTask: (task: Task) => void;
 }
 
+// Dialog for viewing and editing a selected task's details.
+// Synchronizes with the selected task and updates the parent state on save.
 export function TaskDetailsDialog({
   task,
   open,
@@ -31,6 +33,7 @@ export function TaskDetailsDialog({
   const [realTime, setRealTime] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
 
+  // Populate the detail form fields whenever the selected task changes.
   useEffect(() => {
     if (task) {
       setTitle(task.title);
@@ -79,7 +82,7 @@ export function TaskDetailsDialog({
               View and edit the details of this task.
             </p>
           </div>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             Close
           </Button>
         </div>
@@ -112,7 +115,7 @@ export function TaskDetailsDialog({
                   id="edit-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as Task["status"])}
-                  className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                 >
                   <option value="backlog">Backlog</option>
                   <option value="ready">Ready</option>
@@ -127,7 +130,7 @@ export function TaskDetailsDialog({
                   id="edit-priority"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Task["priority"])}
-                  className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -193,10 +196,10 @@ export function TaskDetailsDialog({
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" className="cursor-pointer">Save Changes</Button>
           </div>
         </form>
       </div>

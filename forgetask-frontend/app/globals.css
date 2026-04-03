@@ -28,9 +28,31 @@
   --chart-1: #E76B36;
   --chart-2: #C34B17;
   --chart-3: #923811;
+}
+
+/* Estilos para las barras de scroll (Webkit - Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+:root {
   --chart-4: #60a5fa;
   --chart-5: #34d399;
-  --radius: 0.625rem;
+  --radius: 1rem;
   --sidebar: #171717;
   --sidebar-foreground: #ededed;
   --sidebar-primary: #C34B17;

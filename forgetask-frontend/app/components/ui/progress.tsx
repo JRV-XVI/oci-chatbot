@@ -6,6 +6,8 @@ interface ProgressProps {
   className?: string;
 }
 
+// Lightweight progress bar component.
+// Normalizes the value and renders a filled bar width accordingly.
 export function Progress({ value, className }: ProgressProps) {
   const progressValue = Math.min(100, Math.max(0, value));
 
