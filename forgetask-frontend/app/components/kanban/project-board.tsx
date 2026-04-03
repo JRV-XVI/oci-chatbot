@@ -292,6 +292,8 @@ interface ColumnProps {
   onExpectedChange: (status: Task["status"], value: number) => void;
 }
 
+// Kanban column renderer.
+// Each column handles drop events for tasks and displays the task cards for a specific status.
 function Column({
   title,
   status,
@@ -360,7 +362,7 @@ function Column({
                   onClick={() => setIsEditingExpected(true)}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
-                  <span>{tasks.length}/{expectedTasks}</span>
+                  <span className={tasks.length > expectedTasks ? "text-red-500" : ""}>{tasks.length}/{expectedTasks}</span>
                   <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               )}
@@ -370,7 +372,7 @@ function Column({
 
         <div
           ref={drop as any}
-          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 ${
+          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 min-h-[600px] ${
             isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
           }`}
         >
@@ -383,6 +385,8 @@ function Column({
   );
 }
 
+// Main project board component.
+// Manages task state, dialogs, reports and project progress across all kanban columns.
 export function ProjectBoard() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -396,6 +400,7 @@ export function ProjectBoard() {
     done: 10,
   });
 
+  // Update task status when a task card is dropped into a new column.
   const handleDrop = (task: Task, newStatus: Task["status"]) => {
     if (task.status === newStatus) return;
 
@@ -431,6 +436,7 @@ export function ProjectBoard() {
     setExpectedTasks((prev) => ({ ...prev, [status]: value }));
   };
 
+  // Generate and download a plain text project report summarizing task counts and hours.
   const handleGenerateReport = () => {
     const totalTasks = tasks.length;
     const completedTasks = doneTasks.length;
@@ -471,7 +477,7 @@ export function ProjectBoard() {
   const isReadyOverloaded = readyTasks.length > expectedTasks.ready;
   const isInProgressOverloaded = inProgressTasks.length > expectedTasks["in-progress"];
   const isReviewOverloaded = reviewTasks.length > expectedTasks.review;
-  const isDoneOverloaded = doneTasks.length > expectedTasks.done;
+  const isDoneOverloaded = false; // Done state has no limit
 
   return (
     <div className="h-full flex flex-col">
