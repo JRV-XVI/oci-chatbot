@@ -5,6 +5,7 @@ import { GripVertical, Trash2, Calendar, Clock, User } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import type { Task } from "@/app/types/task";
+export type { Task };
 
 interface TaskCardProps {
   task: Task;
@@ -37,7 +38,9 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
 
   return (
     <div
-      ref={drag as any}
+      ref={(node) => {
+        drag(node);
+      }}
       className={`bg-card rounded-lg border border-border p-3 group hover:border-accent transition-all ${
         isDragging ? "opacity-50" : "opacity-100"
       }`}
