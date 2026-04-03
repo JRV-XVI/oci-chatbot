@@ -325,7 +325,7 @@ function Column({
   const isDone = status === "done";
 
   return (
-    <div className="flex-1 min-w-[300px] flex flex-col h-[calc(100vh-240px)]">
+    <div className="flex-1 min-w-[300px] flex flex-col h-full">
       <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full">
         <div className="flex items-center gap-2 mb-2">
           {icon}
@@ -372,7 +372,7 @@ function Column({
 
         <div
           ref={drop as any}
-          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 max-h-[calc(100vh-340px)] ${
+          className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 ${
             isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
           }`}
         >
