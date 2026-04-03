@@ -9,4 +9,6 @@ export interface Task {
   estimatedTime?: number;
   realTime?: number;
   assignedTo?: string[];
+  assignedUsername?: string;
+  assignedRole?: string;
 }

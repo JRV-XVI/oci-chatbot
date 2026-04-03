@@ -18,13 +18,16 @@ public class TaskDTO {
     private Double estimatedTime; // in hours
     private Double realTime; // in hours
     private List<String> assignedTo;
+    private String assignedUsername;
+    private String assignedRole;
 
     public TaskDTO() {
     }
 
-    public TaskDTO(String id, String title, String description, String status, 
-                   String priority, String startDate, String endDate, 
-                   Double estimatedTime, Double realTime, List<String> assignedTo) {
+    public TaskDTO(String id, String title, String description, String status,
+                   String priority, String startDate, String endDate,
+                   Double estimatedTime, Double realTime, List<String> assignedTo,
+                   String assignedUsername, String assignedRole) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -35,6 +38,8 @@ public class TaskDTO {
         this.estimatedTime = estimatedTime;
         this.realTime = realTime;
         this.assignedTo = assignedTo;
+        this.assignedUsername = assignedUsername;
+        this.assignedRole = assignedRole;
     }
 
     // Getters and Setters
@@ -118,6 +123,22 @@ public class TaskDTO {
         this.assignedTo = assignedTo;
     }
 
+    public String getAssignedUsername() {
+        return assignedUsername;
+    }
+
+    public void setAssignedUsername(String assignedUsername) {
+        this.assignedUsername = assignedUsername;
+    }
+
+    public String getAssignedRole() {
+        return assignedRole;
+    }
+
+    public void setAssignedRole(String assignedRole) {
+        this.assignedRole = assignedRole;
+    }
+
     @Override
     public String toString() {
         return "TaskDTO{" +
@@ -131,6 +152,8 @@ public class TaskDTO {
                 ", estimatedTime=" + estimatedTime +
                 ", realTime=" + realTime +
                 ", assignedTo=" + assignedTo +
+                ", assignedUsername='" + assignedUsername + '\'' +
+                ", assignedRole='" + assignedRole + '\'' +
                 '}';
     }
 }

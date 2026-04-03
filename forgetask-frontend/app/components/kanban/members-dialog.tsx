@@ -17,7 +17,10 @@ interface MembersDialogProps {
 }
 
 interface MemberStats {
+  key: string;
   name: string;
+  username?: string;
+  role?: string;
   productivity: number;
   completedTasks: number;
   totalEstimated: number;
@@ -29,23 +32,34 @@ export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps)
   const memberStatsMap = new Map<string, MemberStats>();
 
   tasks.forEach((task) => {
-    if (task.assignedTo && task.status === 'done') {
-      task.assignedTo.forEach((memberName) => {
-        if (!memberStatsMap.has(memberName)) {
-          memberStatsMap.set(memberName, {
-            name: memberName,
-            productivity: 0,
-            completedTasks: 0,
-            totalEstimated: 0,
-            totalReal: 0,
-          });
-        }
+    if (task.status === 'done' && task.assignedTo && task.assignedTo.length > 0) {
+      const memberName = task.assignedTo[0];
+      const memberKey = task.assignedUsername || memberName;
 
-        const stats = memberStatsMap.get(memberName)!;
-        stats.completedTasks += 1;
-        stats.totalEstimated += task.estimatedTime || 0;
-        stats.totalReal += task.realTime || 0;
-      });
+      if (!memberStatsMap.has(memberKey)) {
+        memberStatsMap.set(memberKey, {
+          key: memberKey,
+          name: memberName,
+          username: task.assignedUsername,
+          role: task.assignedRole,
+          productivity: 0,
+          completedTasks: 0,
+          totalEstimated: 0,
+          totalReal: 0,
+        });
+      }
+
+      const stats = memberStatsMap.get(memberKey)!;
+      stats.completedTasks += 1;
+      stats.totalEstimated += task.estimatedTime || 0;
+      stats.totalReal += task.realTime || 0;
+
+      if (!stats.username && task.assignedUsername) {
+        stats.username = task.assignedUsername;
+      }
+      if (!stats.role && task.assignedRole) {
+        stats.role = task.assignedRole;
+      }
     }
   });
 
@@ -105,7 +119,7 @@ export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps)
           <div className="space-y-4">
             {membersStats.map((member) => (
               <div
-                key={member.name}
+                key={member.key}
                 className="bg-card border border-border rounded-lg p-4 hover:border-accent transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
@@ -113,6 +127,12 @@ export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps)
                     <h3 className="font-semibold text-foreground text-lg">
                       {member.name}
                     </h3>
+                    {(member.username || member.role) && (
+                      <p className="text-xs text-muted-foreground">
+                        {member.username ? `@${member.username}` : 'No username'}
+                        {member.role ? ` • ${member.role}` : ''}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {member.completedTasks} completed{' '}
                       {member.completedTasks === 1 ? 'task' : 'tasks'}
