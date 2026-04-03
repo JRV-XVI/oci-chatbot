@@ -117,7 +117,8 @@ class TaskService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete task: ${response.statusText}`);
+        const errorBody = await response.text();
+        throw new Error(`Failed to delete task: ${response.statusText || errorBody}`);
       }
 
       return await response.json();
