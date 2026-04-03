@@ -4,20 +4,7 @@ import { useDrag } from "react-dnd";
 import { GripVertical, Trash2, Calendar, Clock, User } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-
-// Task shape used by the kanban board, dialogs and drag/drop logic.
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: "backlog" | "ready" | "in-progress" | "review" | "done";
-  priority?: "low" | "medium" | "high";
-  startDate?: string;
-  endDate?: string;
-  estimatedTime?: number;
-  realTime?: number;
-  assignedTo?: string[];
-}
+import type { Task } from "@/app/types/task";
 
 interface TaskCardProps {
   task: Task;

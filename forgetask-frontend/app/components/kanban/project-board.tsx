@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDrop } from "react-dnd";
 import { Circle, Layers, CircleDot, Eye, CheckCircle2, FileText, Settings, AlertTriangle, Users } from "lucide-react";
 import { TaskCard, type Task } from "./task-card";
@@ -11,7 +11,7 @@ import { MembersDialog } from "./members-dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Progress } from "../ui/progress";
-import { Badge } from "../ui/badge";
+import taskService from "@/app/services/taskService";
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -292,8 +292,6 @@ interface ColumnProps {
   onExpectedChange: (status: Task["status"], value: number) => void;
 }
 
-// Kanban column renderer.
-// Each column handles drop events for tasks and displays the task cards for a specific status.
 function Column({
   title,
   status,
@@ -325,7 +323,7 @@ function Column({
   const isDone = status === "done";
 
   return (
-    <div className="flex-1 min-w-[300px] flex flex-col h-full">
+    <div className="flex-1 min-w-[300px] flex flex-col max-h-full">
       <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full">
         <div className="flex items-center gap-2 mb-2">
           {icon}
@@ -360,9 +358,9 @@ function Column({
               ) : (
                 <button
                   onClick={() => setIsEditingExpected(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group cursor-pointer"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
                 >
-                  <span className={tasks.length > expectedTasks ? "text-red-500" : ""}>{tasks.length}/{expectedTasks}</span>
+                  <span>{tasks.length}/{expectedTasks}</span>
                   <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               )}
@@ -371,7 +369,9 @@ function Column({
         </div>
 
         <div
-          ref={drop as any}
+          ref={(node) => {
+            drop(node);
+          }}
           className={`space-y-3 flex-1 overflow-y-auto rounded-lg transition-colors p-1 ${
             isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
           }`}
@@ -385,10 +385,10 @@ function Column({
   );
 }
 
-// Main project board component.
-// Manages task state, dialogs, reports and project progress across all kanban columns.
 export function ProjectBoard() {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiAvailable, setApiAvailable] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
@@ -400,13 +400,50 @@ export function ProjectBoard() {
     done: 10,
   });
 
-  // Update task status when a task card is dropped into a new column.
+  // Load tasks from API on component mount
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Try to fetch tasks from API
+        const apiTasks = await taskService.getAllTasks();
+        setTasks(apiTasks);
+        setApiAvailable(true);
+        console.log("Tasks loaded from API successfully");
+      } catch (error) {
+        // Fall back to hardcoded data if API is unavailable
+        console.warn("Could not load tasks from API, using hardcoded data:", error);
+        setTasks(INITIAL_TASKS);
+        setApiAvailable(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, []);
+
   const handleDrop = (task: Task, newStatus: Task["status"]) => {
     if (task.status === newStatus) return;
 
+    // Update local state
     setTasks((prevTasks) =>
       prevTasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
     );
+
+    // Optionally persist to API if available
+    if (apiAvailable) {
+      taskService
+        .updateTask(task.id, { ...task, status: newStatus })
+        .catch((error: unknown) => {
+          console.error("Failed to update task on server:", error);
+          // Revert local change on error
+          setTasks((prevTasks) =>
+            prevTasks.map((t) => (t.id === task.id ? task : t)),
+          );
+        });
+    }
   };
 
   const handleAddTask = (newTask: Omit<Task, "id">) => {
@@ -436,7 +473,6 @@ export function ProjectBoard() {
     setExpectedTasks((prev) => ({ ...prev, [status]: value }));
   };
 
-  // Generate and download a plain text project report summarizing task counts and hours.
   const handleGenerateReport = () => {
     const totalTasks = tasks.length;
     const completedTasks = doneTasks.length;
@@ -477,17 +513,28 @@ export function ProjectBoard() {
   const isReadyOverloaded = readyTasks.length > expectedTasks.ready;
   const isInProgressOverloaded = inProgressTasks.length > expectedTasks["in-progress"];
   const isReviewOverloaded = reviewTasks.length > expectedTasks.review;
-  const isDoneOverloaded = false; // Done state has no limit
+  const isDoneOverloaded = doneTasks.length > expectedTasks.done;
 
   return (
     <div className="h-full flex flex-col">
       <header className="border-b border-border bg-card px-6 py-4">
         <div className="flex items-center justify-between gap-6">
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage your tasks and track progress
-            </p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Manage your tasks and track progress
+                </p>
+              </div>
+              {/* API Status Indicator */}
+              <div className="flex items-center gap-2 ml-4 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+                <div className={`w-2 h-2 rounded-full ${apiAvailable ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {isLoading ? 'Loading...' : apiAvailable ? 'Connected' : 'Local Mode'}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="flex-1 max-w-md">
@@ -501,11 +548,11 @@ export function ProjectBoard() {
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Button onClick={() => setMembersDialogOpen(true)} variant="outline" className="cursor-pointer">
+            <Button onClick={() => setMembersDialogOpen(true)} variant="outline">
               <Users className="w-4 h-4 mr-2" />
               Members
             </Button>
-            <Button onClick={handleGenerateReport} variant="outline" className="cursor-pointer">
+            <Button onClick={handleGenerateReport} variant="outline">
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>
