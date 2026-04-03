@@ -1,0 +1,162 @@
+import { Task } from './task-card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Users, TrendingUp } from 'lucide-react';
+import { Badge } from './ui/badge';
+
+interface MembersDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  tasks: Task[];
+}
+
+interface MemberStats {
+  name: string;
+  productivity: number;
+  completedTasks: number;
+  totalEstimated: number;
+  totalReal: number;
+}
+
+export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps) {
+  // Calculate member statistics
+  const memberStatsMap = new Map<string, MemberStats>();
+
+  tasks.forEach((task) => {
+    if (task.assignedTo && task.status === 'done') {
+      task.assignedTo.forEach((memberName) => {
+        if (!memberStatsMap.has(memberName)) {
+          memberStatsMap.set(memberName, {
+            name: memberName,
+            productivity: 0,
+            completedTasks: 0,
+            totalEstimated: 0,
+            totalReal: 0,
+          });
+        }
+
+        const stats = memberStatsMap.get(memberName)!;
+        stats.completedTasks += 1;
+        stats.totalEstimated += task.estimatedTime || 0;
+        stats.totalReal += task.realTime || 0;
+      });
+    }
+  });
+
+  // Calculate productivity percentage for each member
+  const membersStats = Array.from(memberStatsMap.values()).map((stats) => {
+    // Productivity = (Estimated Hours / Real Hours) * 100
+    // If real hours is 0, productivity is 100% (perfect estimate)
+    // Higher productivity means they completed work faster than estimated
+    const productivity =
+      stats.totalReal > 0
+        ? Math.round((stats.totalEstimated / stats.totalReal) * 100)
+        : 100;
+
+    return {
+      ...stats,
+      productivity,
+    };
+  });
+
+  // Sort by productivity descending
+  membersStats.sort((a, b) => b.productivity - a.productivity);
+
+  const getProductivityColor = (productivity: number) => {
+    if (productivity >= 100) return 'bg-green-500/20 text-green-400 border-green-500/30';
+    if (productivity >= 80) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+    return 'bg-red-500/20 text-red-400 border-red-500/30';
+  };
+
+  const getProductivityLabel = (productivity: number) => {
+    if (productivity >= 120) return 'Excellent';
+    if (productivity >= 100) return 'Great';
+    if (productivity >= 80) return 'Good';
+    return 'Needs Improvement';
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Team Members
+          </DialogTitle>
+          <DialogDescription>
+            View team members and their productivity metrics
+          </DialogDescription>
+        </DialogHeader>
+
+        {membersStats.length === 0 ? (
+          <div className="py-8 text-center text-muted-foreground">
+            No completed tasks yet to calculate productivity
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {membersStats.map((member) => (
+              <div
+                key={member.name}
+                className="bg-card border border-border rounded-lg p-4 hover:border-accent transition-colors"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-foreground text-lg">
+                      {member.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {member.completedTasks} completed{' '}
+                      {member.completedTasks === 1 ? 'task' : 'tasks'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-accent" />
+                      <span className="text-2xl font-bold text-foreground">
+                        {member.productivity}%
+                      </span>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={getProductivityColor(member.productivity)}
+                    >
+                      {getProductivityLabel(member.productivity)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Estimated Time:</span>
+                    <span className="ml-2 font-medium text-foreground">
+                      {member.totalEstimated}h
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Real Time:</span>
+                    <span className="ml-2 font-medium text-foreground">
+                      {member.totalReal}h
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    {member.productivity >= 100
+                      ? `Completed work ${member.productivity - 100}% faster than estimated`
+                      : `Took ${100 - member.productivity}% longer than estimated`}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

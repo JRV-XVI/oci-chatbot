@@ -1,19 +1,22 @@
-import { useDrag } from 'react-dnd';
-import { GripVertical, Trash2, Calendar, Clock, User } from 'lucide-react';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
+"use client";
 
+import { useDrag } from "react-dnd";
+import { GripVertical, Trash2, Calendar, Clock, User } from "lucide-react";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+
+// Task shape used by the kanban board, dialogs and drag/drop logic.
 export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'backlog' | 'ready' | 'in-progress' | 'review' | 'done';
-  priority?: 'low' | 'medium' | 'high';
-  startDate?: string; // Date string
-  endDate?: string; // Date string
-  estimatedTime?: number; // in hours
-  realTime?: number; // in hours
-  assignedTo?: string[]; // Array of assigned team members
+  status: "backlog" | "ready" | "in-progress" | "review" | "done";
+  priority?: "low" | "medium" | "high";
+  startDate?: string;
+  endDate?: string;
+  estimatedTime?: number;
+  realTime?: number;
+  assignedTo?: string[];
 }
 
 interface TaskCardProps {
@@ -22,9 +25,11 @@ interface TaskCardProps {
   onClick?: (task: Task) => void;
 }
 
+// Draggable task card component.
+// Supports clicking to open details and deleting the task.
 export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'TASK',
+    type: "TASK",
     item: task,
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -32,9 +37,9 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
   }));
 
   const priorityColors = {
-    low: 'bg-green-500/20 text-green-400 border-green-500/30',
-    medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    high: 'bg-red-500/20 text-red-400 border-red-500/30',
+    low: "bg-green-500/20 text-green-400 border-green-500/30",
+    medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    high: "bg-red-500/20 text-red-400 border-red-500/30",
   };
 
   const handleCardClick = () => {
@@ -47,38 +52,34 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
     <div
       ref={drag as any}
       className={`bg-card rounded-lg border border-border p-3 group hover:border-accent transition-all ${
-        isDragging ? 'opacity-50' : 'opacity-100'
+        isDragging ? "opacity-50" : "opacity-100"
       }`}
     >
       <div className="flex items-start gap-2">
         <div className="cursor-move">
           <GripVertical className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
         </div>
-        <div 
-          className="flex-1 min-w-0 cursor-pointer space-y-2" 
+        <div
+          className="flex-1 min-w-0 cursor-pointer space-y-2"
           onClick={handleCardClick}
         >
-          {/* Title */}
           <h3 className="font-medium text-foreground">{task.title}</h3>
-          
-          {/* Priority */}
+
           {task.priority && (
             <Badge variant="outline" className={priorityColors[task.priority]}>
               {task.priority}
             </Badge>
           )}
-          
-          {/* Dates */}
+
           {task.startDate && task.endDate && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3 flex-shrink-0" />
-              <span>
-                {new Date(task.startDate).toLocaleDateString()} - {new Date(task.endDate).toLocaleDateString()}
-              </span>
+              <div className="inline-block">
+                {new Date(task.startDate).toLocaleDateString('en-US')} - {new Date(task.endDate).toLocaleDateString('en-US')}
+              </div>
             </div>
           )}
-          
-          {/* Estimated Time and Real Time */}
+
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             {task.estimatedTime !== undefined && (
               <div className="flex items-center gap-1">
@@ -93,19 +94,18 @@ export function TaskCard({ task, onDelete, onClick }: TaskCardProps) {
               </div>
             )}
           </div>
-          
-          {/* Assigned To */}
+
           {task.assignedTo && task.assignedTo.length > 0 && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <User className="w-3 h-3 flex-shrink-0" />
-              <span>{task.assignedTo.join(', ')}</span>
+              <span>{task.assignedTo.join(", ")}</span>
             </div>
           )}
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 flex-shrink-0"
+          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 flex-shrink-0 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             onDelete(task.id);
