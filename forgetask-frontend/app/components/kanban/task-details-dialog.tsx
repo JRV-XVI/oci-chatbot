@@ -1,52 +1,79 @@
-"use client";
+'use client'
 
-import type * as React from "react";
-import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import type { Task } from "./task-card";
+/**
+ * MODIFICADO EN ESTE PROMPT
+ * Diálogo para ver y editar detalles de una tarea
+ *
+ * CAMBIOS: Agregados comentarios explicativos
+ * CÓMO FUNCIONA CON WEBSOCKET:
+ * 1. Usuario abre un detalles de una tarea
+ * 2. Usuario modifica los campos (título, status, prioridad, etc.)
+ * 3. Al click en "Save", se ejecuta handleSave
+ * 4. handleSave llama a onUpdateTask (que ProjectBoard pasa desde WebSocket)
+ * 5. onUpdateTask envía mensaje UPDATE al backend via WebSocket
+ * 6. Backend actualiza la tarea en BD y emite evento TASK_UPDATED a todos los clientes
+ * 7. Todos los clientes reciben el evento y actualizan el store automáticamente
+ */
+
+import type * as React from 'react'
+import { useEffect, useState } from 'react'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Textarea } from '../ui/textarea'
+import type { Task } from './task-card'
 
 interface TaskDetailsDialogProps {
-  task: Task | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdateTask: (task: Task) => void;
+  task: Task | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onUpdateTask: (task: Task) => void
 }
 
-// Dialog for viewing and editing a selected task's details.
-// Synchronizes with the selected task and updates the parent state on save.
+/**
+ * Diálogo para editar detalles de una tarea
+ *
+ * Props:
+ * - task: Tarea a editar (null si no hay seleccionada)
+ * - open: Si el diálogo está abierto
+ * - onOpenChange: Callback para cambiar estado del diálogo
+ * - onUpdateTask: Callback para guardar cambios
+ *   (ProjectBoard pasa una función que ejecuta WebSocket.updateTask)
+ */
 export function TaskDetailsDialog({
   task,
   open,
   onOpenChange,
   onUpdateTask,
 }: TaskDetailsDialogProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<Task["status"]>("backlog");
-  const [priority, setPriority] = useState<Task["priority"]>("medium");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [estimatedTime, setEstimatedTime] = useState("");
-  const [realTime, setRealTime] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  // Estado del formulario
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [status, setStatus] = useState<Task['status']>('backlog')
+  const [priority, setPriority] = useState<Task['priority']>('medium')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [estimatedTime, setEstimatedTime] = useState('')
+  const [realTime, setRealTime] = useState('')
+  const [assignedTo, setAssignedTo] = useState('')
 
-  // Populate the detail form fields whenever the selected task changes.
+  /**
+   * Cuando la tarea seleccionada cambia, llenar el formulario con sus datos
+   * (Cuando usuario hace click en una tarjeta, ProjectBoard abre este diálogo)
+   */
   useEffect(() => {
     if (task) {
-      setTitle(task.title);
-      setDescription(task.description || "");
-      setStatus(task.status);
-      setPriority(task.priority || "medium");
-      setStartDate(task.startDate || "");
-      setEndDate(task.endDate || "");
-      setEstimatedTime(task.estimatedTime?.toString() || "");
-      setRealTime(task.realTime?.toString() || "");
-      setAssignedTo(task.assignedTo?.join(", ") || "");
+      setTitle(task.title)
+      setDescription(task.description || '')
+      setStatus(task.status)
+      setPriority(task.priority || 'medium')
+      setStartDate(task.startDate || '')
+      setEndDate(task.endDate || '')
+      setEstimatedTime(task.estimatedTime?.toString() || '')
+      setRealTime(task.realTime?.toString() || '')
+      setAssignedTo(task.assignedTo?.join(', ') || '')
     }
-  }, [task]);
+  }, [task])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

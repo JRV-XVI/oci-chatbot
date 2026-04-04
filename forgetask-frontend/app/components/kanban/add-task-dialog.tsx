@@ -1,38 +1,65 @@
-"use client";
+'use client'
 
-import type * as React from "react";
-import { useState } from "react";
-import { Plus } from "lucide-react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import type { Task } from "./task-card";
+/**
+ * MODIFICADO EN ESTE PROMPT
+ * Dialogo modal para crear nuevas tareas
+ * 
+ * CAMBIOS: Agregados comentarios explicativos
+ * CÓMO FUNCIONA CON WEBSOCKET:
+ * 1. Usuario rellena el formulario con datos de la nueva tarea
+ * 2. Al click en "Add Task", se ejecuta handleSubmit
+ * 3. handleSubmit llama a onAddTask (que ProjectBoard pasa desde WebSocket)
+ * 4. onAddTask envía el mensaje CREATE al backend via WebSocket
+ * 5. Backend crea la tarea en BD y emite evento TASK_CREATED a todos los clientes
+ * 6. Todos los clientes reciben el evento y actualizan el store automáticamente
+ */
+
+import type * as React from 'react'
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Textarea } from '../ui/textarea'
+import type { Task } from './task-card'
 
 interface AddTaskDialogProps {
-  onAddTask: (task: Omit<Task, "id">) => void;
+  onAddTask: (task: Omit<Task, 'id'>) => void
 }
 
-// Modal-style dialog used to create a new task on the board.
-// Contains form fields for title, dates, times and assignment.
+/**
+ * Dialogo para crear nuevas tareas
+ *
+ * Props:
+ * - onAddTask: Callback que recibe los datos de la tarea creada
+ *   (ProjectBoard pasa una función que ejecuta WebSocket.createTask)
+ */
 export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<Task["status"]>("backlog");
-  const [priority, setPriority] = useState<Task["priority"]>("medium");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [estimatedTime, setEstimatedTime] = useState("");
-  const [realTime, setRealTime] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  // Estado del formulario
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [status, setStatus] = useState<Task['status']>('backlog')
+  const [priority, setPriority] = useState<Task['priority']>('medium')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [estimatedTime, setEstimatedTime] = useState('')
+  const [realTime, setRealTime] = useState('')
+  const [assignedTo, setAssignedTo] = useState('')
 
-  // Handle form submit for creating a new task.
-  // Normalizes the input values and calls the parent onAddTask callback.
+  /**
+   * Manejar envío del formulario
+   * 1. Validar que al menos haya título
+   * 2. Compilar datos de la tarea
+   * 3. Llamar al callback onAddTask (que envía CREATE via WebSocket)
+   * 4. Limpiar formulario y cerrar diálogo
+   */
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
+    e.preventDefault()
+    if (!title.trim()) return
 
+    // Enviar datos de la nueva tarea al callback (ProjectBoard)
+    // ProjectBoard tiene WebSocket.createTask que envía esto al backend
     onAddTask({
       title,
       description: description || undefined,
@@ -42,12 +69,13 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
       endDate: endDate || undefined,
       estimatedTime: estimatedTime ? parseFloat(estimatedTime) : undefined,
       realTime: realTime ? parseFloat(realTime) : undefined,
-      assignedTo: assignedTo ? assignedTo.split(",").map((name) => name.trim()) : undefined,
-    });
+      assignedTo: assignedTo ? assignedTo.split(',').map((name) => name.trim()) : undefined,
+    })
 
-    setTitle("");
-    setDescription("");
-    setStatus("backlog");
+    // Limpiar formulario
+    setTitle('')
+    setDescription('')
+    setStatus('backlog')
     setPriority("medium");
     setStartDate("");
     setEndDate("");
