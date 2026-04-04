@@ -19,15 +19,18 @@ import type * as React from 'react'
 import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { DatePickerInput } from '../ui/date-picker-input'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import type { Task } from './task-card'
+import type { TaskAssigneeOption } from '@/app/types/task'
 
 interface TaskDetailsDialogProps {
   task: Task | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onUpdateTask: (task: Task) => void
+  assigneeOptions: TaskAssigneeOption[]
 }
 
 /**
@@ -45,6 +48,7 @@ export function TaskDetailsDialog({
   open,
   onOpenChange,
   onUpdateTask,
+  assigneeOptions,
 }: TaskDetailsDialogProps) {
   // Estado del formulario
   const [title, setTitle] = useState('')
@@ -57,6 +61,19 @@ export function TaskDetailsDialog({
   const [realTime, setRealTime] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
 
+  const normalizeDateForInput = (value?: string) => {
+    if (!value) {
+      return ''
+    }
+
+    const trimmed = value.trim()
+    if (trimmed.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+      return trimmed.slice(0, 10)
+    }
+
+    return ''
+  }
+
   /**
    * Cuando la tarea seleccionada cambia, llenar el formulario con sus datos
    * (Cuando usuario hace click en una tarjeta, ProjectBoard abre este diálogo)
@@ -67,17 +84,34 @@ export function TaskDetailsDialog({
       setDescription(task.description || '')
       setStatus(task.status)
       setPriority(task.priority || 'medium')
-      setStartDate(task.startDate || '')
-      setEndDate(task.endDate || '')
+      setStartDate(normalizeDateForInput(task.startDate))
+      setEndDate(normalizeDateForInput(task.endDate))
       setEstimatedTime(task.estimatedTime?.toString() || '')
       setRealTime(task.realTime?.toString() || '')
-      setAssignedTo(task.assignedTo?.join(', ') || '')
+
+      const usernameFromTask = task.assignedUsername || ''
+      const displayNameFromTask = task.assignedTo?.[0] || ''
+
+      const matchedOption = assigneeOptions.find((option) => {
+        if (usernameFromTask && option.username === usernameFromTask) {
+          return true
+        }
+        return displayNameFromTask && option.displayName === displayNameFromTask
+      })
+
+      setAssignedTo(matchedOption?.username || usernameFromTask || '')
     }
-  }, [task])
+  }, [task, assigneeOptions])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!task || !title.trim()) return;
+
+    const parsedEstimatedTime = estimatedTime.trim() === '' ? undefined : Number(estimatedTime)
+    const parsedRealTime = realTime.trim() === '' ? undefined : Number(realTime)
+
+    const estimatedTimeValue = Number.isFinite(parsedEstimatedTime) ? parsedEstimatedTime : undefined
+    const realTimeValue = Number.isFinite(parsedRealTime) ? parsedRealTime : undefined
 
     onUpdateTask({
       ...task,
@@ -87,9 +121,9 @@ export function TaskDetailsDialog({
       priority,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
-      estimatedTime: estimatedTime ? parseFloat(estimatedTime) : undefined,
-      realTime: realTime ? parseFloat(realTime) : undefined,
-      assignedTo: assignedTo ? assignedTo.split(",").map((name) => name.trim()) : undefined,
+      estimatedTime: estimatedTimeValue,
+      realTime: realTimeValue,
+      assignedTo: assignedTo ? [assignedTo] : undefined,
     });
 
     onOpenChange(false);
@@ -100,12 +134,12 @@ export function TaskDetailsDialog({
   if (!task || !open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
-      <div className="w-full max-w-[600px] max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-2xl">
-        <div className="flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
+      <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#923811]/70 bg-[#140c09] p-6 shadow-[0_0_28px_rgba(231,107,54,0.28)]">
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#923811]/40">
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Task Details</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-xl font-semibold neon-orange">Task Details</h2>
+            <p className="text-sm text-[#ffd5c2]/85 mt-1">
               View and edit the details of this task.
             </p>
           </div>
@@ -114,8 +148,8 @@ export function TaskDetailsDialog({
           </Button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
+          <div className="grid gap-4 py-5">
+            <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
               <Label htmlFor="edit-title">Title *</Label>
               <Input
                 id="edit-title"
@@ -125,7 +159,7 @@ export function TaskDetailsDialog({
                 required
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
               <Label htmlFor="edit-description">Description</Label>
               <Textarea
                 id="edit-description"
@@ -135,13 +169,14 @@ export function TaskDetailsDialog({
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
               <div className="grid gap-2">
                 <Label htmlFor="edit-status">Status</Label>
                 <select
                   id="edit-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as Task["status"])}
+                  title="Task status"
                   className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                 >
                   <option value="backlog">Backlog</option>
@@ -157,6 +192,7 @@ export function TaskDetailsDialog({
                   id="edit-priority"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Task["priority"])}
+                  title="Task priority"
                   className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                 >
                   <option value="low">Low</option>
@@ -165,26 +201,24 @@ export function TaskDetailsDialog({
                 </select>
               </div>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
               <Label htmlFor="edit-startDate">Start Date</Label>
-              <Input
+              <DatePickerInput
                 id="edit-startDate"
-                type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={setStartDate}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
               <Label htmlFor="edit-endDate">End Date</Label>
-              <Input
+              <DatePickerInput
                 id="edit-endDate"
-                type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={setEndDate}
               />
             </div>
-            <div className="border-t pt-4 mt-2">
-              <h3 className="font-medium text-gray-100 mb-3">Time Tracking (hours)</h3>
+            <div className="rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3 mt-1">
+              <h3 className="font-medium text-[#ffe7dc] mb-3">Time Tracking (hours)</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="edit-estimatedTime">Estimated Time</Label>
@@ -212,21 +246,34 @@ export function TaskDetailsDialog({
                 </div>
               </div>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
               <Label htmlFor="edit-assignedTo">Assigned To</Label>
-              <Input
+              <select
                 id="edit-assignedTo"
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                placeholder="Enter names separated by commas"
-              />
+                title="Assigned user"
+                className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
+                disabled={assigneeOptions.length === 0}
+              >
+                {assigneeOptions.length === 0 ? (
+                  <option value="">No users available</option>
+                ) : (
+                  assigneeOptions.map((option) => (
+                    <option key={`${option.idProject}-${option.idUser}`} value={option.username}>
+                      {option.displayName}
+                      {option.role ? ` (${option.role})` : ''}
+                    </option>
+                  ))
+                )}
+              </select>
             </div>
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-4 border-t border-[#923811]/40">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
               Cancel
             </Button>
-            <Button type="submit" className="cursor-pointer">Save Changes</Button>
+            <Button type="submit" className="cursor-pointer neon-orange-bg text-white">Save Changes</Button>
           </div>
         </form>
       </div>

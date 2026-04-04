@@ -61,12 +61,32 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
     onTaskClick(task)
   }
 
+  const formatTaskDate = (value: string) => {
+    const dateOnlyPattern = /^(\d{4})-(\d{2})-(\d{2})$/
+    const match = value.match(dateOnlyPattern)
+
+    // Keep backend date-only values as-is for consistent UI and input compatibility.
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}`
+    }
+
+    const trimmed = value.trim()
+    if (trimmed.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+      return trimmed.slice(0, 10)
+    }
+
+    return value
+  }
+
+  const hasAnyDate = Boolean(task.startDate || task.endDate)
+  const dateRangeLabel = `${task.startDate ? formatTaskDate(task.startDate) : '-'} - ${task.endDate ? formatTaskDate(task.endDate) : '-'}`
+
   return (
     <div
       ref={(node) => {
         drag(node)
       }}
-      className={`bg-card rounded-lg border border-border p-3 group hover:border-accent transition-all cursor-pointer ${
+      className={`bg-[#1a110d] rounded-lg border border-[#923811]/45 p-3 group hover:border-[#e76b36]/60 hover:shadow-[0_0_14px_rgba(231,107,54,0.18)] transition-all cursor-pointer ${
         isDragging ? 'opacity-50' : 'opacity-100'
       }`}
     >
@@ -78,7 +98,7 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
 
         {/* Task Content */}
         <div className="flex-1 min-w-0 space-y-2" onClick={handleCardClick}>
-          <h3 className="font-medium text-foreground">{task.title}</h3>
+          <h3 className="font-medium text-[#fff1e9]">{task.title}</h3>
 
           {/* Priority Badge */}
           {task.priority && (
@@ -88,18 +108,17 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
           )}
 
           {/* Date Range */}
-          {task.startDate && task.endDate && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="w-3 h-3 flex-shrink-0" />
-              <div className="inline-block">
-                {new Date(task.startDate).toLocaleDateString('en-US')} -{' '}
-                {new Date(task.endDate).toLocaleDateString('en-US')}
+          {hasAnyDate && (
+            <div className="flex items-center gap-1 text-xs text-[#fff1e9]">
+              <Calendar className="w-3 h-3 flex-shrink-0 text-[#ffb693]" />
+              <div className="inline-block font-medium">
+                {dateRangeLabel}
               </div>
             </div>
           )}
 
           {/* Time Estimates */}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 text-xs text-[#d4a791]">
             {task.estimatedTime !== undefined && (
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3 flex-shrink-0" />
@@ -116,7 +135,7 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
 
           {/* Assignee */}
           {task.assignedTo && task.assignedTo.length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs text-[#d4a791]">
               <User className="w-3 h-3 flex-shrink-0" />
               <span>{task.assignedTo.join(', ')}</span>
             </div>

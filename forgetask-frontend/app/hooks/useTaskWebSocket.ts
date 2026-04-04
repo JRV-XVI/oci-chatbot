@@ -23,6 +23,8 @@
 import { useEffect, useCallback, useRef } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+import taskService from '@/app/services/taskService'
+import type { Task } from '@/app/types/task'
 
 /**
  * Interfaz que define la estructura de los eventos que vienen del servidor
@@ -34,7 +36,7 @@ import { Client } from '@stomp/stompjs'
  */
 export interface TaskEventMessage {
   type: 'TASK_CREATED' | 'TASK_UPDATED' | 'TASK_DELETED'
-  data: any
+  data: Task | string
   timestamp: string
 }
 
@@ -55,9 +57,7 @@ export function useTaskWebSocket(
   onTaskChange: (event: TaskEventMessage) => void
 ) {
   // Referencia al cliente STOMP para mantenerlo disponible en todo el ciclo de vida
-  const stompClientRef = useRef<any>(null)
-  // Flag para saber si estamos intentando reconectar
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const stompClientRef = useRef<Client | null>(null)
 
   useEffect(() => {
     // Función para establecer la conexión WebSocket
@@ -90,6 +90,9 @@ export function useTaskWebSocket(
             console.log('📢 Suscrito a /topic/tasks para recibir eventos en tiempo real')
             stompClientRef.current = stompClient
           },
+          onDisconnect: () => {
+            console.warn('⚠️ WebSocket desconectado de STOMP')
+          },
           onStompError: (frame) => {
             console.error('❌ Error STOMP:', frame)
           },
@@ -106,10 +109,6 @@ export function useTaskWebSocket(
 
     // Limpiar conexión al desmontar
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current)
-      }
-
       if (stompClientRef.current?.active) {
         stompClientRef.current.deactivate()
         console.log('👋 WebSocket desconectado')
@@ -129,18 +128,38 @@ export function useTaskWebSocket(
    * EJEMPLO:
    * updateTask("5", { status: "in-progress", title: "Actualizado" })
    */
-  const updateTask = useCallback((taskId: string, taskData: any) => {
-    if (stompClientRef.current?.active) {
+  const updateTask = useCallback((taskId: string, taskData: Partial<Task>) => {
+    const client = stompClientRef.current
+    const fallbackToHttp = async () => {
+      try {
+        const updatedTask = await taskService.updateTask(taskId, taskData)
+        onTaskChange({
+          type: 'TASK_UPDATED',
+          data: updatedTask,
+          timestamp: new Date().toISOString(),
+        })
+      } catch (error) {
+        console.error('❌ Error actualizando tarea por HTTP fallback:', error)
+      }
+    }
+
+    if (client?.active && client.connected) {
       console.log('📤 Enviando UPDATE de tarea:', taskId, taskData)
 
-      stompClientRef.current.publish({
-        destination: '/app/task/update',
-        body: JSON.stringify({ taskId, taskData }),
-      })
+      try {
+        client.publish({
+          destination: '/app/task/update',
+          body: JSON.stringify({ taskId, taskData }),
+        })
+      } catch (error) {
+        console.warn('⚠️ Fallo publish STOMP, usando fallback HTTP para update:', error)
+        void fallbackToHttp()
+      }
     } else {
-      console.warn('WebSocket no conectado. No se puede enviar actualización.')
+      console.warn('WebSocket no conectado. Usando fallback HTTP para update.')
+      void fallbackToHttp()
     }
-  }, [])
+  }, [onTaskChange])
 
   /**
    * Enviar creación de nueva tarea al backend
@@ -153,18 +172,38 @@ export function useTaskWebSocket(
    * EJEMPLO:
    * createTask({ title: "Nueva tarea", description: "...", status: "backlog" })
    */
-  const createTask = useCallback((taskData: any) => {
-    if (stompClientRef.current?.active) {
+  const createTask = useCallback((taskData: Omit<Task, 'id'>) => {
+    const client = stompClientRef.current
+    const fallbackToHttp = async () => {
+      try {
+        const createdTask = await taskService.createTask(taskData)
+        onTaskChange({
+          type: 'TASK_CREATED',
+          data: createdTask,
+          timestamp: new Date().toISOString(),
+        })
+      } catch (error) {
+        console.error('❌ Error creando tarea por HTTP fallback:', error)
+      }
+    }
+
+    if (client?.active && client.connected) {
       console.log('📤 Enviando CREATE de nueva tarea:', taskData)
 
-      stompClientRef.current.publish({
-        destination: '/app/task/create',
-        body: JSON.stringify({ taskData }),
-      })
+      try {
+        client.publish({
+          destination: '/app/task/create',
+          body: JSON.stringify({ taskData }),
+        })
+      } catch (error) {
+        console.warn('⚠️ Fallo publish STOMP, usando fallback HTTP para create:', error)
+        void fallbackToHttp()
+      }
     } else {
-      console.warn('WebSocket no conectado. No se puede crear tarea.')
+      console.warn('WebSocket no conectado. Usando fallback HTTP para create.')
+      void fallbackToHttp()
     }
-  }, [])
+  }, [onTaskChange])
 
   /**
    * Enviar eliminación de tarea al backend
@@ -178,17 +217,39 @@ export function useTaskWebSocket(
    * deleteTask("5")
    */
   const deleteTask = useCallback((taskId: string) => {
-    if (stompClientRef.current?.active) {
+    const client = stompClientRef.current
+    const fallbackToHttp = async () => {
+      try {
+        const deleted = await taskService.deleteTask(taskId)
+        if (deleted) {
+          onTaskChange({
+            type: 'TASK_DELETED',
+            data: taskId,
+            timestamp: new Date().toISOString(),
+          })
+        }
+      } catch (error) {
+        console.error('❌ Error eliminando tarea por HTTP fallback:', error)
+      }
+    }
+
+    if (client?.active && client.connected) {
       console.log('📤 Enviando DELETE de tarea:', taskId)
 
-      stompClientRef.current.publish({
-        destination: '/app/task/delete',
-        body: JSON.stringify({ taskId }),
-      })
+      try {
+        client.publish({
+          destination: '/app/task/delete',
+          body: JSON.stringify({ taskId }),
+        })
+      } catch (error) {
+        console.warn('⚠️ Fallo publish STOMP, usando fallback HTTP para delete:', error)
+        void fallbackToHttp()
+      }
     } else {
-      console.warn('WebSocket no conectado. No se puede eliminar tarea.')
+      console.warn('WebSocket no conectado. Usando fallback HTTP para delete.')
+      void fallbackToHttp()
     }
-  }, [])
+  }, [onTaskChange])
 
   // Retornar las funciones para que el componente las use
   return { updateTask, createTask, deleteTask }

@@ -19,12 +19,15 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { DatePickerInput } from '../ui/date-picker-input'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import type { Task } from './task-card'
+import type { TaskAssigneeOption } from '@/app/types/task'
 
 interface AddTaskDialogProps {
   onAddTask: (task: Omit<Task, 'id'>) => void
+  assigneeOptions: TaskAssigneeOption[]
 }
 
 /**
@@ -34,7 +37,7 @@ interface AddTaskDialogProps {
  * - onAddTask: Callback que recibe los datos de la tarea creada
  *   (ProjectBoard pasa una función que ejecuta WebSocket.createTask)
  */
-export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
+export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps) {
   // Estado del formulario
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -44,8 +47,13 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [estimatedTime, setEstimatedTime] = useState('')
-  const [realTime, setRealTime] = useState('')
+  const [realTime] = useState('0')
   const [assignedTo, setAssignedTo] = useState('')
+
+  const openDialog = () => {
+    setAssignedTo('')
+    setOpen(true)
+  }
 
   /**
    * Manejar envío del formulario
@@ -58,6 +66,16 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
     e.preventDefault()
     if (!title.trim()) return
 
+    const parsedEstimatedTime = estimatedTime.trim() === '' ? undefined : Number(estimatedTime)
+    const parsedRealTime = Number(realTime)
+
+    const estimatedTimeValue = Number.isFinite(parsedEstimatedTime) ? parsedEstimatedTime : undefined
+    const realTimeValue = Number.isFinite(parsedRealTime) ? parsedRealTime : 0
+
+    if (!assignedTo) {
+      return
+    }
+
     // Enviar datos de la nueva tarea al callback (ProjectBoard)
     // ProjectBoard tiene WebSocket.createTask que envía esto al backend
     onAddTask({
@@ -67,9 +85,9 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
       priority,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
-      estimatedTime: estimatedTime ? parseFloat(estimatedTime) : undefined,
-      realTime: realTime ? parseFloat(realTime) : undefined,
-      assignedTo: assignedTo ? assignedTo.split(',').map((name) => name.trim()) : undefined,
+      estimatedTime: estimatedTimeValue,
+      realTime: realTimeValue,
+      assignedTo: assignedTo ? [assignedTo] : undefined,
     })
 
     // Limpiar formulario
@@ -80,25 +98,25 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
     setStartDate("");
     setEndDate("");
     setEstimatedTime("");
-    setRealTime("");
+    // realTime stays locked to 0 on create dialog.
     setAssignedTo("");
     setOpen(false);
   };
 
   return (
     <>
-      <Button className="gap-2 cursor-pointer" onClick={() => setOpen(true)}>
+      <Button className="gap-2 cursor-pointer neon-orange-bg text-white" onClick={openDialog}>
         <Plus className="w-4 h-4" />
         New Task
       </Button>
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
-          <div className="w-full max-w-[600px] max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
+          <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#923811]/70 bg-[#140c09] p-6 shadow-[0_0_28px_rgba(231,107,54,0.28)]">
             <form onSubmit={handleSubmit}>
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#923811]/40">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Create New Task</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h2 className="text-xl font-semibold neon-orange">Create New Task</h2>
+                  <p className="text-sm text-[#ffd5c2]/85 mt-1">
                     Add a new task to your project board. Fill in the details below.
                   </p>
                 </div>
@@ -106,8 +124,8 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                   Close
                 </Button>
               </div>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
+              <div className="grid gap-4 py-5">
+                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
@@ -117,7 +135,7 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                     required
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
@@ -127,13 +145,14 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <div className="grid gap-2">
                     <Label htmlFor="status">Status</Label>
                     <select
                       id="status"
                       value={status}
                       onChange={(e) => setStatus(e.target.value as Task["status"])}
+                      title="Task status"
                       className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                     >
                       <option value="backlog">Backlog</option>
@@ -149,6 +168,7 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                       id="priority"
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as Task["priority"])}
+                      title="Task priority"
                       className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
                     >
                       <option value="low">Low</option>
@@ -157,26 +177,24 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                     </select>
                   </div>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <Label htmlFor="startDate">Start Date</Label>
-                  <Input
+                  <DatePickerInput
                     id="startDate"
-                    type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={setStartDate}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <Label htmlFor="endDate">End Date</Label>
-                  <Input
+                  <DatePickerInput
                     id="endDate"
-                    type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={setEndDate}
                   />
                 </div>
-                <div className="border-t pt-4 mt-2">
-                  <h3 className="font-medium text-gray-100 mb-3">Time Tracking (hours)</h3>
+                <div className="rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3 mt-1">
+                  <h3 className="font-medium text-[#ffe7dc] mb-3">Time Tracking (hours)</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="estimatedTime">Estimated Time</Label>
@@ -198,27 +216,45 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                         step="0.5"
                         min="0"
                         value={realTime}
-                        onChange={(e) => setRealTime(e.target.value)}
+                        readOnly
+                        disabled
                         placeholder="0"
                       />
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <Label htmlFor="assignedTo">Assigned To</Label>
-                  <Input
+                  <select
                     id="assignedTo"
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
-                    placeholder="Enter names separated by commas"
-                  />
+                    title="Assigned user"
+                    className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
+                    disabled={assigneeOptions.length === 0}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select user
+                    </option>
+                    {assigneeOptions.length === 0 ? (
+                      <option value="">No users available</option>
+                    ) : (
+                      assigneeOptions.map((option) => (
+                        <option key={`${option.idProject}-${option.idUser}`} value={option.username}>
+                          {option.displayName}
+                          {option.role ? ` (${option.role})` : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-4 border-t border-[#923811]/40">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
                   Cancel
                 </Button>
-                <Button type="submit" className="cursor-pointer">Create Task</Button>
+                <Button type="submit" className="cursor-pointer neon-orange-bg text-white">Create Task</Button>
               </div>
             </form>
           </div>

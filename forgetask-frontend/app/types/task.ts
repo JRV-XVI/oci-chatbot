@@ -12,3 +12,11 @@ export interface Task {
   assignedUsername?: string;
   assignedRole?: string;
 }
+
+export interface TaskAssigneeOption {
+  idUser: number;
+  idProject: number;
+  username: string;
+  displayName: string;
+  role?: string;
+}

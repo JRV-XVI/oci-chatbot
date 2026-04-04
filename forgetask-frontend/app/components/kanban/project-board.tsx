@@ -12,6 +12,7 @@
 
 import * as React from 'react'
 import { useMemo, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { useDrop } from 'react-dnd'
 import {
   Circle,
@@ -21,6 +22,8 @@ import {
   CheckCircle2,
   FileText,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
   Users,
 } from 'lucide-react'
 import { TaskCard, type Task } from './task-card'
@@ -28,9 +31,9 @@ import { AddTaskDialog } from './add-task-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { Button } from '../ui/button'
-import { Input } from '../ui/input'
 import { Progress } from '../ui/progress'
 import { useTaskStore } from '@/app/store/taskStore'
+import type { TaskAssigneeOption } from '@/app/types/task'
 
 interface ColumnProps {
   title: string
@@ -58,13 +61,16 @@ function Column({
   // Estado para edición del contador esperado
   const [isEditingExpected, setIsEditingExpected] = useState(false)
   const [editValue, setEditValue] = useState(expectedTasks?.toString() || '0')
+  const [showOverloadDetails, setShowOverloadDetails] = useState(false)
   
   // Detectar si está sobrecargado (solo si hay límite esperado)
   const isOverloaded = expectedTasks !== undefined && tasks.length > expectedTasks
+  const overloadCount = expectedTasks !== undefined ? Math.max(tasks.length - expectedTasks, 0) : 0
+  const overloadedTasks = expectedTasks !== undefined ? tasks.slice(expectedTasks) : []
   
   // Detectar si es columna sin límite (Done)
   const hasNoLimit = expectedTasks === undefined
-  
+
   // Manejar guardar el nuevo valor esperado
   const handleSaveExpected = useCallback(() => {
     const newValue = parseInt(editValue)
@@ -89,23 +95,17 @@ function Column({
   return (
     <div
       ref={drop as unknown as React.LegacyRef<HTMLDivElement>}
-      className={`flex flex-col h-full rounded-lg border-2 transition-colors relative ${
-        isOver ? 'border-primary bg-primary/5' : 'border-border bg-card'
+      className={`flex flex-col h-full rounded-xl border transition-colors ${
+        isOver
+          ? 'border-[#e76b36]/75 bg-[#20120d]/95 shadow-[0_0_18px_rgba(231,107,54,0.26)]'
+          : 'border-[#923811]/55 bg-[#170f0c]/95 shadow-[0_0_10px_rgba(146,56,17,0.24)]'
       }`}
     >
-      {/* Alerta de Sobrecarga - Posicionada mejor dentro del contenedor */}
-      {isOverloaded && (
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-          <AlertTriangle className="w-3 h-3 text-red-400" />
-          <span className="text-xs text-red-400 font-medium">+{tasks.length - (expectedTasks || 0)}</span>
-        </div>
-      )}
-
       {/* Column Header - Altura fija */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#923811]/40">
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-semibold text-foreground">{title}</span>
+          <span className="font-semibold text-[#ffe7dc]">{title}</span>
           
           {/* CASO 1: Columna sin límite (Done) - Solo mostrar contador simple */}
           {hasNoLimit ? (
@@ -122,6 +122,9 @@ function Column({
                 onBlur={handleSaveExpected}
                 onKeyPress={(e) => e.key === 'Enter' && handleSaveExpected()}
                 autoFocus
+                aria-label={`Expected tasks for ${title}`}
+                title={`Expected tasks for ${title}`}
+                placeholder="Expected"
                 className="w-12 text-xs bg-accent/10 text-accent px-2 py-0.5 rounded border border-accent text-center font-semibold"
               />
             ) : (
@@ -132,8 +135,8 @@ function Column({
                 }}
                 className={`text-xs px-2 py-0.5 rounded cursor-pointer font-semibold transition-all duration-200 ${
                   isOverloaded
-                    ? 'bg-red-500/20 text-red-600 border border-red-500/50'
-                    : 'bg-accent/10 text-accent'
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/50'
+                    : 'bg-[#2a130b] text-[#ffb693] border border-[#923811]/60'
                 }`}
                 title={isOverloaded ? `Sobre límite: ${tasks.length}/${expectedTasks}` : `Click para editar límite`}
               >
@@ -142,12 +145,48 @@ function Column({
             )
           )}
         </div>
+
+        {isOverloaded && (
+          <button
+            type="button"
+            onClick={() => setShowOverloadDetails((current) => !current)}
+            className={`cursor-pointer select-none flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-[#e76b36] border border-[#e76b36]/50 bg-[#2d1208]/70 transition-all duration-150 ${
+              showOverloadDetails
+                ? 'shadow-[0_0_16px_rgba(231,107,54,0.62)] ring-1 ring-[#e76b36]/65'
+                : 'shadow-[0_0_10px_rgba(231,107,54,0.45)] hover:shadow-[0_0_14px_rgba(231,107,54,0.58)]'
+            }`}
+            title="Show overload details"
+            aria-label={`Column ${title} has ${overloadCount} extra tasks`}
+          >
+            <AlertTriangle className="w-3 h-3" />
+            <span>+{overloadCount}</span>
+            {showOverloadDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        )}
       </div>
+
+      {showOverloadDetails && isOverloaded && (
+        <div className="mx-3 mt-3 rounded-md border border-[#923811]/70 bg-[#140c09] p-3 text-xs shadow-[0_0_14px_rgba(146,56,17,0.45)]">
+          <p className="font-semibold text-[#e76b36] neon-orange">Over limit in {title}</p>
+          <p className="mt-1 text-[#ffccb3]">
+            Current: <span className="text-[#fff1e9]">{tasks.length}</span> · Expected: <span className="text-[#fff1e9]">{expectedTasks}</span>
+          </p>
+          {overloadedTasks.length > 0 && (
+            <div className="mt-2 space-y-1 max-h-28 overflow-y-auto">
+              {overloadedTasks.map((task) => (
+                <p key={task.id} className="truncate text-[#ffd5c2]">
+                  {task.title}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tasks Container - Altura flexible con scroll individual */}
       <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
+          <div className="flex items-center justify-center h-32 text-[#c99a84] text-sm">
             No tasks in {title.toLowerCase()}
           </div>
         ) : (
@@ -175,6 +214,7 @@ interface ProjectBoardProps {
   onSendUpdate: (taskId: string, taskData: Partial<Task>) => void
   onSendCreate: (taskData: Omit<Task, 'id'>) => void
   onSendDelete: (taskId: string) => void
+  assigneeOptions: TaskAssigneeOption[]
 }
 
 /**
@@ -185,6 +225,7 @@ export function ProjectBoard({
   onSendUpdate,
   onSendCreate,
   onSendDelete,
+  assigneeOptions,
 }: ProjectBoardProps) {
   // Obtener tareas del store global (se actualiza automáticamente con eventos WebSocket)
   const tasks = useTaskStore((state) => state.tasks)
@@ -213,7 +254,7 @@ export function ProjectBoard({
     // Enviar al backend via WebSocket
     // El backend emitirá evento a todos los clientes
     // No actualizamos state localmente - esperamos respuesta del servidor
-    onSendUpdate(task.id, { ...task, status: newStatus })
+    onSendUpdate(task.id, { status: newStatus })
   }, [onSendUpdate])
 
   /**
@@ -232,11 +273,22 @@ export function ProjectBoard({
    * Enviar al backend via WebSocket
    */
   const handleDeleteTask = useCallback((id: string) => {
+    const taskToDelete = tasks.find((task) => task.id === id)
+    const taskLabel = taskToDelete?.title ? `"${taskToDelete.title}"` : `#${id}`
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete task ${taskLabel}? This action cannot be undone.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
     console.log('📤 Eliminando tarea:', id)
 
     // Enviar al backend via WebSocket
     onSendDelete(id)
-  }, [onSendDelete])
+  }, [onSendDelete, tasks])
 
   /**
    * Manejar click en tarea para abrir detalles
@@ -309,29 +361,32 @@ export function ProjectBoard({
   return (
     <div className="h-full min-h-0 flex flex-col">
       {/* Header */}
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between gap-6">
+      <header className="border-b border-[#923811]/45 bg-[#160f0c] px-6 py-4 shadow-[0_0_18px_rgba(146,56,17,0.22)]">
+        <div className="flex items-center justify-between gap-6 flex-wrap">
           <div className="flex-shrink-0">
             <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center rounded-xl border border-[#e76b36]/50 bg-[#1b0f0b] p-3 shadow-[0_0_22px_rgba(231,107,54,0.55)]">
+                <Image src="/CloudForge.svg" alt="CloudForge" width={86} height={86} priority />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
-                <p className="text-sm text-muted-foreground mt-1">
+                <h1 className="text-2xl font-bold text-[#ffe9dd] neon-orange">Project Board</h1>
+                <p className="text-sm text-[#d1a28c] mt-1">
                   Manage your tasks and track progress · Real-time updates via WebSocket
                 </p>
               </div>
               {/* Indicador de conexión WebSocket */}
-              <div className="flex items-center gap-2 ml-4 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+              <div className="flex items-center gap-2 ml-4 px-3 py-1 rounded-full bg-[#923811]/20 border border-[#923811]/50 shadow-[0_0_10px_rgba(146,56,17,0.5)]">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-medium text-muted-foreground">WebSocket Connected</span>
+                <span className="text-xs font-medium text-[#ffd5c2] neon-brown">WebSocket Connected</span>
               </div>
             </div>
           </div>
 
           {/* Progreso */}
-          <div className="flex-1 max-w-md">
+          <div className="flex-1 max-w-md min-w-[240px]">
             <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-semibold text-foreground">
+              <span className="text-[#d1a28c]">Progress</span>
+              <span className="font-semibold text-[#fff1e9]">
                 {completedEstimatedHours}h / {totalEstimatedHours}h ({progressPercentage}%)
               </span>
             </div>
@@ -348,13 +403,13 @@ export function ProjectBoard({
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>
-            <AddTaskDialog onAddTask={handleAddTask} />
+            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} />
           </div>
         </div>
       </header>
 
       {/* Columns Container */}
-      <div className="flex-1 min-h-0 overflow-x-auto p-6 bg-background">
+      <div className="flex-1 min-h-0 overflow-x-auto p-6 app-background">
         <div className="flex gap-6 h-full">
           {/* Backlog Column */}
           <div className="flex-1 min-w-[300px] h-full">
@@ -439,6 +494,7 @@ export function ProjectBoard({
           open={detailsDialogOpen}
           onOpenChange={setDetailsDialogOpen}
           onUpdateTask={handleUpdateTask}
+          assigneeOptions={assigneeOptions}
         />
       )}
 
