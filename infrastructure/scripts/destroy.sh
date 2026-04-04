@@ -18,8 +18,14 @@
 # Make sure this is run via source or .
 # Debe ejecutarse con source para conservar contexto de entorno y estado.
 
+#-----Colours-----#
+greenColour="\e[0;32m\033[1m"
+redColour="\e[0;31m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+endColour="\033[0m\e[0m"
+
 if ! (return 0 2>/dev/null); then
-  echo "ERROR: Usage 'source destroy.sh'"
+  echo "${redColour}[ERROR]${endColour} Usage 'source destroy.sh'"
   exit
 fi
 
@@ -29,18 +35,18 @@ fi
 $MTDRWORKSHOP_LOCATION/utils/main-destroy.sh
 
 # Archiva el estado local con timestamp para auditoria y debugging posterior.
-deleteDir=toDelete_$(date +%Y%m%d_%H%M%S)
-mkdir $deleteDir
-mv state $deleteDir
-mv tls $deleteDir
-mv wallet $deleteDir
-mv log $deleteDir
+deleteDir=$MTDRWORKSHOP_STATE_HOME/toDelete_$(date +%Y%m%d_%H%M%S)
+mkdir -p $deleteDir
+mv $MTDRWORKSHOP_STATE_HOME/state $deleteDir 2>/dev/null || true
+mv $MTDRWORKSHOP_STATE_HOME/tls $deleteDir 2>/dev/null || true
+mv $MTDRWORKSHOP_STATE_HOME/wallet $deleteDir 2>/dev/null || true
+mv $MTDRWORKSHOP_STATE_HOME/log $deleteDir 2>/dev/null || true
 
-echo 'Recommendations:'
-echo '  1. Manually rename compartment'
-echo '  2. Manually check/remove OKE cluster from compartment'
-echo '  3. Manually check/remove Auth Tokens'
-echo '  4. Manually check/remove Buckets from compartment'
-echo '  5. Manually check/remove Compute Instances from compartment'
-echo '  6. Manually check/remove ATP DB from compartment'
-echo '  7. Try remove compartment elements through Tenancy Explorer'
+echo "${greenColour}[+]${endColour} Recommendations:"
+echo '  ${yellowColour}1.${endColour} Manually rename compartment'
+echo '  ${yellowColour}2.${endColour} Manually check/remove OKE cluster from compartment'
+echo '  ${yellowColour}3.${endColour} Manually check/remove Auth Tokens'
+echo '  ${yellowColour}4.${endColour} Manually check/remove Buckets from compartment'
+echo '  ${yellowColour}5.${endColour} Manually check/remove Compute Instances from compartment'
+echo '  ${yellowColour}6.${endColour} Manually check/remove ATP DB from compartment'
+echo '  ${yellowColour}7.${endColour} Try remove compartment elements through Tenancy Explorer'

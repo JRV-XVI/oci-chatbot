@@ -1,0 +1,8 @@
+target/
+*.iml
+.git
+.mvn
+mvnw
+mvnw.cmd
+*.md
+.env*

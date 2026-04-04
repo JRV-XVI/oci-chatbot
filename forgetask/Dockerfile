@@ -13,13 +13,22 @@ COPY src ./src
 RUN mvn -B -DskipTests package
 
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
+
+RUN addgroup --system --gid 1001 appgroup \
+ && adduser  --system --uid 1001 --ingroup appgroup appuser
+
+COPY --from=build --chown=appuser:appgroup /app/target/*.jar ./app.jar
+
+USER appuser
 
 # Spring Boot default port (matches the legacy project).
 EXPOSE 8080
 
-# Copy the packaged Spring Boot JAR.
-COPY --from=build /app/target/*.jar ./app.jar
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=75.0 \
+               -XX:+UseG1GC \
+               -Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
