@@ -407,7 +407,7 @@ export function ProjectBoard({
               title="Review"
               status="review"
               tasks={reviewTasks}
-              icon={<Eye className="w-5 h-5 text-accent" />}
+              icon={<Eye className="w-5 h-5 text-destructive" />}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
