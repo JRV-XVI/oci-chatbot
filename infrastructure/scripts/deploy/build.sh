@@ -8,6 +8,7 @@
 # Usage: ./build.sh
 #
 # Globals requeridos:
+#   MTDRWORKSHOP_LOCATION (raiz del proyecto, donde se encuentran los Dockerfiles)
 #   DOCKER_REGISTRY (si no existe, intenta resolverlo con state_get)
 #
 # Dependencias:
@@ -31,24 +32,31 @@ if [ -z "$DOCKER_REGISTRY" ]; then
     echo "${greenColour}[+]${endColour} DOCKER_REGISTRY set."
 fi
 if [ -z "$DOCKER_REGISTRY" ]; then
-    echo "${redColour}[Error]${endColour} DOCKER_REGISTRY env variable needs to be set!"
+    echo -e "${redColour}[Error]${endColour} DOCKER_REGISTRY env variable needs to be set!"
     exit 1
 fi
 
 export IMAGE_BACKEND=${DOCKER_REGISTRY}/${IMAGE_NAME_BACKEND}:${IMAGE_VERSION}
 export IMAGE_FRONTEND=${DOCKER_REGISTRY}/${IMAGE_NAME_FRONTEND}:${IMAGE_VERSION}
 
-# Fase de compilacion y empaquetado ejecutable de Spring Boot.
-mvn clean package spring-boot:repackage
-
-# Fase de build de imagen Docker usando el Dockerfile local.
-docker build -f Dockerfile -t $IMAGE .
+echo -e "${greenColour}==> [1/2]${endColour} Building backend image..."
+docker build -t ${IMAGE_BACKEND} ${MTDRWORKSHOP_LOCATION}/forgetask
 
 # Publica la imagen en OCIR.
-docker push $IMAGE
+docker push ${IMAGE_BACKEND}
 if [  $? -eq 0 ]; then
     # Solo elimina imagen local cuando el push ya fue exitoso.
-    docker rmi "$IMAGE" #local
+    docker rmi ${IMAGE_BACKEND} #local
 fi
+
+echo -e "${greenColour}==> [2/2]${endColour} Building frontend image..."
+docker build -t ${IMAGE_FRONTEND} ${MTDRWORKSHOP_LOCATION}/forgetask-frontend
+
+docker push ${IMAGE_FRONTEND}
+if [  $? -eq 0 ]; then
+    docker rmi ${IMAGE_FRONTEND}
+fi
+
+echo -e "${greenColour}[+]${endColour} Images built and pushed successfully to ${DOCKER_REGISTRY}."
 # TODO(devops@local): versionar IMAGE_VERSION desde CI/CD (tag git o build id)
 # para evitar sobreescritura de imagenes en despliegues consecutivos.
