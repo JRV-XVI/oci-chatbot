@@ -5,6 +5,14 @@
 # Fail on error
 set -e
 
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
 
 # Switch to SSH Key auth for the oci cli (workaround to perm issue awaiting fix)
 # source $MTDRWORKSHOP_LOCATION/utils/oci-cli-cs-key-auth.sh
@@ -12,40 +20,40 @@ set -e
 
 # No destroy necessary for Live Labs
 if test "$(state_get RUN_TYPE)" == "3"; then
-  echo "No teardown required for Live Labs"
+  echo -e "${greenColour}[main-destroy.sh][+]${endColour} No teardown required for Live Labs"
   exit
 fi
 
 
 # Run the os-destroy.sh in the background
 if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/os-destroy.sh" | grep -v grep; then
-  echo "$MTDRWORKSHOP_LOCATION/utils/os-destroy.sh is already running"
+  echo -e "${yellowColour}[main-destroy.sh][+]${endColour} $MTDRWORKSHOP_LOCATION/utils/os-destroy.sh is already running"
 else
-  echo "Executing os-destroy.sh in the background"
+  echo -e "${greenColour}[main-destroy.sh][+]${endColour} Executing os-destroy.sh in the background"
   nohup $MTDRWORKSHOP_LOCATION/utils/os-destroy.sh &>> $MTDRWORKSHOP_LOG/os-destroy.log &
 fi
 
 
 # Run the repo-destroy.sh in the background
 if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/repo-destroy.sh" | grep -v grep; then
-  echo "$MTDRWORKSHOP_LOCATION/utils/repo-destroy.sh is already running"
+  echo -e "${yellowColour}[main-destroy.sh][+]${endColour} $MTDRWORKSHOP_LOCATION/utils/repo-destroy.sh is already running"
 else
-  echo "Executing repo-destroy.sh in the background"
+  echo -e "${greenColour}[main-destroy.sh][+]${endColour} Executing repo-destroy.sh in the background"
   nohup $MTDRWORKSHOP_LOCATION/utils/repo-destroy.sh &>> $MTDRWORKSHOP_LOG/repo-destroy.log &
 fi
 
 
 # Run the lb-destroy.sh in the background
 if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/lb-destroy.sh" | grep -v grep; then
-  echo "$MTDRWORKSHOP_LOCATION/utils/lb-destroy.sh is already running"
+  echo -e "${yellowColour}[main-destroy.sh][+]${endColour} $MTDRWORKSHOP_LOCATION/utils/lb-destroy.sh is already running"
 else
-  echo "Executing lb-destroy.sh in the background"
+  echo -e "${greenColour}[main-destroy.sh][+]${endColour} Executing lb-destroy.sh in the background"
   nohup $MTDRWORKSHOP_LOCATION/utils/lb-destroy.sh &>> $MTDRWORKSHOP_LOG/lb-destroy.log &
 fi
 
 
 # Terraform Destroy
-echo "Running terraform destroy"
+echo -e "${greenColour}[main-destroy.sh][+]${endColour} Running terraform destroy"
 cd $MTDRWORKSHOP_LOCATION/../terraform
 export TF_VAR_ociTenancyOcid="$(state_get TENANCY_OCID)"
 export TF_VAR_ociUserOcid="$(state_get USER_OCID)"

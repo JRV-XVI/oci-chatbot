@@ -17,16 +17,19 @@
 # Copyright (c) 2022 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-#-----Colours-----#
+#Colours
 greenColour="\e[0;32m\033[1m"
-redColour="\e[0;31m\033[1m"
-yellowColour="\e[0;33m\033[1m"
 endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
 
 # Make sure this is run via source or .
 # Ejecutar con ./env.sh crea un subshell y las exportaciones se pierden.
 if ! (return 0 2>/dev/null); then
-  echo "${redColour}[ERROR]${endColour} Usage 'source env.sh'"
+  echo -e "${redColour}[env.sh][x]${endColour} Usage 'source env.sh'"
   exit
 fi
 
@@ -80,7 +83,7 @@ function set_javahome() {
 # Resuelve la ruta absoluta del directorio del script sin depender del cwd.
 export MTDRWORKSHOP_LOCATION="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $MTDRWORKSHOP_LOCATION
-echo "${greenColour}[+]${endColour} MTDRWORKSHOP_LOCATION: $MTDRWORKSHOP_LOCATION"
+echo -e "${greenColour}[env.sh][+]${endColour} MTDRWORKSHOP_LOCATION: $MTDRWORKSHOP_LOCATION"
 
 
 

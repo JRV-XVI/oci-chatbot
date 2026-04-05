@@ -5,6 +5,14 @@
 # Fail on error
 set -e
 
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
 
 # Create SSL Certs
 while ! state_done SSL; do
@@ -16,7 +24,7 @@ done
 
 # Wait for provisioning
 while ! state_done K8S_PROVISIONING; do
-  echo "`date`: Waiting for k8s provisioning"
+  echo -e "${yellowColour}[oke-setup.sh][+]${endColour} `date`: Waiting for k8s provisioning"
   sleep 10
 done
 
@@ -25,7 +33,7 @@ done
 while ! state_done OKE_OCID; do
   OKE_OCID=$(terraform -chdir="${MTDRWORKSHOP_LOCATION}"/../terraform output -json | python "$MTDRWORKSHOP_LOCATION"/utils/python/process-cluster-ocid-json.py)
   if [[ $OKE_OCID == Error* ]]; then
-    echo "$OKE_OCID"
+    echo -e "${redColour}[oke-setup.sh][x]${endColour} $OKE_OCID"
     exit
   fi
     state_set OKE_OCID "$OKE_OCID"
@@ -55,10 +63,10 @@ done
 while ! state_done BYO_K8S; do
   READY_NODES=`kubectl get nodes | grep Ready | wc -l` || echo 'Ignoring any Error'
   if test "$READY_NODES" -ge 3; then
-    echo "3 OKE nodes are ready"
+    echo -e "${greenColour}[oke-setup.sh][+]${endColour} 3 OKE nodes are ready"
     break
   fi
-  echo "Waiting for OKE nodes to become ready"
+  echo -e "${yellowColour}[oke-setup.sh][+]${endColour} Waiting for OKE nodes to become ready"
   sleep 10
 done
 
@@ -68,14 +76,14 @@ while ! state_done OKE_NAMESPACE; do
   if kubectl create ns mtdrworkshop; then
     state_set_done OKE_NAMESPACE
   else
-    echo "Failed to create namespace.  Retrying..."
+    echo -e "${redColour}[oke-setup.sh][x]${endColour} Failed to create namespace.  Retrying..."
     sleep 10
   fi
 done
 
 # Wait for TO DO User (avoid concurrent kubectl)
 while ! state_done TODO_USER; do
-  echo "`date`: Waiting for TODO_USER"
+  echo -e "${yellowColour}[oke-setup.sh][+]${endColour} `date`: Waiting for TODO_USER"
   sleep 2
 done
 
