@@ -60,6 +60,7 @@ export function TaskDetailsDialog({
   const [estimatedTime, setEstimatedTime] = useState('')
   const [realTime, setRealTime] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+  const [dateError, setDateError] = useState('')
 
   const normalizeDateForInput = (value?: string) => {
     if (!value) {
@@ -103,9 +104,26 @@ export function TaskDetailsDialog({
     }
   }, [task, assigneeOptions])
 
+  /**
+   * Validar rango de fechas en tiempo real
+   * Si startDate > endDate, mostrar error
+   */
+  useEffect(() => {
+    if (startDate && endDate && startDate > endDate) {
+      setDateError('Start date must be before end date')
+    } else {
+      setDateError('')
+    }
+  }, [startDate, endDate])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!task || !title.trim()) return;
+
+    // VALIDATION: START DATE < END DATE
+    if (dateError) {
+      return;
+    }
 
     const parsedEstimatedTime = estimatedTime.trim() === '' ? undefined : Number(estimatedTime)
     const parsedRealTime = realTime.trim() === '' ? undefined : Number(realTime)
@@ -216,6 +234,11 @@ export function TaskDetailsDialog({
                 value={endDate}
                 onChange={setEndDate}
               />
+              {dateError && (
+                <div className="text-red-400 text-sm mt-1 font-medium">
+                  ⚠️ {dateError}
+                </div>
+              )}
             </div>
             <div className="rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3 mt-1">
               <h3 className="font-medium text-[#ffe7dc] mb-3">Time Tracking (hours)</h3>
@@ -273,7 +296,15 @@ export function TaskDetailsDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
               Cancel
             </Button>
-            <Button type="submit" className="cursor-pointer neon-orange-bg text-white">Save Changes</Button>
+            <Button 
+              type="submit" 
+              disabled={!!dateError}
+              className={`cursor-pointer text-white ${
+                dateError ? 'opacity-50 cursor-not-allowed bg-gray-600' : 'neon-orange-bg'
+              }`}
+            >
+              Save Changes
+            </Button>
           </div>
         </form>
       </div>

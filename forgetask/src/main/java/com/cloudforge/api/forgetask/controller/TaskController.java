@@ -133,6 +133,12 @@ public class TaskController {
         String description = normalizeTextOrNull(task.getDescription());
         Timestamp startTime = parseDateOrNull(task.getStartDate());
         Timestamp endTime = parseDateOrNull(task.getEndDate());
+
+        // VALIDATION: START DATE < END DATE
+        if (!isValidDateRange(startTime, endTime)) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         Double estimated = task.getEstimatedTimeNullable();
         Double real = task.getRealTimeNullable();
         String priority = normalizePriority(task.getPriority(), "medium");
@@ -177,6 +183,12 @@ public class TaskController {
         String description = normalizeText(task.getDescription(), existingTask.description());
         Timestamp startTime = parseDateOrFallback(task.getStartDate(), existingTask.startTime());
         Timestamp endTime = parseDateOrFallback(task.getEndDate(), existingTask.endTime());
+
+        // VALIDATION: START DATE < END DATE
+        if (!isValidDateRange(startTime, endTime)) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         Double estimated = task.getEstimatedTimeNullable() != null ? task.getEstimatedTimeNullable() : existingTask.estimatedTime();
         Double real = task.getRealTimeNullable() != null ? task.getRealTimeNullable() : existingTask.realTime();
         String priority = normalizePriority(task.getPriority(), existingTask.priority());
@@ -810,6 +822,13 @@ public class TaskController {
             case "done" -> "done";
             default -> "backlog";
         };
+    }
+
+    private boolean isValidDateRange(Timestamp startTime, Timestamp endTime) {
+        if (startTime == null || endTime == null) {
+            return true; // One or both null is acceptable
+        }
+        return startTime.before(endTime) || startTime.equals(endTime);
     }
 
     @ExceptionHandler(NumberFormatException.class)
