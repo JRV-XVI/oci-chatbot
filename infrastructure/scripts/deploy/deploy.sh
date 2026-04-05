@@ -31,6 +31,9 @@ REPO_ROOT=${MTDRWORKSHOP_LOCATION}
 TEMPLATES_DIR=${REPO_ROOT}/infrastructure/kubernetes/templates
 GENERATED_DIR=${REPO_ROOT}/infrastructure/kubernetes/generated
 
+mkdir -p "$GENERATED_DIR"
+mkdir -p "$TEMPLATES_DIR"
+
 export IMAGE_NAME_BACKEND=forgetask
 export IMAGE_NAME_FRONTEND=forgetask-frontend
 export IMAGE_VERSION=0.1
