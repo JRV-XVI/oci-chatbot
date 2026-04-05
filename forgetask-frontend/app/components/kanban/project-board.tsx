@@ -410,7 +410,7 @@ export function ProjectBoard({
 
       {/* Columns Container */}
       <div className="flex-1 min-h-0 overflow-x-auto p-6 app-background">
-        <div className="flex gap-6 h-full">
+        <div className="flex gap-6 h-full flex-shrink-0 w-fit">
           {/* Backlog Column */}
           <div className="flex-1 min-w-[300px] h-full">
             <MemoizedColumn
