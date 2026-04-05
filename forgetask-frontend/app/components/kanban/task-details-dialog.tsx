@@ -17,6 +17,7 @@
 
 import type * as React from 'react'
 import { useEffect, useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { DatePickerInput } from '../ui/date-picker-input'
@@ -235,8 +236,9 @@ export function TaskDetailsDialog({
                 onChange={setEndDate}
               />
               {dateError && (
-                <div className="text-red-400 text-sm mt-1 font-medium">
-                  ⚠️ {dateError}
+                <div className="flex items-center gap-2 text-red-400 text-sm mt-1 font-medium">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>{dateError}</span>
                 </div>
               )}
             </div>
