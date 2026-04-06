@@ -4,6 +4,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * MODIFICADO EN ESTE PROMPT
+ * Configuración CORS para comunicación HTTP
+ * (WebSocket CORS se configura en WebSocketConfig.java)
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

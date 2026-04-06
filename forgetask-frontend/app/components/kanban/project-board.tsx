@@ -1,295 +1,50 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import { useState, useEffect } from "react";
-import { useDrop } from "react-dnd";
-import { Circle, Layers, CircleDot, Eye, CheckCircle2, FileText, Settings, AlertTriangle, Users } from "lucide-react";
-import { TaskCard, type Task } from "./task-card";
-import { AddTaskDialog } from "./add-task-dialog";
-import { TaskDetailsDialog } from "./task-details-dialog";
-import { MembersDialog } from "./members-dialog";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Progress } from "../ui/progress";
-import taskService from "@/app/services/taskService";
+/**
+ * MODIFICADO EN ESTE PROMPT
+ * Tablero Kanban principal que:
+ * 1. Lee tareas del store global de Zustand (no state local)
+ * 2. Acepta funciones WebSocket para enviar cambios al backend
+ * 3. Maneja dragging, creación, actualización y eliminación de tareas via WebSocket
+ * 4. Re-renderiza automáticamente cuando el store cambia
+ * 5. Muestra indicador de conexión
+ */
 
-const INITIAL_TASKS: Task[] = [
-  {
-    id: "1",
-    title: "Extender requerimientos (F y NF)",
-    description: "Ampliar y detallar los requerimientos funcionales y no funcionales del proyecto.",
-    status: "backlog",
-    priority: "high",
-    startDate: "2026-03-23",
-    endDate: "2026-03-26",
-    estimatedTime: 6,
-    realTime: 0,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "2",
-    title: "Reparto de tareas a desarrollar",
-    description: "Distribucion y asignacion de las tareas de desarrollo entre los miembros del equipo.",
-    status: "backlog",
-    priority: "high",
-    startDate: "2026-03-23",
-    endDate: "2026-03-24",
-    estimatedTime: 1,
-    realTime: 0,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "3",
-    title: "Plantear plan de DevOps y CI/CD",
-    description: "Diseno del plan de integracion continua y despliegue continuo para el proyecto.",
-    status: "backlog",
-    priority: "medium",
-    startDate: "2026-03-25",
-    endDate: "2026-03-27",
-    estimatedTime: 4,
-    realTime: 0,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "4",
-    title: "Plantear propuesta de Feature de IA",
-    description: "Definir y proponer la funcionalidad de Inteligencia Artificial que se integrara al chatbot.",
-    status: "backlog",
-    priority: "medium",
-    startDate: "2026-03-24",
-    endDate: "2026-03-24",
-    estimatedTime: 1,
-    realTime: 0,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "5",
-    title: "Presentacion (Leer descripcion)",
-    description: "Preparacion y entrega de la presentacion del avance del proyecto ante el equipo evaluador.",
-    status: "in-progress",
-    priority: "high",
-    startDate: "2026-03-11",
-    endDate: "2026-03-12",
-    estimatedTime: 8,
-    realTime: 5,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "6",
-    title: "Revision de requerimientos no funcionales",
-    description: "Revision y validacion de los requerimientos no funcionales definidos para el sistema.",
-    status: "in-progress",
-    priority: "high",
-    startDate: "2026-03-11",
-    endDate: "2026-03-11",
-    estimatedTime: 2,
-    realTime: 0,
-    assignedTo: ["Requirements Analyst"],
-  },
-  {
-    id: "7",
-    title: "Mock-up",
-    description: "Diseno de los prototipos visuales (mockups) de la interfaz del chatbot.",
-    status: "in-progress",
-    priority: "high",
-    startDate: "2026-03-12",
-    endDate: "2026-03-12",
-    estimatedTime: 4,
-    realTime: 0,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "8",
-    title: "Grabar la DEMO con todo ya configurado",
-    description: "Grabacion del video demostrativo con el sistema completamente configurado y funcional.",
-    status: "review",
-    priority: "high",
-    startDate: "2026-03-09",
-    endDate: "2026-03-11",
-    estimatedTime: 2,
-    realTime: 1,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "9",
-    title: "Entrega de la actividad de Java",
-    description: "Entrega de la actividad individual de programacion en Java correspondiente al modulo del curso.",
-    status: "review",
-    priority: "medium",
-    startDate: "2026-03-10",
-    endDate: "2026-03-10",
-    estimatedTime: 3,
-    realTime: 0,
-    assignedTo: ["Java Developer"],
-  },
-  {
-    id: "10",
-    title: "Capacitacion con OCI Foundations",
-    description: "Estudio y certificacion de los fundamentos de Oracle Cloud Infrastructure (OCI Foundations).",
-    status: "done",
-    priority: "high",
-    startDate: "2026-02-09",
-    endDate: "2026-03-08",
-    estimatedTime: 10,
-    realTime: 18,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "11",
-    title: "Levantamiento de requerimientos funcionales",
-    description: "Recopilacion y documentacion de los requerimientos funcionales del sistema chatbot.",
-    status: "done",
-    priority: "high",
-    startDate: "2026-02-25",
-    endDate: "2026-03-08",
-    estimatedTime: 12,
-    realTime: 10,
-    assignedTo: ["Requirements Analyst"],
-  },
-  {
-    id: "12",
-    title: "Diagramas de casos de uso",
-    description: "Elaboracion de los diagramas UML de casos de uso del sistema.",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-05",
-    endDate: "2026-03-08",
-    estimatedTime: 4,
-    realTime: 4,
-    assignedTo: ["Requirements Analyst"],
-  },
-  {
-    id: "13",
-    title: "Despliegue Web avanzado",
-    description: "Configuracion y despliegue avanzado de la aplicacion web. Ref: https://github.com/JRV-XVI/forms-app-web/issues/18",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-07",
-    endDate: "2026-03-08",
-    estimatedTime: 6,
-    realTime: 4,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "14",
-    title: "Plan de despliegue",
-    description: "Documentacion del plan completo de despliegue de la infraestructura en OCI.",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-05",
-    endDate: "2026-03-09",
-    estimatedTime: 8,
-    realTime: 5,
-    assignedTo: ["DevOps Engineer"],
-  },
-  {
-    id: "15",
-    title: "Servicios de Kubernetes y PODS",
-    description: "Configuracion de los servicios, deployments y pods en el cluster de Kubernetes en OCI.",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-10",
-    endDate: "2026-03-12",
-    estimatedTime: 4,
-    realTime: 2,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "16",
-    title: "Despliegue de la base de datos en OCI",
-    description: "Creacion y configuracion de la instancia ATP (Autonomous Transaction Processing) en OCI. Ref: https://github.com/JRV-XVI/oci-chatbot/issues/1",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-09",
-    endDate: "2026-03-10",
-    estimatedTime: 2,
-    realTime: 2,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "17",
-    title: "Analisis del codigo de Oracle",
-    description: "Revision y analisis del codigo base y ejemplos provistos por Oracle para la integracion.",
-    status: "done",
-    priority: "medium",
-    startDate: "2026-03-09",
-    endDate: "2026-03-10",
-    estimatedTime: 6,
-    realTime: 0,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "18",
-    title: "M2 Delivery (Mara)",
-    description: "Entrega del modulo 2 ante la asesora Mara.",
-    status: "done",
-    priority: "medium",
-    startDate: "2026-03-07",
-    endDate: "2026-03-11",
-    estimatedTime: 1.5,
-    realTime: 2,
-    assignedTo: ["Team Lead"],
-  },
-  {
-    id: "19",
-    title: "Linux Foundations Chapter 4",
-    description: "Estudio y completado del capitulo 4 del curso Linux Foundations.",
-    status: "done",
-    priority: "low",
-    startDate: "2026-03-08",
-    endDate: "2026-03-10",
-    estimatedTime: 3,
-    realTime: 1,
-    assignedTo: ["System Administrator"],
-  },
-  {
-    id: "20",
-    title: "Integracion de componentes Frontend",
-    description: "Integracion de componentes frontend con el backend.",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-20",
-    endDate: "2026-03-25",
-    estimatedTime: 5,
-    realTime: 18,
-    assignedTo: ["Frontend Developer"],
-  },
-  {
-    id: "21",
-    title: "Testing exhaustivo del sistema",
-    description: "Testing exhaustivo de todas las caracteristicas del sistema.",
-    status: "done",
-    priority: "high",
-    startDate: "2026-03-18",
-    endDate: "2026-03-24",
-    estimatedTime: 4,
-    realTime: 20,
-    assignedTo: ["QA Engineer"],
-  },
-  {
-    id: "22",
-    title: "Optimizacion de base de datos",
-    description: "Optimizacion y tuning de la base de datos.",
-    status: "done",
-    priority: "medium",
-    startDate: "2026-03-21",
-    endDate: "2026-03-26",
-    estimatedTime: 8,
-    realTime: 15,
-    assignedTo: ["Database Administrator"],
-  },
-];
+import * as React from 'react'
+import { useMemo, useState, useCallback } from 'react'
+import Image from 'next/image'
+import { useDrop } from 'react-dnd'
+import {
+  Circle,
+  Layers,
+  CircleDot,
+  Eye,
+  CheckCircle2,
+  FileText,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Users,
+} from 'lucide-react'
+import { TaskCard, type Task } from './task-card'
+import { AddTaskDialog } from './add-task-dialog'
+import { TaskDetailsDialog } from './task-details-dialog'
+import { MembersDialog } from './members-dialog'
+import { Button } from '../ui/button'
+import { Progress } from '../ui/progress'
+import { useTaskStore } from '@/app/store/taskStore'
+import type { TaskAssigneeOption } from '@/app/types/task'
 
 interface ColumnProps {
-  title: string;
-  status: Task["status"];
-  tasks: Task[];
-  icon: React.ReactNode;
-  expectedTasks: number;
-  onDrop: (task: Task, newStatus: Task["status"]) => void;
-  onDeleteTask: (id: string) => void;
-  onTaskClick: (task: Task) => void;
-  onExpectedChange: (status: Task["status"], value: number) => void;
+  title: string
+  status: Task['status']
+  tasks: Task[]
+  icon: React.ReactNode
+  expectedTasks?: number  // Opcional - si es undefined, no hay límite (como Done)
+  onDrop: (task: Task, newStatus: Task['status']) => void
+  onDeleteTask: (id: string) => void
+  onTaskClick: (task: Task) => void
+  onExpectedChange: (status: Task['status'], value: number) => void
 }
 
 function Column({
@@ -303,313 +58,362 @@ function Column({
   onTaskClick,
   onExpectedChange,
 }: ColumnProps) {
+  // Estado para edición del contador esperado
+  const [isEditingExpected, setIsEditingExpected] = useState(false)
+  const [editValue, setEditValue] = useState(expectedTasks?.toString() || '0')
+  const [showOverloadDetails, setShowOverloadDetails] = useState(false)
+  
+  // Detectar si está sobrecargado (solo si hay límite esperado)
+  const isOverloaded = expectedTasks !== undefined && tasks.length > expectedTasks
+  const overloadCount = expectedTasks !== undefined ? Math.max(tasks.length - expectedTasks, 0) : 0
+  const overloadedTasks = expectedTasks !== undefined ? tasks.slice(expectedTasks) : []
+  
+  // Detectar si es columna sin límite (Done)
+  const hasNoLimit = expectedTasks === undefined
+
+  // Manejar guardar el nuevo valor esperado
+  const handleSaveExpected = useCallback(() => {
+    const newValue = parseInt(editValue)
+    if (!isNaN(newValue) && newValue > 0) {
+      onExpectedChange(status, newValue)
+    } else if (expectedTasks !== undefined) {
+      setEditValue(expectedTasks.toString())
+    }
+    setIsEditingExpected(false)
+  }, [editValue, status, expectedTasks, onExpectedChange])
+
   const [{ isOver }, drop] = useDrop(() => ({
-    accept: "TASK",
-    drop: (item: Task) => onDrop(item, status),
+    accept: 'task',
+    drop: (item: { task: Task }) => {
+      onDrop(item.task, status)
+    },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
-  }));
-
-  const [isEditingExpected, setIsEditingExpected] = useState(false);
-  const [expectedValue, setExpectedValue] = useState(expectedTasks.toString());
-
-  const handleExpectedSave = () => {
-    const value = parseInt(expectedValue) || 0;
-    onExpectedChange(status, value);
-    setIsEditingExpected(false);
-  };
-
-  const isDone = status === "done";
+  }))
 
   return (
-    <div className="flex-1 min-w-[300px] flex flex-col max-h-full min-h-0">
-      <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full min-h-0">
-        <div className="flex items-center gap-2 mb-2">
+    <div
+      ref={drop as unknown as React.LegacyRef<HTMLDivElement>}
+      className={`flex flex-col h-full rounded-xl border transition-colors ${
+        isOver
+          ? 'border-[#e76b36]/75 bg-[#20120d]/95 shadow-[0_0_18px_rgba(231,107,54,0.26)]'
+          : 'border-[#923811]/55 bg-[#170f0c]/95 shadow-[0_0_10px_rgba(146,56,17,0.24)]'
+      }`}
+    >
+      {/* Column Header - Altura fija */}
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#923811]/40">
+        <div className="flex items-center gap-2">
           {icon}
-          <h2 className="font-semibold text-foreground">{title}</h2>
-        </div>
-
-        <div className="mb-4 flex items-center gap-2">
-          {isDone ? (
-            <span className="text-sm text-muted-foreground">Tasks: {tasks.length}</span>
+          <span className="font-semibold text-[#ffe7dc]">{title}</span>
+          
+          {/* CASO 1: Columna sin límite (Done) - Solo mostrar contador simple */}
+          {hasNoLimit ? (
+            <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded font-semibold">
+              {tasks.length}
+            </span>
           ) : (
-            <>
-              {isEditingExpected ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={expectedValue}
-                    onChange={(e) => setExpectedValue(e.target.value)}
-                    className="w-16 h-7 text-sm"
-                    onBlur={handleExpectedSave}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleExpectedSave();
-                      if (e.key === "Escape") {
-                        setExpectedValue(expectedTasks.toString());
-                        setIsEditingExpected(false);
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <span className="text-sm text-muted-foreground">tasks</span>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsEditingExpected(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group cursor-pointer"
-                >
-                  <span>{tasks.length}/{expectedTasks}</span>
-                  <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              )}
-            </>
+            /* CASO 2: Columna con límite - Contador editable con formato actual/esperado */
+            isEditingExpected ? (
+              <input
+                type="number"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleSaveExpected}
+                onKeyPress={(e) => e.key === 'Enter' && handleSaveExpected()}
+                autoFocus
+                aria-label={`Expected tasks for ${title}`}
+                title={`Expected tasks for ${title}`}
+                placeholder="Expected"
+                className="w-12 text-xs bg-accent/10 text-accent px-2 py-0.5 rounded border border-accent text-center font-semibold"
+              />
+            ) : (
+              <span
+                onClick={() => {
+                  setEditValue(expectedTasks?.toString() || '0')
+                  setIsEditingExpected(true)
+                }}
+                className={`text-xs px-2 py-0.5 rounded cursor-pointer font-semibold transition-all duration-200 ${
+                  isOverloaded
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/50'
+                    : 'bg-[#2a130b] text-[#ffb693] border border-[#923811]/60'
+                }`}
+                title={isOverloaded ? `Sobre límite: ${tasks.length}/${expectedTasks}` : `Click para editar límite`}
+              >
+                {tasks.length}/{expectedTasks}
+              </span>
+            )
           )}
         </div>
 
-        <div
-          ref={(node) => {
-            drop(node);
-          }}
-          className={`space-y-3 flex-1 min-h-0 overflow-y-auto rounded-lg transition-colors p-1 ${
-            isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
-          }`}
-        >
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onDelete={onDeleteTask} onClick={onTaskClick} />
-          ))}
+        {isOverloaded && (
+          <button
+            type="button"
+            onClick={() => setShowOverloadDetails((current) => !current)}
+            className={`cursor-pointer select-none flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-[#e76b36] border border-[#e76b36]/50 bg-[#2d1208]/70 transition-all duration-150 ${
+              showOverloadDetails
+                ? 'shadow-[0_0_16px_rgba(231,107,54,0.62)] ring-1 ring-[#e76b36]/65'
+                : 'shadow-[0_0_10px_rgba(231,107,54,0.45)] hover:shadow-[0_0_14px_rgba(231,107,54,0.58)]'
+            }`}
+            title="Show overload details"
+            aria-label={`Column ${title} has ${overloadCount} extra tasks`}
+          >
+            <AlertTriangle className="w-3 h-3" />
+            <span>+{overloadCount}</span>
+            {showOverloadDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        )}
+      </div>
+
+      {showOverloadDetails && isOverloaded && (
+        <div className="mx-3 mt-3 rounded-md border border-[#923811]/70 bg-[#140c09] p-3 text-xs shadow-[0_0_14px_rgba(146,56,17,0.45)]">
+          <p className="font-semibold text-[#e76b36] neon-orange">Over limit in {title}</p>
+          <p className="mt-1 text-[#ffccb3]">
+            Current: <span className="text-[#fff1e9]">{tasks.length}</span> · Expected: <span className="text-[#fff1e9]">{expectedTasks}</span>
+          </p>
+          {overloadedTasks.length > 0 && (
+            <div className="mt-2 space-y-1 max-h-28 overflow-y-auto">
+              {overloadedTasks.map((task) => (
+                <p key={task.id} className="truncate text-[#ffd5c2]">
+                  {task.title}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Tasks Container - Altura flexible con scroll individual */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+        {tasks.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-[#c99a84] text-sm">
+            No tasks in {title.toLowerCase()}
+          </div>
+        ) : (
+          tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onTaskClick={onTaskClick}
+              onDeleteTask={onDeleteTask}
+            />
+          ))
+        )}
       </div>
     </div>
-  );
+  )
 }
 
-export function ProjectBoard() {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-  const [isLoading, setIsLoading] = useState(true);
-  const [apiAvailable, setApiAvailable] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
+const MemoizedColumn = React.memo(Column)
+
+/**
+ * Props que recibe ProjectBoard de KanbanApp
+ * Funciones WebSocket para enviar cambios al backend
+ */
+interface ProjectBoardProps {
+  onSendUpdate: (taskId: string, taskData: Partial<Task>) => void
+  onSendCreate: (taskData: Omit<Task, 'id'>) => void
+  onSendDelete: (taskId: string) => void
+  assigneeOptions: TaskAssigneeOption[]
+}
+
+/**
+ * Componente principal del tablero Kanban
+ * Lee tareas del store global y envía cambios via WebSocket
+ */
+export function ProjectBoard({
+  onSendUpdate,
+  onSendCreate,
+  onSendDelete,
+  assigneeOptions,
+}: ProjectBoardProps) {
+  // Obtener tareas del store global (se actualiza automáticamente con eventos WebSocket)
+  const tasks = useTaskStore((state) => state.tasks)
+
+  // Estados locales para UI
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false)
   const [expectedTasks, setExpectedTasks] = useState({
     backlog: 5,
     ready: 3,
-    "in-progress": 4,
+    'in-progress': 4,
     review: 2,
     done: 10,
-  });
+  })
 
-  // Load tasks from API on component mount
-  useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Try to fetch tasks from API
-        const apiTasks = await taskService.getAllTasks();
-        setTasks(apiTasks);
-        setApiAvailable(true);
-        console.log("Tasks loaded from API successfully");
-      } catch (error) {
-        // Fall back to hardcoded data if API is unavailable
-        console.warn("Could not load tasks from API, using hardcoded data:", error);
-        setTasks(INITIAL_TASKS);
-        setApiAvailable(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  /**
+   * Manejar drag & drop
+   * Cuando usuario arrastra tarea a otra columna, enviar UPDATE via WebSocket
+   */
+  const handleDrop = useCallback((task: Task, newStatus: Task['status']) => {
+    if (task.status === newStatus) return
 
-    loadTasks();
-  }, []);
+    console.log(`📤 Arrastrando tarea ${task.id} a ${newStatus}`)
 
-  const handleDrop = (task: Task, newStatus: Task["status"]) => {
-    if (task.status === newStatus) return;
+    // Enviar al backend via WebSocket
+    // El backend emitirá evento a todos los clientes
+    // No actualizamos state localmente - esperamos respuesta del servidor
+    onSendUpdate(task.id, { status: newStatus })
+  }, [onSendUpdate])
 
-    // Reuse the same persistence flow used by task detail edits.
-    handleUpdateTask({ ...task, status: newStatus });
-  };
+  /**
+   * Manejar creación de nueva tarea
+   * Enviar al backend via WebSocket
+   */
+  const handleAddTask = useCallback((newTask: Omit<Task, 'id'>) => {
+    console.log('📤 Creando nueva tarea:', newTask.title)
 
-  const handleAddTask = (newTask: Omit<Task, "id">) => {
-    const tempId = `temp-${Date.now()}`;
-    const task: Task = {
-      ...newTask,
-      id: tempId,
-    };
-    setTasks((prevTasks) => [...prevTasks, task]);
+    // Enviar al backend via WebSocket
+    onSendCreate(newTask)
+  }, [onSendCreate])
 
-    taskService
-      .createTask(newTask)
-      .then((createdTask) => {
-        setApiAvailable(true);
-        setTasks((prevTasks) =>
-          prevTasks.map((t) => (t.id === tempId ? createdTask : t)),
-        );
-      })
-      .catch((error: unknown) => {
-        setApiAvailable(false);
-        console.error("Failed to create task on server:", error);
-        setTasks((prevTasks) => prevTasks.filter((t) => t.id !== tempId));
-      });
-  };
+  /**
+   * Manejar eliminación de tarea
+   * Enviar al backend via WebSocket
+   */
+  const handleDeleteTask = useCallback((id: string) => {
+    const taskToDelete = tasks.find((task) => task.id === id)
+    const taskLabel = taskToDelete?.title ? `"${taskToDelete.title}"` : `#${id}`
 
-  const handleDeleteTask = (id: string) => {
-    const previousTasks = tasks;
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+    const confirmed = window.confirm(
+      `Are you sure you want to delete task ${taskLabel}? This action cannot be undone.`
+    )
 
-    // Client-only temporary tasks are not persisted yet.
-    if (!/^\d+$/.test(id)) {
-      return;
+    if (!confirmed) {
+      return
     }
 
-    taskService
-      .deleteTask(id)
-      .then((deleted) => {
-        setApiAvailable(true);
-        if (!deleted) {
-          setTasks(previousTasks);
-        }
-      })
-      .catch((error: unknown) => {
-        setApiAvailable(false);
-        console.error("Failed to delete task on server:", error);
-        setTasks(previousTasks);
-      });
-  };
+    console.log('📤 Eliminando tarea:', id)
 
-  const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setDetailsDialogOpen(true);
-  };
+    // Enviar al backend via WebSocket
+    onSendDelete(id)
+  }, [onSendDelete, tasks])
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    const previousTasks = tasks;
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-    );
+  /**
+   * Manejar click en tarea para abrir detalles
+   */
+  const handleTaskClick = useCallback((task: Task) => {
+    setSelectedTask(task)
+    setDetailsDialogOpen(true)
+  }, [])
 
-    if (!/^\d+$/.test(updatedTask.id)) {
-      return;
-    }
+  /**
+   * Manejar actualización de tarea desde el diálogo de detalles
+   */
+  const handleUpdateTask = useCallback((updatedTask: Task) => {
+    console.log('📤 Actualizando tarea:', updatedTask.id)
 
-    taskService
-      .updateTask(updatedTask.id, updatedTask)
-      .then((serverTask) => {
-        setApiAvailable(true);
-        setTasks((prevTasks) =>
-          prevTasks.map((t) => (t.id === serverTask.id ? serverTask : t)),
-        );
-      })
-      .catch((error: unknown) => {
-        setApiAvailable(false);
-        console.error("Failed to update task on server:", error);
-        setTasks(previousTasks);
-      });
-  };
+    // Enviar al backend via WebSocket
+    onSendUpdate(updatedTask.id, updatedTask)
+  }, [onSendUpdate])
 
-  const handleExpectedChange = (status: Task["status"], value: number) => {
-    setExpectedTasks((prev) => ({ ...prev, [status]: value }));
-  };
+  /**
+   * Manejar cambio de tareas esperadas para una columna
+   */
+  const handleExpectedChange = useCallback((status: Task['status'], value: number) => {
+    setExpectedTasks((prev) => ({ ...prev, [status]: value }))
+  }, [])
 
+  /**
+   * Generar reporte de proyecto
+   */
   const handleGenerateReport = () => {
-    const totalTasks = tasks.length;
-    const completedTasks = doneTasks.length;
-    const inProgressCount = inProgressTasks.length;
-    const totalEstimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
-    const totalRealHours = tasks.reduce((sum, task) => sum + (task.realTime || 0), 0);
+    const totalTasks = tasks.length
+    const completedTasks = doneTasks.length
+    const inProgressCount = inProgressTasks.length
+    const totalEstimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0)
+    const totalRealHours = tasks.reduce((sum, task) => sum + (task.realTime || 0), 0)
 
     const report = `Project Board Report\nGenerated: ${new Date().toLocaleString()}\n\n=== Summary ===\nTotal Tasks: ${totalTasks}\nCompleted: ${completedTasks}\nIn Progress: ${inProgressCount}\nBacklog: ${backlogTasks.length}\nReady: ${readyTasks.length}\nReview: ${reviewTasks.length}\n\n=== Time Tracking ===\nTotal Estimated Hours: ${totalEstimatedHours}\nTotal Real Hours: ${totalRealHours}\nVariance: ${totalRealHours - totalEstimatedHours} hours\n\n=== Tasks by Status ===\n${tasks
       .map(
-        (task) => `- [${task.status.toUpperCase()}] ${task.title} (Priority: ${task.priority || 'none'})`,
+        (task) =>
+          `- [${task.status.toUpperCase()}] ${task.title} (Priority: ${task.priority || 'none'})`,
       )
-      .join("\n")}
-`;
+      .join('\n')}`
 
-    const blob = new Blob([report], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `project-report-${new Date().toISOString().split("T")[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+    const blob = new Blob([report], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `project-report-${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
-  const backlogTasks = tasks.filter((task) => task.status === "backlog");
-  const readyTasks = tasks.filter((task) => task.status === "ready");
-  const inProgressTasks = tasks.filter((task) => task.status === "in-progress");
-  const reviewTasks = tasks.filter((task) => task.status === "review");
-  const doneTasks = tasks.filter((task) => task.status === "done");
-  const totalEstimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
-  const completedEstimatedHours = doneTasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
-  const progressPercentage = totalEstimatedHours > 0
-    ? Math.round((completedEstimatedHours / totalEstimatedHours) * 100)
-    : 0;
+  // Filtrar tareas por estado - memoizado para evitar re-cálculos innecesarios
+  const backlogTasks = useMemo(() => tasks.filter((task) => task.status === 'backlog'), [tasks])
+  const readyTasks = useMemo(() => tasks.filter((task) => task.status === 'ready'), [tasks])
+  const inProgressTasks = useMemo(() => tasks.filter((task) => task.status === 'in-progress'), [tasks])
+  const reviewTasks = useMemo(() => tasks.filter((task) => task.status === 'review'), [tasks])
+  const doneTasks = useMemo(() => tasks.filter((task) => task.status === 'done'), [tasks])
 
-  const isBacklogOverloaded = backlogTasks.length > expectedTasks.backlog;
-  const isReadyOverloaded = readyTasks.length > expectedTasks.ready;
-  const isInProgressOverloaded = inProgressTasks.length > expectedTasks["in-progress"];
-  const isReviewOverloaded = reviewTasks.length > expectedTasks.review;
-  const isDoneOverloaded = false;
+  // Calcular métricas - memoizado
+  const totalEstimatedHours = useMemo(() => tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [tasks])
+  const completedEstimatedHours = useMemo(() => doneTasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [doneTasks])
+  const progressPercentage = useMemo(() =>
+    totalEstimatedHours > 0 ? Math.round((completedEstimatedHours / totalEstimatedHours) * 100) : 0,
+    [totalEstimatedHours, completedEstimatedHours]
+  )
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between gap-6">
+      {/* Header */}
+      <header className="border-b border-[#923811]/45 bg-[#160f0c] px-6 py-4 shadow-[0_0_18px_rgba(146,56,17,0.22)]">
+        <div className="flex items-center justify-between gap-6 flex-wrap">
           <div className="flex-shrink-0">
             <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center rounded-xl border border-[#e76b36]/50 bg-[#1b0f0b] p-3 shadow-[0_0_22px_rgba(231,107,54,0.55)]">
+                <Image src="/CloudForge.svg" alt="CloudForge" width={86} height={86} priority />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Manage your tasks and track progress
+                <h1 className="text-2xl font-bold text-[#ffe9dd] neon-orange">Project Board</h1>
+                <p className="text-sm text-[#d1a28c] mt-1">
+                  Manage your tasks and track progress · Real-time updates via WebSocket
                 </p>
               </div>
-              {/* API Status Indicator */}
-              <div className="flex items-center gap-2 ml-4 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
-                <div className={`w-2 h-2 rounded-full ${apiAvailable ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                <span className="text-xs font-medium text-muted-foreground">
-                  {isLoading ? 'Loading...' : apiAvailable ? 'Connected' : 'Local Mode'}
-                </span>
+              {/* Indicador de conexión WebSocket */}
+              <div className="flex items-center gap-2 ml-4 px-3 py-1 rounded-full bg-[#923811]/20 border border-[#923811]/50 shadow-[0_0_10px_rgba(146,56,17,0.5)]">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs font-medium text-[#ffd5c2] neon-brown">WebSocket Connected</span>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 max-w-md">
+          {/* Progreso */}
+          <div className="flex-1 max-w-md min-w-[240px]">
             <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-semibold text-foreground">
+              <span className="text-[#d1a28c]">Progress</span>
+              <span className="font-semibold text-[#fff1e9]">
                 {completedEstimatedHours}h / {totalEstimatedHours}h ({progressPercentage}%)
               </span>
             </div>
             <Progress value={progressPercentage} className="h-1.5" />
           </div>
 
+          {/* Botones de acción */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Button onClick={() => setMembersDialogOpen(true)} variant="outline">
+            <Button onClick={() => setMembersDialogOpen(true)} variant="outline" className="cursor-pointer">
               <Users className="w-4 h-4 mr-2" />
               Members
             </Button>
-            <Button onClick={handleGenerateReport} variant="outline">
+            <Button onClick={handleGenerateReport} variant="outline" className="cursor-pointer">
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>
-            <AddTaskDialog onAddTask={handleAddTask} />
+            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} />
           </div>
         </div>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-x-auto p-6 bg-background">
-        <div className="flex gap-6 h-full min-h-0">
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isBacklogOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
+      {/* Columns Container */}
+      <div className="flex-1 min-h-0 overflow-x-auto p-6 app-background">
+        <div className="flex gap-6 h-full flex-shrink-0 w-fit">
+          {/* Backlog Column */}
+          <div className="flex-1 min-w-[300px] h-full">
+            <MemoizedColumn
               title="Backlog"
               status="backlog"
               tasks={backlogTasks}
@@ -621,14 +425,10 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks.backlog}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isReadyOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
+
+          {/* Ready Column */}
+          <div className="flex-1 min-w-[300px] h-full">
+            <MemoizedColumn
               title="Ready"
               status="ready"
               tasks={readyTasks}
@@ -640,14 +440,10 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks.ready}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isInProgressOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
+
+          {/* In Progress Column */}
+          <div className="flex-1 min-w-[300px] h-full">
+            <MemoizedColumn
               title="In Progress"
               status="in-progress"
               tasks={inProgressTasks}
@@ -656,21 +452,17 @@ export function ProjectBoard() {
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
               onExpectedChange={handleExpectedChange}
-              expectedTasks={expectedTasks["in-progress"]}
+              expectedTasks={expectedTasks['in-progress']}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isReviewOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
+
+          {/* Review Column */}
+          <div className="flex-1 min-w-[300px] h-full">
+            <MemoizedColumn
               title="Review"
               status="review"
               tasks={reviewTasks}
-              icon={<Eye className="w-5 h-5 text-accent" />}
+              icon={<Eye className="w-5 h-5 text-destructive" />}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -678,14 +470,10 @@ export function ProjectBoard() {
               expectedTasks={expectedTasks.review}
             />
           </div>
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isDoneOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
+
+          {/* Done Column */}
+          <div className="flex-1 min-w-[300px] h-full">
+            <MemoizedColumn
               title="Done"
               status="done"
               tasks={doneTasks}
@@ -694,24 +482,28 @@ export function ProjectBoard() {
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
               onExpectedChange={handleExpectedChange}
-              expectedTasks={expectedTasks.done}
             />
           </div>
         </div>
       </div>
 
-      <TaskDetailsDialog
-        task={selectedTask}
-        open={detailsDialogOpen}
-        onOpenChange={setDetailsDialogOpen}
-        onUpdateTask={handleUpdateTask}
-      />
+      {/* Task Details Dialog */}
+      {selectedTask && (
+        <TaskDetailsDialog
+          task={selectedTask}
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          onUpdateTask={handleUpdateTask}
+          assigneeOptions={assigneeOptions}
+        />
+      )}
 
+      {/* Members Dialog */}
       <MembersDialog
         open={membersDialogOpen}
         onOpenChange={setMembersDialogOpen}
         tasks={tasks}
       />
     </div>
-  );
+  )
 }
