@@ -2,18 +2,24 @@
 # Copyright (c) 2021 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
+#-----Colours-----#
+greenColour="\e[0;32m\033[1m"
+redColour="\e[0;31m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+endColour="\033[0m\e[0m"
+
 # Fail on error
 set -e
 
 #Check if home is set
 if test -z "$MTDRWORKSHOP_LOCATION"; then
-  echo "ERROR: this script requires MTDRWORKSHOP_LOCATION to be set"
+  echo "${redColour}[ERROR]${endColour} This script requires MTDRWORKSHOP_LOCATION to be set"
   exit
 fi
 
 #Exit if we are already done
 if state_done SETUP_VERIFIED; then
-  echo "SETUP_VERIFIED completed"
+  echo "${greenColour}[+]${endColour} SETUP_VERIFIED completed"
   exit
 fi
 
@@ -69,7 +75,7 @@ done
 
 # Generate Unique Key
 while ! state_done MTDR_KEY; do
-  state_set MTDR_KEY $(python "$MTDRWORKSHOP_LOCATION/utils/python-scripts/generate-unique-key.py")
+  state_set MTDR_KEY $(python "$MTDRWORKSHOP_LOCATION/utils/python/generate-unique-key.py")
 done
 
 

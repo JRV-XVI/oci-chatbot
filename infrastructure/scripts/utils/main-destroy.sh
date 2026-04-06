@@ -46,7 +46,7 @@ fi
 
 # Terraform Destroy
 echo "Running terraform destroy"
-cd $MTDRWORKSHOP_LOCATION/terraform
+cd $MTDRWORKSHOP_LOCATION/../terraform
 export TF_VAR_ociTenancyOcid="$(state_get TENANCY_OCID)"
 export TF_VAR_ociUserOcid="$(state_get USER_OCID)"
 export TF_VAR_ociCompartmentOcid="$(state_get COMPARTMENT_OCID)"
