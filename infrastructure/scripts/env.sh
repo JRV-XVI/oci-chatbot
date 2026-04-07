@@ -17,10 +17,16 @@
 # Copyright (c) 2022 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
+#-----Colours-----#
+greenColour="\e[0;32m\033[1m"
+redColour="\e[0;31m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+endColour="\033[0m\e[0m"
+
 # Make sure this is run via source or .
 # Ejecutar con ./env.sh crea un subshell y las exportaciones se pierden.
 if ! (return 0 2>/dev/null); then
-  echo "ERROR: Usage 'source env.sh'"
+  echo "${redColour}[ERROR]${endColour} Usage 'source env.sh'"
   exit
 fi
 
@@ -45,6 +51,7 @@ function sed_i() {
   sed -e "$OP" "$FILE" >"/tmp/$FILE"
   mv -- "/tmp/$FILE" "$FILE"
 }
+
 export -f sed_i
 
 #######################################
@@ -73,7 +80,7 @@ function set_javahome() {
 # Resuelve la ruta absoluta del directorio del script sin depender del cwd.
 export MTDRWORKSHOP_LOCATION="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $MTDRWORKSHOP_LOCATION
-echo "MTDRWORKSHOP_LOCATION: $MTDRWORKSHOP_LOCATION"
+echo "${greenColour}[+]${endColour} MTDRWORKSHOP_LOCATION: $MTDRWORKSHOP_LOCATION"
 
 
 
@@ -90,7 +97,7 @@ if test -d ~/mtdrworkshop-state; then
 else
   export MTDRWORKSHOP_STATE_HOME=$MTDRWORKSHOP_LOCATION
 fi
-echo "MTDRWORKSOP_STATE_HOME: $MTDRWORKSHOP_STATE_HOME"
+echo "${greenColour}[+]${endColour} MTDRWORKSOP_STATE_HOME: $MTDRWORKSHOP_STATE_HOME"
 
 # Crea carpeta de logs para setup/destroy y procesos en background.
 export MTDRWORKSHOP_LOG=$MTDRWORKSHOP_STATE_HOME/log
