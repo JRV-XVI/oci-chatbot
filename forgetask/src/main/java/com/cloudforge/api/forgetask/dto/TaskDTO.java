@@ -103,12 +103,20 @@ public class TaskDTO {
         return estimatedTime != null ? estimatedTime : 0.0;
     }
 
+    public Double getEstimatedTimeNullable() {
+        return estimatedTime;
+    }
+
     public void setEstimatedTime(Double estimatedTime) {
         this.estimatedTime = estimatedTime;
     }
 
     public Double getRealTime() {
         return realTime != null ? realTime : 0.0;
+    }
+
+    public Double getRealTimeNullable() {
+        return realTime;
     }
 
     public void setRealTime(Double realTime) {

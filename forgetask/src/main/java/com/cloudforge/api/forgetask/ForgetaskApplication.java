@@ -19,6 +19,7 @@ public class ForgetaskApplication {
 
 	@PostConstruct
 	public void testConnection() throws Exception {
+		System.out.println("DataSource class: " + dataSource.getClass().getName());
 		try (Connection conn = dataSource.getConnection()) {
 			System.out.println("Conectado a Oracle ATP: " + conn.getMetaData().getURL());
 		}
