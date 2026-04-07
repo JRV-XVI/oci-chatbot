@@ -10,7 +10,6 @@ blueColour="\e[0;34m\033[1m"
 yellowColour="\e[0;33m\033[1m"
 purpleColour="\e[0;35m\033[1m"
 grayColour="\e[0;37m\033[1m"
-
 # Fail on error
 set -e
 

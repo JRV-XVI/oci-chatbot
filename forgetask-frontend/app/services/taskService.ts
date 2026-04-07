@@ -4,6 +4,7 @@
  * This service will eventually call the real backend endpoints
  */
 import type { Task } from "@/app/types/task";
+import type { TaskAssigneeOption } from "@/app/types/task";
 export type { Task };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -124,6 +125,30 @@ class TaskService {
       return await response.json();
     } catch (error) {
       console.error("Error deleting task:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get assignable users for a project.
+   */
+  async getProjectUsers(projectId?: number): Promise<TaskAssigneeOption[]> {
+    try {
+      const query = projectId !== undefined ? `?projectId=${projectId}` : "";
+      const response = await fetch(`${API_BASE_URL}/todolist/meta/users${query}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch project users: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching project users:", error);
       throw error;
     }
   }

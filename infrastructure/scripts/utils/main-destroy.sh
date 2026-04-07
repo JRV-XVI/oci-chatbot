@@ -51,7 +51,6 @@ else
   nohup $MTDRWORKSHOP_LOCATION/utils/lb-destroy.sh &>> $MTDRWORKSHOP_LOG/lb-destroy.log &
 fi
 
-
 # Terraform Destroy
 echo -e "${greenColour}[main-destroy.sh][+]${endColour} Running terraform destroy"
 cd $MTDRWORKSHOP_LOCATION/../terraform

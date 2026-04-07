@@ -2,19 +2,21 @@
 
 :root {
   --font-size: 16px;
-  --background: #0a0a0a;
+  --background: #120b08;
   --foreground: #ededed;
-  --card: #1a1a1a;
+  --forge-orange: #e76b36;
+  --forge-brown: #923811;
+  --card: #1b120f;
   --card-foreground: #ededed;
-  --popover: #1a1a1a;
+  --popover: #160f0c;
   --popover-foreground: #ededed;
-  --primary: #ededed;
-  --primary-foreground: #0a0a0a;
-  --secondary: #C34B17;
+  --primary: #e76b36;
+  --primary-foreground: #ffffff;
+  --secondary: #923811;
   --secondary-foreground: #ffffff;
   --muted: #262626;
   --muted-foreground: #a3a3a3;
-  --accent: #E76B36;
+  --accent: #923811;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
@@ -24,10 +26,10 @@
   --switch-background: #525252;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #737373;
-  --chart-1: #E76B36;
-  --chart-2: #C34B17;
-  --chart-3: #923811;
+  --ring: #e76b36;
+  --chart-1: #e76b36;
+  --chart-2: #923811;
+  --chart-3: #e76b36;
 }
 
 /* Estilos para las barras de scroll (Webkit - Chrome, Safari, Edge) */
@@ -55,7 +57,7 @@
   --radius: 1rem;
   --sidebar: #171717;
   --sidebar-foreground: #ededed;
-  --sidebar-primary: #C34B17;
+  --sidebar-primary: #e76b36;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #262626;
   --sidebar-accent-foreground: #ededed;
@@ -112,5 +114,62 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-geist-sans), var(--font-geist-mono), Arial, Helvetica, sans-serif;
+    background-image:
+      radial-gradient(circle at 12% 10%, rgba(231, 107, 54, 0.18), transparent 35%),
+      radial-gradient(circle at 84% 6%, rgba(146, 56, 17, 0.2), transparent 32%),
+      linear-gradient(180deg, #140c09 0%, #0f0907 100%);
+    background-attachment: fixed;
   }
+
+  select {
+    background-color: #1a1210;
+    color: #ffd5c2;
+    border-color: rgba(146, 56, 17, 0.6);
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+  }
+
+  select:hover {
+    border-color: rgba(231, 107, 54, 0.6);
+  }
+
+  select:focus-visible {
+    outline: none;
+    border-color: #e76b36;
+    box-shadow: 0 0 12px rgba(231, 107, 54, 0.45);
+  }
+
+  ::selection {
+    background: rgba(231, 107, 54, 0.35);
+    color: #fff5ef;
+  }
+}
+
+.app-background {
+  background-image:
+    radial-gradient(circle at 10% 8%, rgba(231, 107, 54, 0.18), transparent 34%),
+    radial-gradient(circle at 86% 10%, rgba(146, 56, 17, 0.22), transparent 32%),
+    linear-gradient(180deg, #140c09 0%, #0f0907 100%);
+  background-attachment: fixed;
+}
+
+.neon-orange {
+  color: #e76b36;
+  text-shadow: 0 0 6px rgba(231, 107, 54, 0.65), 0 0 14px rgba(231, 107, 54, 0.45);
+}
+
+.neon-brown {
+  color: #ffd5c2;
+  text-shadow: 0 0 6px rgba(146, 56, 17, 0.7), 0 0 14px rgba(146, 56, 17, 0.5);
+}
+
+.neon-orange-bg {
+  background: rgba(231, 107, 54, 0.15);
+  border-color: rgba(231, 107, 54, 0.55);
+  box-shadow: 0 0 10px rgba(231, 107, 54, 0.45);
+}
+
+.neon-brown-bg {
+  background: rgba(146, 56, 17, 0.2);
+  border-color: rgba(146, 56, 17, 0.6);
+  box-shadow: 0 0 12px rgba(146, 56, 17, 0.45);
 }
