@@ -343,12 +343,12 @@ export function ProjectBoard({
     URL.revokeObjectURL(url)
   }
 
-  // Filtrar tareas por estado - memoizado para evitar re-cálculos innecesarios
-  const backlogTasks = useMemo(() => tasks.filter((task) => task.status === 'backlog'), [tasks])
-  const readyTasks = useMemo(() => tasks.filter((task) => task.status === 'ready'), [tasks])
-  const inProgressTasks = useMemo(() => tasks.filter((task) => task.status === 'in-progress'), [tasks])
-  const reviewTasks = useMemo(() => tasks.filter((task) => task.status === 'review'), [tasks])
-  const doneTasks = useMemo(() => tasks.filter((task) => task.status === 'done'), [tasks])
+  // Filtrar tareas por estado
+  const backlogTasks = tasks.filter((task) => task.status === 'backlog')
+  const readyTasks = tasks.filter((task) => task.status === 'ready')
+  const inProgressTasks = tasks.filter((task) => task.status === 'in-progress')
+  const reviewTasks = tasks.filter((task) => task.status === 'review')
+  const doneTasks = tasks.filter((task) => task.status === 'done')
 
   // Calcular métricas - memoizado
   const totalEstimatedHours = useMemo(() => tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [tasks])
