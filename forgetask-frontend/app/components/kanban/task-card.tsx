@@ -1,13 +1,5 @@
 'use client'
 
-<<<<<<< HEAD
-import { useDrag } from "react-dnd";
-import { GripVertical, Trash2, Calendar, Clock, User } from "lucide-react";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import type { Task } from "@/app/types/task";
-export type { Task };
-=======
 /**
  * MODIFICADO EN ESTE PROMPT
  * Tarjeta de tarea arrastra y sueltable
@@ -23,7 +15,6 @@ import { Badge } from '../ui/badge'
 import { memo } from 'react'
 import type { Task } from '@/app/types/task'
 export type { Task }
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
 interface TaskCardProps {
   task: Task
@@ -93,17 +84,10 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
   return (
     <div
       ref={(node) => {
-<<<<<<< HEAD
-        drag(node);
-      }}
-      className={`bg-card rounded-lg border border-border p-3 group hover:border-accent transition-all ${
-        isDragging ? "opacity-50" : "opacity-100"
-=======
         drag(node)
       }}
       className={`bg-[#1a110d] rounded-lg border border-[#923811]/45 p-3 group hover:border-[#e76b36]/60 hover:shadow-[0_0_14px_rgba(231,107,54,0.18)] transition-all cursor-pointer ${
         isDragging ? 'opacity-50' : 'opacity-100'
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
       }`}
     >
       <div className="flex items-start gap-2">

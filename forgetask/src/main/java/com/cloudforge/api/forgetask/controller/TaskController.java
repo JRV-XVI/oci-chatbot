@@ -35,11 +35,7 @@ public class TaskController {
     private static final String SELECT_TASKS_SQL = """
             SELECT t.ID_TASK,
                    t.ID_USER,
-<<<<<<< HEAD
-                 t.ID_PROJECT,
-=======
                                      t.ID_PROJECT,
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
                    t.TITLE,
                    t.DESCRIPTION,
                    t.START_TIME,
@@ -48,21 +44,6 @@ public class TaskController {
                      TO_CHAR(t.END_TIME, 'YYYY-MM-DD') AS END_DATE_TEXT,
                    t.ESTIMATED_TIME,
                    t.REAL_TIME,
-<<<<<<< HEAD
-                 ts.STATE,
-                 ua.FIRST_NAME,
-                 ua.LAST_NAME,
-                 ua.USERNAME,
-                 ur.ROLE
-            FROM TASK t
-            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
-             LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
-             LEFT JOIN (
-              SELECT ID_USER, MIN(ROLE) AS ROLE
-              FROM USER_ROLE
-              GROUP BY ID_USER
-             ) ur ON ur.ID_USER = t.ID_USER
-=======
                                      ts.STATE,
                                      pt.PRIORITY,
                                      ua.FIRST_NAME,
@@ -83,7 +64,6 @@ public class TaskController {
                                 FROM USER_ROLE
                                 GROUP BY ID_USER
                         ) ur ON ur.ID_USER = t.ID_USER
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
             ORDER BY t.ID_TASK
             """;
 
@@ -108,20 +88,12 @@ public class TaskController {
                 rs.getString("END_DATE_TEXT"),
                 rs.getObject("ESTIMATED_TIME"),
                 rs.getObject("REAL_TIME"),
-<<<<<<< HEAD
-            rs.getString("STATE"),
-            rs.getString("FIRST_NAME"),
-            rs.getString("LAST_NAME"),
-            rs.getString("USERNAME"),
-            rs.getString("ROLE")
-=======
                 rs.getString("STATE"),
                 rs.getString("PRIORITY"),
                 rs.getString("FIRST_NAME"),
                 rs.getString("LAST_NAME"),
                 rs.getString("USERNAME"),
                 rs.getString("ROLE")
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
         ));
 
         return ResponseEntity.ok(tasks);
@@ -138,29 +110,13 @@ public class TaskController {
     }
 
     @PostMapping
-<<<<<<< HEAD
-=======
     @Transactional
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
     public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO task) {
         Integer nextId = jdbcTemplate.queryForObject("SELECT NVL(MAX(ID_TASK), 0) + 1 FROM TASK", Integer.class);
         if (nextId == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-<<<<<<< HEAD
-        Integer defaultUser = jdbcTemplate.queryForObject("SELECT NVL(MIN(ID_USER), 1) FROM TASK", Integer.class);
-        Integer defaultProject = jdbcTemplate.queryForObject("SELECT NVL(MIN(ID_PROJECT), 1) FROM TASK", Integer.class);
-
-        int idUser = resolveIdUser(task.getAssignedTo(), defaultUser != null ? defaultUser : 1);
-        int idProject = defaultProject != null ? defaultProject : 1;
-        String title = normalizeText(task.getTitle(), "Untitled task");
-        String description = normalizeText(task.getDescription(), title);
-        Timestamp startTime = parseDateOrNow(task.getStartDate());
-        Timestamp endTime = parseDateOrNow(task.getEndDate());
-        double estimated = task.getEstimatedTime();
-        double real = task.getRealTime();
-=======
         if (task.getTitle() == null || task.getTitle().isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -186,7 +142,6 @@ public class TaskController {
         Double estimated = task.getEstimatedTimeNullable();
         Double real = task.getRealTimeNullable();
         String priority = normalizePriority(task.getPriority(), "medium");
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
         jdbcTemplate.update(
                 "INSERT INTO TASK (ID_TASK, ID_USER, ID_PROJECT, TITLE, DESCRIPTION, START_TIME, END_TIME, ESTIMATED_TIME, REAL_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -202,10 +157,7 @@ public class TaskController {
         );
 
         upsertTaskState(nextId, toDatabaseState(task.getStatus()));
-<<<<<<< HEAD
-=======
         upsertTaskPriority(nextId, priority);
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
         TaskDTO createdTask = findTaskById(nextId);
         if (createdTask == null) {
@@ -224,35 +176,13 @@ public class TaskController {
             return ResponseEntity.notFound().build();
         }
 
-<<<<<<< HEAD
-        int idUser = resolveIdUser(task.getAssignedTo(), existingTask.idUser());
-=======
         ResolvedAssignee assignee = resolveAssignee(task.getAssignedTo(), existingTask.idProject(), existingTask.idUser());
         int idUser = assignee.userId();
         int idProject = assignee.projectId();
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
         String title = normalizeText(task.getTitle(), existingTask.title());
         String description = normalizeText(task.getDescription(), existingTask.description());
         Timestamp startTime = parseDateOrFallback(task.getStartDate(), existingTask.startTime());
         Timestamp endTime = parseDateOrFallback(task.getEndDate(), existingTask.endTime());
-<<<<<<< HEAD
-        double estimated = task.getEstimatedTime() != null ? task.getEstimatedTime() : existingTask.estimatedTime();
-        double real = task.getRealTime() != null ? task.getRealTime() : existingTask.realTime();
-
-        jdbcTemplate.update(
-            "UPDATE TASK SET ID_USER = ?, TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, ESTIMATED_TIME = ?, REAL_TIME = ? WHERE ID_TASK = ?",
-            idUser,
-            title,
-            description,
-            startTime,
-            endTime,
-            estimated,
-            real,
-            taskId
-        );
-
-        upsertTaskState(taskId, toDatabaseState(task.getStatus()));
-=======
 
         // VALIDATION: START DATE < END DATE
         if (!isValidDateRange(startTime, endTime)) {
@@ -278,7 +208,6 @@ public class TaskController {
 
         upsertTaskState(taskId, toDatabaseState(task.getStatus()));
         upsertTaskPriority(taskId, priority);
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
         TaskDTO updatedTask = findTaskById(taskId);
         if (updatedTask == null) {
@@ -292,12 +221,7 @@ public class TaskController {
     @Transactional
     public ResponseEntity<Boolean> deleteTask(@PathVariable String id) {
         int taskId = Integer.parseInt(id);
-<<<<<<< HEAD
-        jdbcTemplate.update("DELETE FROM TASK_TAG WHERE ID_TASK = ?", taskId);
-        jdbcTemplate.update("DELETE FROM TASK_STATE WHERE ID_TASK = ?", taskId);
-=======
         deleteTaskDependencies(taskId);
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
         int affectedRows = jdbcTemplate.update("DELETE FROM TASK WHERE ID_TASK = ?", taskId);
         return ResponseEntity.ok(affectedRows > 0);
     }
@@ -325,8 +249,6 @@ public class TaskController {
         return ResponseEntity.ok(states);
     }
 
-<<<<<<< HEAD
-=======
     @GetMapping("/meta/users")
     public ResponseEntity<List<TaskAssigneeOptionDTO>> getProjectUsers(
             @RequestParam(required = false) Integer projectId
@@ -369,7 +291,6 @@ public class TaskController {
         return ResponseEntity.ok(users);
     }
 
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
     private TaskDTO findTaskById(int taskId) {
         List<TaskDTO> tasks = jdbcTemplate.query(
                 """
@@ -385,25 +306,19 @@ public class TaskController {
                        t.ESTIMATED_TIME,
                        t.REAL_TIME,
                        ts.STATE,
-<<<<<<< HEAD
-=======
                       pt.PRIORITY,
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
                        ua.FIRST_NAME,
                        ua.LAST_NAME,
                        ua.USERNAME,
                        ur.ROLE
                 FROM TASK t
                 LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
-<<<<<<< HEAD
-=======
                   LEFT JOIN (
                       SELECT ID_TASK,
                           MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
                       FROM TASK_TAG
                       GROUP BY ID_TASK
                   ) pt ON pt.ID_TASK = t.ID_TASK
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
                 LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
                 LEFT JOIN (
                     SELECT ID_USER, MIN(ROLE) AS ROLE
@@ -424,20 +339,12 @@ public class TaskController {
                         rs.getString("END_DATE_TEXT"),
                         rs.getObject("ESTIMATED_TIME"),
                         rs.getObject("REAL_TIME"),
-<<<<<<< HEAD
-                    rs.getString("STATE"),
-                    rs.getString("FIRST_NAME"),
-                    rs.getString("LAST_NAME"),
-                    rs.getString("USERNAME"),
-                    rs.getString("ROLE")
-=======
                         rs.getString("STATE"),
                         rs.getString("PRIORITY"),
                         rs.getString("FIRST_NAME"),
                         rs.getString("LAST_NAME"),
                         rs.getString("USERNAME"),
                         rs.getString("ROLE")
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
                 ),
                 taskId
         );
@@ -445,51 +352,6 @@ public class TaskController {
         return tasks.isEmpty() ? null : tasks.get(0);
     }
 
-<<<<<<< HEAD
-        private ExistingTaskSnapshot findTaskSnapshotById(int taskId) {
-                List<ExistingTaskSnapshot> snapshots = jdbcTemplate.query(
-                                """
-                                SELECT ID_USER,
-                                             TITLE,
-                                             DESCRIPTION,
-                                             START_TIME,
-                                             END_TIME,
-                                             ESTIMATED_TIME,
-                                             REAL_TIME
-                                FROM TASK
-                                WHERE ID_TASK = ?
-                                """,
-                                (rs, rowNum) -> new ExistingTaskSnapshot(
-                                                rs.getInt("ID_USER"),
-                                                rs.getString("TITLE"),
-                                                rs.getString("DESCRIPTION"),
-                                                rs.getTimestamp("START_TIME"),
-                                                rs.getTimestamp("END_TIME"),
-                                                toDoubleOrZero(rs.getObject("ESTIMATED_TIME")),
-                                                toDoubleOrZero(rs.getObject("REAL_TIME"))
-                                ),
-                                taskId
-                );
-
-                return snapshots.isEmpty() ? null : snapshots.get(0);
-        }
-
-        private void upsertTaskState(int taskId, String dbState) {
-            ensureTaskStateConstraintSupportsReady();
-
-                String mergeStateSql = """
-                                MERGE INTO TASK_STATE ts
-                                USING (SELECT ? AS ID_TASK, ? AS STATE FROM dual) src
-                                ON (ts.ID_TASK = src.ID_TASK)
-                                WHEN MATCHED THEN
-                                    UPDATE SET ts.STATE = src.STATE
-                                WHEN NOT MATCHED THEN
-                                    INSERT (ID_TASK, STATE) VALUES (src.ID_TASK, src.STATE)
-                                """;
-
-                jdbcTemplate.update(mergeStateSql, taskId, dbState);
-        }
-=======
     private ExistingTaskSnapshot findTaskSnapshotById(int taskId) {
         List<ExistingTaskSnapshot> snapshots = jdbcTemplate.query(
                 """
@@ -591,7 +453,6 @@ public class TaskController {
     private boolean isSafeIdentifier(String value) {
         return value.matches("^[A-Z0-9_]+$");
     }
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
     private synchronized void ensureTaskStateConstraintSupportsReady() {
         if (taskStateConstraintChecked) {
@@ -645,10 +506,7 @@ public class TaskController {
             Object estimatedTime,
             Object realTime,
             String state,
-<<<<<<< HEAD
-=======
             String priority,
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
             String firstName,
             String lastName,
             String username,
@@ -700,8 +558,6 @@ public class TaskController {
         }
     }
 
-<<<<<<< HEAD
-=======
     private Double toNullableDouble(Object value) {
         if (value == null) {
             return null;
@@ -716,7 +572,6 @@ public class TaskController {
         }
     }
 
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
     private String normalizeText(String value, String fallback) {
         if (value == null || value.isBlank()) {
             return fallback;
@@ -724,23 +579,6 @@ public class TaskController {
         return value;
     }
 
-<<<<<<< HEAD
-    private int resolveIdUser(List<String> assignedTo, int fallbackUserId) {
-        if (assignedTo != null && !assignedTo.isEmpty()) {
-            String rawValue = assignedTo.get(0);
-            try {
-                return Integer.parseInt(rawValue);
-            } catch (NumberFormatException ignored) {
-                return fallbackUserId;
-            }
-        }
-        return fallbackUserId;
-    }
-
-    private Timestamp parseDateOrNow(String date) {
-        if (date == null || date.isBlank()) {
-            return Timestamp.valueOf(LocalDateTime.now());
-=======
     private String normalizeTextOrNull(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -901,7 +739,6 @@ public class TaskController {
     private Timestamp parseDateOrNull(String date) {
         if (date == null || date.isBlank()) {
             return null;
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
         }
         return Timestamp.valueOf(LocalDate.parse(date).atStartOfDay());
     }
@@ -1006,18 +843,11 @@ public class TaskController {
 
     private record ExistingTaskSnapshot(
             int idUser,
-<<<<<<< HEAD
-=======
             int idProject,
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
             String title,
             String description,
             Timestamp startTime,
             Timestamp endTime,
-<<<<<<< HEAD
-            double estimatedTime,
-            double realTime
-=======
             Double estimatedTime,
             Double realTime,
             String priority
@@ -1027,7 +857,6 @@ public class TaskController {
         private record ResolvedAssignee(
             int userId,
             int projectId
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
     ) {
     }
 }

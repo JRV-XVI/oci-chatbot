@@ -93,11 +93,6 @@ function Column({
   }))
 
   return (
-<<<<<<< HEAD
-    <div className="flex-1 min-w-[300px] flex flex-col max-h-full min-h-0">
-      <div className="bg-muted/50 rounded-lg p-4 border border-border flex flex-col h-full min-h-0">
-        <div className="flex items-center gap-2 mb-2">
-=======
     <div
       ref={drop as unknown as React.LegacyRef<HTMLDivElement>}
       className={`flex flex-col h-full rounded-xl border transition-colors ${
@@ -109,7 +104,6 @@ function Column({
       {/* Column Header - Altura fija */}
       <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#923811]/40">
         <div className="flex items-center gap-2">
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
           {icon}
           <span className="font-semibold text-[#ffe7dc]">{title}</span>
           
@@ -119,53 +113,6 @@ function Column({
               {tasks.length}
             </span>
           ) : (
-<<<<<<< HEAD
-            <>
-              {isEditingExpected ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={expectedValue}
-                    onChange={(e) => setExpectedValue(e.target.value)}
-                    className="w-16 h-7 text-sm"
-                    onBlur={handleExpectedSave}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleExpectedSave();
-                      if (e.key === "Escape") {
-                        setExpectedValue(expectedTasks.toString());
-                        setIsEditingExpected(false);
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <span className="text-sm text-muted-foreground">tasks</span>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsEditingExpected(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group cursor-pointer"
-                >
-                  <span>{tasks.length}/{expectedTasks}</span>
-                  <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              )}
-            </>
-          )}
-        </div>
-
-        <div
-          ref={(node) => {
-            drop(node);
-          }}
-          className={`space-y-3 flex-1 min-h-0 overflow-y-auto rounded-lg transition-colors p-1 ${
-            isOver ? "bg-accent/20 border-2 border-accent border-dashed" : ""
-          }`}
-        >
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onDelete={onDeleteTask} onClick={onTaskClick} />
-          ))}
-=======
             /* CASO 2: Columna con límite - Contador editable con formato actual/esperado */
             isEditingExpected ? (
               <input
@@ -233,7 +180,6 @@ function Column({
               ))}
             </div>
           )}
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
         </div>
       )}
 
@@ -311,58 +257,6 @@ export function ProjectBoard({
     onSendUpdate(task.id, { status: newStatus })
   }, [onSendUpdate])
 
-<<<<<<< HEAD
-    // Reuse the same persistence flow used by task detail edits.
-    handleUpdateTask({ ...task, status: newStatus });
-  };
-
-  const handleAddTask = (newTask: Omit<Task, "id">) => {
-    const tempId = `temp-${Date.now()}`;
-    const task: Task = {
-      ...newTask,
-      id: tempId,
-    };
-    setTasks((prevTasks) => [...prevTasks, task]);
-
-    taskService
-      .createTask(newTask)
-      .then((createdTask) => {
-        setApiAvailable(true);
-        setTasks((prevTasks) =>
-          prevTasks.map((t) => (t.id === tempId ? createdTask : t)),
-        );
-      })
-      .catch((error: unknown) => {
-        setApiAvailable(false);
-        console.error("Failed to create task on server:", error);
-        setTasks((prevTasks) => prevTasks.filter((t) => t.id !== tempId));
-      });
-  };
-
-  const handleDeleteTask = (id: string) => {
-    const previousTasks = tasks;
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-
-    // Client-only temporary tasks are not persisted yet.
-    if (!/^\d+$/.test(id)) {
-      return;
-    }
-
-    taskService
-      .deleteTask(id)
-      .then((deleted) => {
-        setApiAvailable(true);
-        if (!deleted) {
-          setTasks(previousTasks);
-        }
-      })
-      .catch((error: unknown) => {
-        setApiAvailable(false);
-        console.error("Failed to delete task on server:", error);
-        setTasks(previousTasks);
-      });
-  };
-=======
   /**
    * Manejar creación de nueva tarea
    * Enviar al backend via WebSocket
@@ -395,7 +289,6 @@ export function ProjectBoard({
     // Enviar al backend via WebSocket
     onSendDelete(id)
   }, [onSendDelete, tasks])
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
   /**
    * Manejar click en tarea para abrir detalles
@@ -405,38 +298,11 @@ export function ProjectBoard({
     setDetailsDialogOpen(true)
   }, [])
 
-<<<<<<< HEAD
-  const handleUpdateTask = (updatedTask: Task) => {
-    const previousTasks = tasks;
-    setTasks((prevTasks) =>
-      prevTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-    );
-
-    if (!/^\d+$/.test(updatedTask.id)) {
-      return;
-    }
-
-    taskService
-      .updateTask(updatedTask.id, updatedTask)
-      .then((serverTask) => {
-        setApiAvailable(true);
-        setTasks((prevTasks) =>
-          prevTasks.map((t) => (t.id === serverTask.id ? serverTask : t)),
-        );
-      })
-      .catch((error: unknown) => {
-        setApiAvailable(false);
-        console.error("Failed to update task on server:", error);
-        setTasks(previousTasks);
-      });
-  };
-=======
   /**
    * Manejar actualización de tarea desde el diálogo de detalles
    */
   const handleUpdateTask = useCallback((updatedTask: Task) => {
     console.log('📤 Actualizando tarea:', updatedTask.id)
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
 
     // Enviar al backend via WebSocket
     onSendUpdate(updatedTask.id, updatedTask)
@@ -477,25 +343,13 @@ export function ProjectBoard({
     URL.revokeObjectURL(url)
   }
 
-  // Filtrar tareas por estado - memoizado para evitar re-cálculos innecesarios
-  const backlogTasks = useMemo(() => tasks.filter((task) => task.status === 'backlog'), [tasks])
-  const readyTasks = useMemo(() => tasks.filter((task) => task.status === 'ready'), [tasks])
-  const inProgressTasks = useMemo(() => tasks.filter((task) => task.status === 'in-progress'), [tasks])
-  const reviewTasks = useMemo(() => tasks.filter((task) => task.status === 'review'), [tasks])
-  const doneTasks = useMemo(() => tasks.filter((task) => task.status === 'done'), [tasks])
+  // Filtrar tareas por estado
+  const backlogTasks = tasks.filter((task) => task.status === 'backlog')
+  const readyTasks = tasks.filter((task) => task.status === 'ready')
+  const inProgressTasks = tasks.filter((task) => task.status === 'in-progress')
+  const reviewTasks = tasks.filter((task) => task.status === 'review')
+  const doneTasks = tasks.filter((task) => task.status === 'done')
 
-<<<<<<< HEAD
-  const isBacklogOverloaded = backlogTasks.length > expectedTasks.backlog;
-  const isReadyOverloaded = readyTasks.length > expectedTasks.ready;
-  const isInProgressOverloaded = inProgressTasks.length > expectedTasks["in-progress"];
-  const isReviewOverloaded = reviewTasks.length > expectedTasks.review;
-  const isDoneOverloaded = false;
-
-  return (
-    <div className="h-full min-h-0 flex flex-col">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between gap-6">
-=======
   // Calcular métricas - memoizado
   const totalEstimatedHours = useMemo(() => tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [tasks])
   const completedEstimatedHours = useMemo(() => doneTasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [doneTasks])
@@ -509,7 +363,6 @@ export function ProjectBoard({
       {/* Header */}
       <header className="border-b border-[#923811]/45 bg-[#160f0c] px-6 py-4 shadow-[0_0_18px_rgba(146,56,17,0.22)]">
         <div className="flex items-center justify-between gap-6 flex-wrap">
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
           <div className="flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center rounded-xl border border-[#e76b36]/50 bg-[#1b0f0b] p-3 shadow-[0_0_22px_rgba(231,107,54,0.55)]">
@@ -555,25 +408,12 @@ export function ProjectBoard({
         </div>
       </header>
 
-<<<<<<< HEAD
-      <div className="flex-1 min-h-0 overflow-x-auto p-6 bg-background">
-        <div className="flex gap-6 h-full min-h-0">
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isBacklogOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
-=======
       {/* Columns Container */}
       <div className="flex-1 min-h-0 overflow-x-auto p-6 app-background">
         <div className="flex gap-6 h-full flex-shrink-0 w-fit">
           {/* Backlog Column */}
           <div className="flex-1 min-w-[300px] h-full">
             <MemoizedColumn
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
               title="Backlog"
               status="backlog"
               tasks={backlogTasks}
@@ -585,21 +425,10 @@ export function ProjectBoard({
               expectedTasks={expectedTasks.backlog}
             />
           </div>
-<<<<<<< HEAD
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isReadyOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
-=======
 
           {/* Ready Column */}
           <div className="flex-1 min-w-[300px] h-full">
             <MemoizedColumn
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
               title="Ready"
               status="ready"
               tasks={readyTasks}
@@ -611,21 +440,10 @@ export function ProjectBoard({
               expectedTasks={expectedTasks.ready}
             />
           </div>
-<<<<<<< HEAD
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isInProgressOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
-=======
 
           {/* In Progress Column */}
           <div className="flex-1 min-w-[300px] h-full">
             <MemoizedColumn
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
               title="In Progress"
               status="in-progress"
               tasks={inProgressTasks}
@@ -637,21 +455,10 @@ export function ProjectBoard({
               expectedTasks={expectedTasks['in-progress']}
             />
           </div>
-<<<<<<< HEAD
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isReviewOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
-=======
 
           {/* Review Column */}
           <div className="flex-1 min-w-[300px] h-full">
             <MemoizedColumn
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
               title="Review"
               status="review"
               tasks={reviewTasks}
@@ -663,21 +470,10 @@ export function ProjectBoard({
               expectedTasks={expectedTasks.review}
             />
           </div>
-<<<<<<< HEAD
-          <div className="relative flex-1 min-w-[300px] min-h-0">
-            {isDoneOverloaded && (
-              <div className="absolute top-0 right-0 z-10 flex items-center gap-1 bg-red-400/10 border border-red-400/30 rounded px-2 py-1">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span className="text-xs text-red-400 font-medium">Overloaded</span>
-              </div>
-            )}
-            <Column
-=======
 
           {/* Done Column */}
           <div className="flex-1 min-w-[300px] h-full">
             <MemoizedColumn
->>>>>>> 32212d3df3d431df7710776bb60c1888d4d0b534
               title="Done"
               status="done"
               tasks={doneTasks}
