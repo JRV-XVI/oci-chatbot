@@ -8,7 +8,7 @@ services:
     working_dir: /app
     volumes:
       - ./forgetask:/app
-      - ~/.m2:/root/.m2
+      - ${HOME:-${USERPROFILE}}/.m2:/root/.m2
       - ./forgetask/wallet:/wallet
     command: mvn spring-boot:run
     ports:
