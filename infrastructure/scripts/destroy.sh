@@ -18,20 +18,24 @@
 # Make sure this is run via source or .
 # Debe ejecutarse con source para conservar contexto de entorno y estado.
 
-#-----Colours-----#
+#Colours
 greenColour="\e[0;32m\033[1m"
-redColour="\e[0;31m\033[1m"
-yellowColour="\e[0;33m\033[1m"
 endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
 
 if ! (return 0 2>/dev/null); then
-  echo "${redColour}[ERROR]${endColour} Usage 'source destroy.sh'"
+  echo -e "${redColour}[destroy.sh][x]${endColour} Usage 'source destroy.sh'"
   exit
 fi
 
 # main-destroy.sh coordina la limpieza de recursos OCI y terraform destroy.
 # TODO(devops@local): revisar sincronizacion entre scripts de limpieza en
 # background y terraform destroy para reducir condiciones de carrera.
+echo -e "${greenColour}[destroy.sh][+]${endColour} Starting main destroy process"
 $MTDRWORKSHOP_LOCATION/utils/main-destroy.sh
 
 # Archiva el estado local con timestamp para auditoria y debugging posterior.
@@ -42,11 +46,11 @@ mv $MTDRWORKSHOP_STATE_HOME/tls $deleteDir 2>/dev/null || true
 mv $MTDRWORKSHOP_STATE_HOME/wallet $deleteDir 2>/dev/null || true
 mv $MTDRWORKSHOP_STATE_HOME/log $deleteDir 2>/dev/null || true
 
-echo "${greenColour}[+]${endColour} Recommendations:"
-echo '  ${yellowColour}1.${endColour} Manually rename compartment'
-echo '  ${yellowColour}2.${endColour} Manually check/remove OKE cluster from compartment'
-echo '  ${yellowColour}3.${endColour} Manually check/remove Auth Tokens'
-echo '  ${yellowColour}4.${endColour} Manually check/remove Buckets from compartment'
-echo '  ${yellowColour}5.${endColour} Manually check/remove Compute Instances from compartment'
-echo '  ${yellowColour}6.${endColour} Manually check/remove ATP DB from compartment'
-echo '  ${yellowColour}7.${endColour} Try remove compartment elements through Tenancy Explorer'
+echo -e "${greenColour}[+]${endColour} Recommendations:"
+echo -e "  ${yellowColour}1.${endColour} Manually rename compartment"
+echo -e "  ${yellowColour}2.${endColour} Manually check/remove OKE cluster from compartment"
+echo -e "  ${yellowColour}3.${endColour} Manually check/remove Auth Tokens"
+echo -e "  ${yellowColour}4.${endColour} Manually check/remove Buckets from compartment"
+echo -e "  ${yellowColour}5.${endColour} Manually check/remove Compute Instances from compartment"
+echo -e "  ${yellowColour}6.${endColour} Manually check/remove ATP DB from compartment"
+echo -e "  ${yellowColour}7.${endColour} Try remove compartment elements through Tenancy Explorer"
