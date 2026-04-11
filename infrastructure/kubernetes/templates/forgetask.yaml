@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgetask-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: forgetask
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgetask-deployment
+spec:
+  selector:
+    matchLabels:
+      app: forgetask
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: forgetask
+        version: v1
+    spec:
+      containers:
+        - name: forgetask
+          image: %DOCKER_REGISTRY%/forgetask:%IMAGE_VERSION%
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TNS_ADMIN
+              value: "/app/wallet"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:oracle:thin:@%TODO_PDB_NAME%_tp"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: dbuser
+                  key: db_username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dbuser
+                  key: dbpassword
+          volumeMounts:
+            - name: wallet-volume
+              mountPath: /app/wallet
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: wallet-volume
+          secret:
+            secretName: db-wallet-secret
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: forgetask

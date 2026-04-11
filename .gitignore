@@ -61,3 +61,6 @@ frontend/yarn-error.log*
 
 # Global ENV
 *.env
+
+# IDEs and editors
+.vscode/

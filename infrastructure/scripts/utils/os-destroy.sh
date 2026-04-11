@@ -5,8 +5,17 @@
 # Fail on error
 set -e
 
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
+
 # Delete Object Store
-echo "Deleting Object Store"
+echo -e "${yellowColour}[os-destroy.sh][+]${endColour} Deleting Object Store..."
 # Per-auth
 
 # ## delete object storage bucket
@@ -34,3 +43,5 @@ fi
 #   oci os bucket delete --bucket-name "$(state_get RUN_NAME)" --force
 # state_reset OBJECT_STORE_BUCKET
 #fi
+
+echo -e "${greenColour}[os-destroy.sh][+]${endColour} Finished Deleting Object Store"
