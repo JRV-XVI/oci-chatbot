@@ -24,10 +24,12 @@ import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import type { Task } from './task-card'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import type { SprintOption } from '@/app/types/sprint'
 
 interface AddTaskDialogProps {
   onAddTask: (task: Omit<Task, 'id'>) => void
   assigneeOptions: TaskAssigneeOption[]
+  sprintOptions: SprintOption[]
 }
 
 /**
@@ -37,7 +39,7 @@ interface AddTaskDialogProps {
  * - onAddTask: Callback que recibe los datos de la tarea creada
  *   (ProjectBoard pasa una función que ejecuta WebSocket.createTask)
  */
-export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps) {
+export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: AddTaskDialogProps) {
   // Estado del formulario
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -49,9 +51,21 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
   const [estimatedTime, setEstimatedTime] = useState('')
   const [realTime] = useState('0')
   const [assignedTo, setAssignedTo] = useState('')
+  const [sprintId, setSprintId] = useState('')
+
+  const formatSprintLabel = (idSprint: number) => {
+    const sprint = sprintOptions.find((option) => option.idSprint === idSprint)
+    if (!sprint) {
+      return 'Sprint'
+    }
+    const start = sprint.startDate || '-'
+    const end = sprint.endDate || '-'
+    return `${sprint.title} (${start} - ${end})`
+  }
 
   const openDialog = () => {
     setAssignedTo('')
+    setSprintId('')
     setOpen(true)
   }
 
@@ -76,9 +90,13 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
       return
     }
 
+    const resolvedSprintId = sprintId ? Number(sprintId) : undefined
+    const sprintIdValue = Number.isFinite(resolvedSprintId) ? resolvedSprintId : undefined
+
     // Enviar datos de la nueva tarea al callback (ProjectBoard)
     // ProjectBoard tiene WebSocket.createTask que envía esto al backend
     onAddTask({
+      sprintId: sprintIdValue,
       title,
       description: description || undefined,
       status,
@@ -100,6 +118,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
     setEstimatedTime("");
     // realTime stays locked to 0 on create dialog.
     setAssignedTo("");
+    setSprintId("")
     setOpen(false);
   };
 
@@ -176,6 +195,25 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                       <option value="high">High</option>
                     </select>
                   </div>
+                </div>
+
+                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                  <Label htmlFor="sprintId">Sprint</Label>
+                  <select
+                    id="sprintId"
+                    value={sprintId}
+                    onChange={(e) => setSprintId(e.target.value)}
+                    title="Sprint"
+                    className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
+                    disabled={sprintOptions.length === 0}
+                  >
+                    <option value="">Select sprint</option>
+                    {sprintOptions.map((sprint) => (
+                      <option key={sprint.idSprint} value={String(sprint.idSprint)}>
+                        {formatSprintLabel(sprint.idSprint)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
                   <Label htmlFor="startDate">Start Date</Label>

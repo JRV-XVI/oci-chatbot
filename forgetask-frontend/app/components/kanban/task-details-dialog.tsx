@@ -25,6 +25,7 @@ import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import type { Task } from './task-card'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import type { SprintOption } from '@/app/types/sprint'
 
 interface TaskDetailsDialogProps {
   task: Task | null
@@ -32,6 +33,7 @@ interface TaskDetailsDialogProps {
   onOpenChange: (open: boolean) => void
   onUpdateTask: (task: Task) => void
   assigneeOptions: TaskAssigneeOption[]
+  sprintOptions: SprintOption[]
 }
 
 /**
@@ -50,6 +52,7 @@ export function TaskDetailsDialog({
   onOpenChange,
   onUpdateTask,
   assigneeOptions,
+  sprintOptions,
 }: TaskDetailsDialogProps) {
   // Estado del formulario
   const [title, setTitle] = useState('')
@@ -61,7 +64,18 @@ export function TaskDetailsDialog({
   const [estimatedTime, setEstimatedTime] = useState('')
   const [realTime, setRealTime] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+  const [sprintId, setSprintId] = useState('')
   const [dateError, setDateError] = useState('')
+
+  const formatSprintLabel = (idSprint: number) => {
+    const sprint = sprintOptions.find((option) => option.idSprint === idSprint)
+    if (!sprint) {
+      return 'Sprint'
+    }
+    const start = sprint.startDate || '-'
+    const end = sprint.endDate || '-'
+    return `${sprint.title} (${start} - ${end})`
+  }
 
   const normalizeDateForInput = (value?: string) => {
     if (!value) {
@@ -102,6 +116,12 @@ export function TaskDetailsDialog({
       })
 
       setAssignedTo(matchedOption?.username || usernameFromTask || '')
+
+      if (task.sprintId !== undefined && task.sprintId !== null) {
+        setSprintId(String(task.sprintId))
+      } else {
+        setSprintId('')
+      }
     }
   }, [task, assigneeOptions])
 
@@ -132,8 +152,12 @@ export function TaskDetailsDialog({
     const estimatedTimeValue = Number.isFinite(parsedEstimatedTime) ? parsedEstimatedTime : undefined
     const realTimeValue = Number.isFinite(parsedRealTime) ? parsedRealTime : undefined
 
+    const resolvedSprintId = sprintId ? Number(sprintId) : undefined
+    const sprintIdValue = Number.isFinite(resolvedSprintId) ? resolvedSprintId : undefined
+
     onUpdateTask({
       ...task,
+      sprintId: sprintIdValue,
       title,
       description: description || undefined,
       status,
@@ -291,6 +315,25 @@ export function TaskDetailsDialog({
                     </option>
                   ))
                 )}
+              </select>
+            </div>
+
+            <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+              <Label htmlFor="edit-sprint">Sprint</Label>
+              <select
+                id="edit-sprint"
+                value={sprintId}
+                onChange={(e) => setSprintId(e.target.value)}
+                title="Sprint"
+                className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
+                disabled={sprintOptions.length === 0}
+              >
+                <option value="">Select sprint</option>
+                {sprintOptions.map((sprint) => (
+                  <option key={sprint.idSprint} value={String(sprint.idSprint)}>
+                    {formatSprintLabel(sprint.idSprint)}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
