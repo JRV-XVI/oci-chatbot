@@ -18,9 +18,9 @@ export default function TotalTasksKpi({ total, done, inProgress, todo }: TotalTa
 
   return (
     <KpiCard
-        title="Total Tasks"
+        title="Tareas totales del proyecto"
         value={142}
-        badge="+12 esta semana"
+        badge="12 esta semana"
         badgeType="up"
         donutData={[
             { name: "Completadas", value: 92 },
