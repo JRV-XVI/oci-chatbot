@@ -9,15 +9,17 @@
  */
 
 import { useDrag } from 'react-dnd'
-import { GripVertical, Trash2, Calendar, Clock, User } from 'lucide-react'
+import { GripVertical, Trash2, Calendar, Clock, User, Layers } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { memo } from 'react'
 import type { Task } from '@/app/types/task'
+import type { SprintOption } from '@/app/types/sprint'
 export type { Task }
 
 interface TaskCardProps {
   task: Task
+  sprintOptions: SprintOption[]
   onTaskClick: (task: Task) => void
   onDeleteTask: (id: string) => void
 }
@@ -37,7 +39,7 @@ interface TaskCardProps {
  * - Muestra fechas, horas estimadas/reales, y usuario asignado
  * - Botón delete que aparece al pasar el mouse
  */
-export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
+export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: TaskCardProps) {
   // useDrag: Hook de react-dnd que hace esta tarjeta arrastrable
   // Cuando se arrastra, se envía el objeto { task } al drop handler en Column
   const [{ isDragging }, drag] = useDrag(() => ({
@@ -81,6 +83,10 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
   const hasAnyDate = Boolean(task.startDate || task.endDate)
   const dateRangeLabel = `${task.startDate ? formatTaskDate(task.startDate) : '-'} - ${task.endDate ? formatTaskDate(task.endDate) : '-'}`
 
+  const sprint = task.sprintId ? sprintOptions.find((option) => option.idSprint === task.sprintId) : undefined
+  const sprintLabel = sprint?.title
+  const sprintRangeTitle = sprint ? `${sprint.title} (${sprint.startDate || '-'} - ${sprint.endDate || '-'})` : undefined
+
   return (
     <div
       ref={(node) => {
@@ -105,6 +111,14 @@ export function TaskCard({ task, onTaskClick, onDeleteTask }: TaskCardProps) {
             <Badge variant="outline" className={priorityColors[task.priority]}>
               {task.priority}
             </Badge>
+          )}
+
+          {/* Sprint */}
+          {task.sprintId !== undefined && task.sprintId !== null && sprintLabel && (
+            <div className="flex items-center gap-1 text-xs text-[#d4a791]" title={sprintRangeTitle}>
+              <Layers className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{sprintLabel}</span>
+            </div>
           )}
 
           {/* Date Range */}

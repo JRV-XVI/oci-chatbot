@@ -2,31 +2,33 @@
 # Copyright (c) 2021 Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-#-----Colours-----#
+#Colours
 greenColour="\e[0;32m\033[1m"
-redColour="\e[0;31m\033[1m"
-yellowColour="\e[0;33m\033[1m"
 endColour="\033[0m\e[0m"
-
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
 # Fail on error
 set -e
 
 #Check if home is set
 if test -z "$MTDRWORKSHOP_LOCATION"; then
-  echo "${redColour}[ERROR]${endColour} This script requires MTDRWORKSHOP_LOCATION to be set"
+  echo -e "${redColour}[main-setup.sh][x]${endColour} This script requires MTDRWORKSHOP_LOCATION to be set"
   exit
 fi
 
 #Exit if we are already done
 if state_done SETUP_VERIFIED; then
-  echo "${greenColour}[+]${endColour} SETUP_VERIFIED completed"
+  echo -e "${greenColour}[main-setup.sh][+]${endColour} SETUP_VERIFIED completed"
   exit
 fi
 
 #Identify Run Type
 while ! state_done RUN_TYPE; do
   if [[ "$HOME" =~ /home/ll[0-9]{1,5}_us ]]; then
-    echo "We are in green button"
+    echo -e "${yellowColour}[main-setup.sh][+]${endColour} We are in green button"
     # Green Button (hosted by Live Labs)
     state_set RUN_TYPE "3"
     state_set RESERVATION_ID `grep -oP '(?<=/home/ll).*?(?=_us)' <<<"$HOME"`
@@ -63,7 +65,7 @@ while ! state_done USER_OCID; do
   if test ""`oci iam user get --user-id "$USER_OCID" --query 'data."lifecycle-state"' --raw-output 2>$MTDRWORKSHOP_LOG/user_ocid_err` == 'ACTIVE'; then
     state_set USER_OCID "$USER_OCID"
   else
-    echo "That user OCID could not be validated"
+    echo -e "${redColour}[main-setup.sh][x]${endColour} That user OCID could not be validated"
     cat $MTDRWORKSHOP_LOG/user_ocid_err
   fi
 done
@@ -85,7 +87,7 @@ while ! state_done RUN_NAME; do
   cd ../..
   # Validate that a folder was creared
   if test "$PWD" == ~; then
-    echo "ERROR: The workshop is not installed in a separate folder."
+    echo -e "${redColour}[main-setup.sh][x]${endColour} ERROR: The workshop is not installed in a separate folder."
     exit
   fi
   DN=`basename "$PWD"`
@@ -94,8 +96,8 @@ while ! state_done RUN_NAME; do
     state_set RUN_NAME `echo "$DN" | awk '{print tolower($0)}'`
     state_set MTDR_DB_NAME "$(state_get RUN_NAME)$(state_get MTDR_KEY)"
   else
-    echo "Error: Invalid directory name $RN.  The directory name must be between 1 and 13 characters,"
-    echo "containing only letters or numbers, starting with a letter.  Please restart the workshop with a valid directory name."
+    echo -e "${redColour}[main-setup.sh][x]${endColour} Error: Invalid directory name $RN.  The directory name must be between 1 and 13 characters,"
+    echo -e "${redColour}[main-setup.sh][x]${endColour} containing only letters or numbers, starting with a letter.  Please restart the workshop with a valid directory name."
     exit
   fi
   cd $MTDRWORKSHOP_LOCATION
@@ -125,27 +127,27 @@ while ! state_done COMPARTMENT_OCID; do
     if test "$COMPARTMENT_OCID" != "" && test `oci iam compartment get --compartment-id "$COMPARTMENT_OCID" --query 'data."lifecycle-state"' --raw-output 2>/dev/null` == 'ACTIVE'; then
       state_set COMPARTMENT_OCID "$COMPARTMENT_OCID"
     else
-      echo "Resources will be created in a new compartment named $(state_get RUN_NAME)"
+      echo -e "${yellowColour}[main-setup.sh][+]${endColour} Resources will be created in a new compartment named $(state_get RUN_NAME)"
       COMPARTMENT_OCID=`oci iam compartment create --compartment-id "$(state_get TENANCY_OCID)" --name "$(state_get RUN_NAME)" --description "mtdrworkshop" --query 'data.id' --raw-output`
       sleep 30
       COMPARTMENT_STATUS=$(oci iam compartment get --compartment-id "$COMPARTMENT_OCID" --query 'data."lifecycle-state"' --raw-output 2>/dev/null)
-      echo "Waiting for compartment $COMPARTMENT_STATUS"
+      echo -e "${yellowColour}[main-setup.sh][+]${endColour} Waiting for compartment $COMPARTMENT_STATUS"
     fi
   fi
   while ! test `oci iam compartment get --compartment-id "$COMPARTMENT_OCID" --query 'data."lifecycle-state"' --raw-output 2>/dev/null`"" == 'ACTIVE'; do
-    echo "Waiting for the compartment to become ACTIVE"
+    echo -e "${yellowColour}[main-setup.sh][+]${endColour} Waiting for the compartment to become ACTIVE"
     sleep 60
   done
-  echo "Compartment created successfully"
+  echo -e "${greenColour}[main-setup.sh][+]${endColour} Compartment created successfully"
   state_set COMPARTMENT_OCID "$COMPARTMENT_OCID"
 done
 
 ## Run the java-builds.sh in the background
 if ! state_get JAVA_BUILDS; then
   if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/java-builds.sh" | grep -v grep; then
-    echo "$MTDRWORKSHOP_LOCATION/utils/java-builds.sh is already running"
+    echo -e "${blueColour}[main-setup.sh][!]${endColour} $MTDRWORKSHOP_LOCATION/utils/java-builds.sh is already running"
   else
-    echo "Executing java-builds.sh in the background"
+    echo -e "${purpleColour}[main-setup.sh][*]${endColour} Executing java-builds.sh in the background"
     nohup $MTDRWORKSHOP_LOCATION/utils/java-builds.sh &>> $MTDRWORKSHOP_LOG/java-builds.log &
   fi
 fi
@@ -153,11 +155,11 @@ fi
 
 ## Run the terraform.sh in the background
 if ! state_get PROVISIONING; then
-  echo "Waiting 3min"; sleep 180 #give time for compartment to be ready
+  echo -e "${yellowColour}[main-setup.sh][+]${endColour} Waiting 3min"; sleep 180 #give time for compartment to be ready
   if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/terraform.sh" | grep -v grep; then
-    echo "$MTDRWORKSHOP_LOCATION/utils/terraform.sh is already running"
+    echo -e "${blueColour}[main-setup.sh][!]${endColour} $MTDRWORKSHOP_LOCATION/utils/terraform.sh is already running"
   else
-    echo "Executing terraform.sh in the background"
+    echo -e "${purpleColour}[main-setup.sh][*]${endColour} Executing terraform.sh in the background"
     nohup $MTDRWORKSHOP_LOCATION/utils/terraform.sh &>> $MTDRWORKSHOP_LOG/terraform.log &
   fi
 fi
@@ -177,11 +179,11 @@ while ! state_done DOCKER_REGISTRY; do
       sleep 60
       if grep UserCapacityExceeded $MTDRWORKSHOP_LOG/docker_registry_err >/dev/null; then
         # The key already exists
-        echo 'ERROR: Failed to create auth token.  Please delete an old token from the OCI Console (Profile -> User Settings -> Auth Tokens).'
+        echo -e "${redColour}[main-setup.sh][x]${endColour} ERROR: Failed to create auth token.  Please delete an old token from the OCI Console (Profile -> User Settings -> Auth Tokens)."
         read -p "Hit return when you are ready to retry?"
         continue
       else
-        echo "ERROR: Creating auth token had failed:"
+        echo -e "${redColour}[main-setup.sh][x]${endColour} ERROR: Creating auth token had failed:"
         cat $MTDRWORKSHOP_LOG/docker_registry_err
         exit
       fi
@@ -190,13 +192,13 @@ while ! state_done DOCKER_REGISTRY; do
   else
     read -s -r -p "Please generate an Auth Token and enter the value: " TOKEN
     echo
-    echo "Auth Token entry accepted.  Attempting docker login."
+    echo -e "${greenColour}[main-setup.sh][+]${endColour} Auth Token entry accepted.  Attempting docker login."
   fi
 
   RETRIES=0
   while test $RETRIES -le 30; do
     if echo "$TOKEN" | docker login -u "$(state_get NAMESPACE)/$(state_get USER_NAME)" --password-stdin "$(state_get REGION).ocir.io" &>/dev/null; then
-      echo "Docker login completed"
+      echo -e "${greenColour}[main-setup.sh][+]${endColour} Docker login completed"
       state_set DOCKER_REGISTRY "$(state_get REGION).ocir.io/$(state_get NAMESPACE)/$(state_get RUN_NAME)/$(state_get MTDR_KEY)"
       export OCI_CLI_PROFILE=$(state_get REGION)
       break
@@ -210,9 +212,9 @@ done
 # run oke-setup.sh in background
 if ! state_get OKE_SETUP; then
   if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/oke-setup.sh" | grep -v grep; then
-    echo "$MTDRWORKSHOP_LOCATION/utils/oke-setup.sh is already running"
+    echo -e "${blueColour}[main-setup.sh][!]${endColour} $MTDRWORKSHOP_LOCATION/utils/oke-setup.sh is already running"
   else
-    echo "Executing oke-setup.sh in the background"
+    echo -e "${purpleColour}[main-setup.sh][*]${endColour} Executing oke-setup.sh in the background"
     nohup $MTDRWORKSHOP_LOCATION/utils/oke-setup.sh &>>$MTDRWORKSHOP_LOG/oke-setup.log &
   fi
 fi
@@ -220,9 +222,9 @@ fi
 # run db-setup.sh in background
 if ! state_get DB_SETUP; then
   if ps -ef | grep "$MTDRWORKSHOP_LOCATION/utils/db-setup.sh" | grep -v grep; then
-    echo "$MTDRWORKSHOP_LOCATION/utils/db-setup.sh is already running"
+    echo -e "${blueColour}[main-setup.sh][!]${endColour} $MTDRWORKSHOP_LOCATION/utils/db-setup.sh is already running"
   else
-    echo "Executing db-setup.sh in the background"
+    echo -e "${purpleColour}[main-setup.sh][*]${endColour} Executing db-setup.sh in the background"
     nohup $MTDRWORKSHOP_LOCATION/utils/db-setup.sh &>>$MTDRWORKSHOP_LOG/db-setup.log &
   fi
 fi
@@ -230,9 +232,9 @@ fi
 # Collect DB password
 if ! state_done DB_PASSWORD; then
   echo
-  echo 'Database passwords must be 12 to 30 characters and contain at least one uppercase letter,'
-  echo 'one lowercase letter, and one number. The password cannot contain the double quote (")'
-  echo 'character or the word "admin".'
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} Database passwords must be 12 to 30 characters and contain at least one uppercase letter,"
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} one lowercase letter, and one number. The password cannot contain the double quote (\")"
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} character or the word \"admin\"."
   echo
 
   while true; do
@@ -245,7 +247,7 @@ if ! state_done DB_PASSWORD; then
       echo
       break
     else
-      echo "Invalid Password, please retry"
+      echo -e "${redColour}[main-setup.sh][x]${endColour} Invalid Password, please retry"
     fi
   done
   BASE64_DB_PASSWORD=`echo -n "$PW" | base64`
@@ -254,7 +256,7 @@ fi
 # create UI username
 if ! state_done UI_USERNAME; then
   echo
-  echo 'Create a UI Username'
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} Create a UI Username"
   echo
   read -s -r -p "Enter the username to be used for accessing the UI: " USERNAME
   state_set UI_USERNAME "$USERNAME"
@@ -265,7 +267,7 @@ fi
 # Collect UI password and create secret
 if ! state_done UI_PASSWORD; then
   echo
-  echo 'UI passwords must be 8 to 30 characters'
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} UI passwords must be 8 to 30 characters"
   echo
 
   while true; do
@@ -278,7 +280,7 @@ if ! state_done UI_PASSWORD; then
       echo
       break
     else
-      echo "Invalid Password, please retry"
+      echo -e "${redColour}[main-setup.sh][x]${endColour} Invalid Password, please retry"
     fi
   done
   BASE64_UI_PASSWORD=`echo -n "$PW" | base64`
@@ -286,10 +288,10 @@ fi
 
 # Wait for provisioning
 if ! state_done PROVISIONING; then
-  echo "`date`: Waiting for terraform provisioning"
+  echo -e "${yellowColour}[main-setup.sh][+]${endColour} `date`: Waiting for terraform provisioning"
   while ! state_done PROVISIONING; do
     LOGLINE=`tail -1 $MTDRWORKSHOP_LOG/terraform.log`
-    echo -ne r"\033[2K\r${LOGLINE:0:120}"
+    echo -ne "${grayColour}[main-setup.sh][DEBUG]${endColour} \033[2K\r${LOGLINE:0:120}"
     sleep 2
   done
   echo
@@ -302,7 +304,7 @@ while ! state_done MTDR_DB_OCID; do
   if [[ "$MTDR_DB_OCID" =~ ocid1.autonomousdatabase* ]]; then
     state_set MTDR_DB_OCID "$MTDR_DB_OCID"
   else
-    echo "ERROR: Incorrect Order DB OCID: $MTDR_DB_OCID"
+    echo -e "${redColour}[main-setup.sh][x]${endColour} ERROR: Incorrect Order DB OCID: $MTDR_DB_OCID"
     exit
   fi
 done
@@ -310,10 +312,10 @@ done
 
 # Wait for kubectl Setup
 if ! state_done OKE_NAMESPACE; then
-  echo "`date`: Waiting for kubectl configuration and mtdrworkshop namespace"
+  echo -e "${yellowColour}[main-setup.sh][+]${endColour} `date`: Waiting for kubectl configuration and mtdrworkshop namespace"
   while ! state_done OKE_NAMESPACE; do
     LOGLINE=`tail -1 $MTDRWORKSHOP_LOG/state.log`
-    echo -ne r"\033[2K\r${LOGLINE:0:120}"
+    echo -ne "${grayColour}[main-setup.sh][DEBUG]${endColour} \033[2K\r${LOGLINE:0:120}"
     sleep 2
   done
   echo
@@ -321,13 +323,13 @@ fi
 
 # Collect DB password and create secret
 while ! state_done DB_PASSWORD; do
-  echo "collecting DB password and creating secret"
+  echo -e "${yellowColour}[main-setup.sh][+]${endColour} collecting DB password and creating secret"
   while true; do
     if kubectl create -n mtdrworkshop -f -; then
       state_set_done DB_PASSWORD
       break
     else
-      echo 'Error: Creating DB Password Secret Failed.  Retrying...'
+      echo -e "${redColour}[main-setup.sh][x]${endColour} Error: Creating DB Password Secret Failed.  Retrying..."
       sleep 10
     fi <<!
 {
@@ -347,7 +349,7 @@ done
 
 # Set admin password in order database
 while ! state_done MTDR_DB_PASSWORD_SET; do
-  echo "setting admin password in mtdr_db"
+  echo -e "${yellowColour}[main-setup.sh][+]${endColour} setting admin password in mtdr_db"
   # get password from vault secret
   DB_PASSWORD=`kubectl get secret dbuser -n mtdrworkshop --template={{.data.dbpassword}} | base64 --decode`
   umask 177
@@ -362,7 +364,7 @@ done
 
 # Wait for OKE Setup
 while ! state_done OKE_SETUP; do
-  echo "`date`: Waiting for OKE_SETUP"
+  echo -e "${yellowColour}[main-setup.sh][+]${endColour} `date`: Waiting for OKE_SETUP"
   sleep 2
 done
 
@@ -373,7 +375,7 @@ while ! state_done UI_PASSWORD; do
       state_set_done UI_PASSWORD
       break
     else
-      echo 'Error: Creating UI Password Secret Failed.  Retrying...'
+      echo -e "${redColour}[main-setup.sh][x]${endColour} Error: Creating UI Password Secret Failed.  Retrying..."
       sleep 10
     fi <<!
 {
@@ -399,7 +401,7 @@ while ! state_done SETUP_VERIFIED; do
   bg_not_done=
   for bg in $bgs; do
     if state_done $bg; then
-      echo "$bg has completed"
+      echo -e "${greenColour}[main-setup.sh][+]${endColour} $bg has completed"
     else
       # echo "$bg is running"
       NOT_DONE=$((NOT_DONE+1))
@@ -409,7 +411,7 @@ while ! state_done SETUP_VERIFIED; do
   if test "$NOT_DONE" -gt 0; then
     # echo "Log files are located in $MTDRWORKSHOP_LOG"
     bgs=$bg_not_done
-    echo -ne r"\033[2K\r$bgs still running "
+    echo -ne "${yellowColour}[main-setup.sh][+]${endColour} \033[2K\r$bgs still running "
     sleep 10
   else
     state_set_done SETUP_VERIFIED

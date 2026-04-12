@@ -5,8 +5,16 @@
 # Fail on error
 set -e
 
+#Colours
+greenColour="\e[0;32m\033[1m"
+endColour="\033[0m\e[0m"
+redColour="\e[0;31m\033[1m"
+blueColour="\e[0;34m\033[1m"
+yellowColour="\e[0;33m\033[1m"
+purpleColour="\e[0;35m\033[1m"
+grayColour="\e[0;37m\033[1m"
 
-BUILDS="todolistapp-springboot"
+#BUILDS="todolistapp-springboot"
 
 # Provision Repos
 #while ! state_done JAVA_REPOS; do
@@ -18,17 +26,17 @@ BUILDS="todolistapp-springboot"
 
 
 # Install Graal
-while ! state_done GRAAL; do
-  if ! test -d ~/graalvm-community-openjdk-22.0.2+9.1; then
-    echo "downloading graalVM"
-    curl -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-22.0.2/graalvm-community-jdk-22.0.2_linux-x64_bin.tar.gz | tar xz
-    #curl -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-aarch64-20.1.0.tar.gz | tar xz
-    mv graalvm-community-openjdk-22.0.2+9.1 ~/
-  fi
-  state_set_done GRAAL
-  state_set_done GRAAL_IMAGE
-  echo "finished downloading graalVM"
-done
+#while ! state_done GRAAL; do
+#  if ! test -d ~/graalvm-community-openjdk-22.0.2+9.1; then
+#    echo "downloading graalVM"
+#    curl -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-22.0.2/graalvm-community-jdk-22.0.2_linux-x64_bin.tar.gz | tar xz
+#    #curl -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-aarch64-20.1.0.tar.gz | tar xz
+#    mv graalvm-community-openjdk-22.0.2+9.1 ~/
+#  fi
+#  state_set_done GRAAL
+#  state_set_done GRAAL_IMAGE
+#  echo "finished downloading graalVM"
+#done
 
 
 # Install GraalVM native-image...
@@ -40,11 +48,12 @@ done
 
 # Wait for docker login
 while ! state_done DOCKER_REGISTRY; do
-  echo "Waiting for Docker Registry"
+  echo -e "${yellowColour}[java-builds.sh][+]${endColour} Waiting for Docker Registry"
   sleep 5
 done
 
 state_set_done JAVA_BUILDS
+echo -e "${greenColour}[java-builds.sh][+]${endColour} JAVA_BUILDS milestone set. Build delegated to build.sh (Docker multi-stage)."
 
 
 # # Build all the images (no push) except frontend-helidon (requires Jaeger)

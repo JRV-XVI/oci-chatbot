@@ -26,6 +26,7 @@ import { create } from 'zustand'
 // Interfaz de Task que debe coincidir con TaskDTO del backend
 interface Task {
   id: string
+  sprintId?: number
   title: string
   description?: string
   status: 'backlog' | 'ready' | 'in-progress' | 'review' | 'done'
