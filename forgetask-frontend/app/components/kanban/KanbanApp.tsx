@@ -17,11 +17,15 @@ import { useTaskWebSocket, type TaskEventMessage } from '@/app/hooks/useTaskWebS
 import { useTaskStore } from '@/app/store/taskStore'
 import taskService from '@/app/services/taskService'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import sprintService from '@/app/services/sprintService'
+import type { SprintOption } from '@/app/types/sprint'
 
 export function KanbanApp() {
   // Obtener acciones del store global de tareas
-  const { setTasks, updateTask, addTask, removeTask } = useTaskStore()
+  const { tasks, setTasks, updateTask, addTask, removeTask } = useTaskStore()
   const [assigneeOptions, setAssigneeOptions] = useState<TaskAssigneeOption[]>([])
+  const [projectId, setProjectId] = useState<number | null>(null)
+  const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([])
 
   /**
    * Callback que se ejecuta cuando llega un evento del servidor via WebSocket
@@ -86,6 +90,15 @@ export function KanbanApp() {
         console.log('✅ Tareas cargadas:', tasks.length)
         setTasks(tasks)
         setAssigneeOptions(users)
+
+        const resolvedProjectId = users.length > 0 ? users[0].idProject : null
+        setProjectId(resolvedProjectId)
+        if (resolvedProjectId) {
+          const sprints = await sprintService.listSprints(resolvedProjectId)
+          setSprintOptions(sprints)
+        } else {
+          setSprintOptions([])
+        }
       } catch (error) {
         console.error('❌ Error cargando tareas iniciales:', error)
       }
@@ -93,6 +106,23 @@ export function KanbanApp() {
 
     loadInitialTasks()
   }, [setTasks])
+
+  const handleSprintSaved = useCallback((savedSprint: SprintOption) => {
+    setSprintOptions((current) => {
+      const next = current.some((sprint) => sprint.idSprint === savedSprint.idSprint)
+        ? current.map((sprint) => (sprint.idSprint === savedSprint.idSprint ? savedSprint : sprint))
+        : [...current, savedSprint]
+
+      return next.sort((a, b) => a.sprintNumber - b.sprintNumber)
+    })
+  }, [])
+  
+  const handleSprintDeleted = useCallback((sprintId: number) => {
+    setSprintOptions((current) => current.filter((sprint) => sprint.idSprint !== sprintId))
+    setTasks(
+      tasks.map((task) => (task.sprintId === sprintId ? { ...task, sprintId: undefined } : task))
+    )
+  }, [setTasks, tasks])
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -103,6 +133,10 @@ export function KanbanApp() {
           onSendCreate={sendCreateTask}
           onSendDelete={sendDeleteTask}
           assigneeOptions={assigneeOptions}
+          projectId={projectId}
+          sprintOptions={sprintOptions}
+          onSprintSaved={handleSprintSaved}
+          onSprintDeleted={handleSprintDeleted}
         />
       </div>
     </DndProvider>

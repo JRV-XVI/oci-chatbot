@@ -9,6 +9,7 @@ import java.util.List;
  */
 public class TaskDTO {
     private String id;
+    private Integer sprintId;
     private String title;
     private String description;
     private String status; // "backlog", "ready", "in-progress", "review", "done"
@@ -49,6 +50,14 @@ public class TaskDTO {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Integer getSprintId() {
+        return sprintId;
+    }
+
+    public void setSprintId(Integer sprintId) {
+        this.sprintId = sprintId;
     }
 
     public String getTitle() {
@@ -151,6 +160,7 @@ public class TaskDTO {
     public String toString() {
         return "TaskDTO{" +
                 "id='" + id + '\'' +
+                ", sprintId=" + sprintId +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", status='" + status + '\'' +

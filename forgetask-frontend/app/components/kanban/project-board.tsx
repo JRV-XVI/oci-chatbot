@@ -28,12 +28,14 @@ import {
 } from 'lucide-react'
 import { TaskCard, type Task } from './task-card'
 import { AddTaskDialog } from './add-task-dialog'
+import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import type { SprintOption } from '@/app/types/sprint'
 
 interface ColumnProps {
   title: string
@@ -41,6 +43,7 @@ interface ColumnProps {
   tasks: Task[]
   icon: React.ReactNode
   expectedTasks?: number  // Opcional - si es undefined, no hay límite (como Done)
+  sprintOptions: SprintOption[]
   onDrop: (task: Task, newStatus: Task['status']) => void
   onDeleteTask: (id: string) => void
   onTaskClick: (task: Task) => void
@@ -53,6 +56,7 @@ function Column({
   tasks,
   icon,
   expectedTasks,
+  sprintOptions,
   onDrop,
   onDeleteTask,
   onTaskClick,
@@ -194,6 +198,7 @@ function Column({
             <TaskCard
               key={task.id}
               task={task}
+              sprintOptions={sprintOptions}
               onTaskClick={onTaskClick}
               onDeleteTask={onDeleteTask}
             />
@@ -215,6 +220,10 @@ interface ProjectBoardProps {
   onSendCreate: (taskData: Omit<Task, 'id'>) => void
   onSendDelete: (taskId: string) => void
   assigneeOptions: TaskAssigneeOption[]
+  projectId: number | null
+  sprintOptions: SprintOption[]
+  onSprintSaved: (sprint: SprintOption) => void
+  onSprintDeleted: (sprintId: number) => void
 }
 
 /**
@@ -226,6 +235,10 @@ export function ProjectBoard({
   onSendCreate,
   onSendDelete,
   assigneeOptions,
+  projectId,
+  sprintOptions,
+  onSprintSaved,
+  onSprintDeleted,
 }: ProjectBoardProps) {
   // Obtener tareas del store global (se actualiza automáticamente con eventos WebSocket)
   const tasks = useTaskStore((state) => state.tasks)
@@ -403,7 +416,13 @@ export function ProjectBoard({
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>
-            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} />
+            <AddSprintDialog
+              projectId={projectId}
+              sprintOptions={sprintOptions}
+              onSprintSaved={onSprintSaved}
+              onSprintDeleted={onSprintDeleted}
+            />
+            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} sprintOptions={sprintOptions} />
           </div>
         </div>
       </header>
@@ -418,6 +437,7 @@ export function ProjectBoard({
               status="backlog"
               tasks={backlogTasks}
               icon={<Circle className="w-5 h-5 text-muted-foreground" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -433,6 +453,7 @@ export function ProjectBoard({
               status="ready"
               tasks={readyTasks}
               icon={<Layers className="w-5 h-5 text-secondary" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -448,6 +469,7 @@ export function ProjectBoard({
               status="in-progress"
               tasks={inProgressTasks}
               icon={<CircleDot className="w-5 h-5 text-blue-400" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -463,6 +485,7 @@ export function ProjectBoard({
               status="review"
               tasks={reviewTasks}
               icon={<Eye className="w-5 h-5 text-destructive" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -478,6 +501,7 @@ export function ProjectBoard({
               status="done"
               tasks={doneTasks}
               icon={<CheckCircle2 className="w-5 h-5 text-green-400" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -495,6 +519,7 @@ export function ProjectBoard({
           onOpenChange={setDetailsDialogOpen}
           onUpdateTask={handleUpdateTask}
           assigneeOptions={assigneeOptions}
+          sprintOptions={sprintOptions}
         />
       )}
 
