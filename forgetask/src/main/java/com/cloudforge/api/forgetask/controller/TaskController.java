@@ -36,6 +36,7 @@ public class TaskController {
             SELECT t.ID_TASK,
                    t.ID_USER,
                                      t.ID_PROJECT,
+               t.ID_SPRINT,
                    t.TITLE,
                    t.DESCRIPTION,
                    t.START_TIME,
@@ -80,6 +81,7 @@ public class TaskController {
                 rs.getInt("ID_TASK"),
                 rs.getObject("ID_USER"),
                 rs.getObject("ID_PROJECT"),
+            rs.getObject("ID_SPRINT"),
                 rs.getString("TITLE"),
                 rs.getString("DESCRIPTION"),
                 rs.getObject("START_TIME"),
@@ -129,6 +131,10 @@ public class TaskController {
 
         int idUser = assignee.userId();
         int idProject = assignee.projectId();
+        Integer idSprint = resolveSprintIdStrict(task.getSprintId(), idProject);
+        if (task.getSprintId() != null && idSprint == null) {
+            return ResponseEntity.badRequest().build();
+        }
         String title = normalizeText(task.getTitle(), "Untitled task");
         String description = normalizeTextOrNull(task.getDescription());
         Timestamp startTime = parseDateOrNull(task.getStartDate());
@@ -144,10 +150,11 @@ public class TaskController {
         String priority = normalizePriority(task.getPriority(), "medium");
 
         jdbcTemplate.update(
-                "INSERT INTO TASK (ID_TASK, ID_USER, ID_PROJECT, TITLE, DESCRIPTION, START_TIME, END_TIME, ESTIMATED_TIME, REAL_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO TASK (ID_TASK, ID_USER, ID_PROJECT, ID_SPRINT, TITLE, DESCRIPTION, START_TIME, END_TIME, ESTIMATED_TIME, REAL_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 nextId,
                 idUser,
                 idProject,
+            idSprint,
                 title,
                 description,
                 startTime,
@@ -179,6 +186,16 @@ public class TaskController {
         ResolvedAssignee assignee = resolveAssignee(task.getAssignedTo(), existingTask.idProject(), existingTask.idUser());
         int idUser = assignee.userId();
         int idProject = assignee.projectId();
+        Integer requestedSprintId = task.getSprintId();
+        Integer resolvedSprintId;
+        if (requestedSprintId == null) {
+            resolvedSprintId = existingTask.idSprint();
+        } else {
+            resolvedSprintId = resolveSprintIdStrict(requestedSprintId, idProject);
+            if (resolvedSprintId == null) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
         String title = normalizeText(task.getTitle(), existingTask.title());
         String description = normalizeText(task.getDescription(), existingTask.description());
         Timestamp startTime = parseDateOrFallback(task.getStartDate(), existingTask.startTime());
@@ -194,9 +211,10 @@ public class TaskController {
         String priority = normalizePriority(task.getPriority(), existingTask.priority());
 
         jdbcTemplate.update(
-            "UPDATE TASK SET ID_USER = ?, ID_PROJECT = ?, TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, ESTIMATED_TIME = ?, REAL_TIME = ? WHERE ID_TASK = ?",
+            "UPDATE TASK SET ID_USER = ?, ID_PROJECT = ?, ID_SPRINT = ?, TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, ESTIMATED_TIME = ?, REAL_TIME = ? WHERE ID_TASK = ?",
             idUser,
             idProject,
+            resolvedSprintId,
             title,
             description,
             startTime,
@@ -297,6 +315,7 @@ public class TaskController {
                 SELECT t.ID_TASK,
                        t.ID_USER,
                        t.ID_PROJECT,
+                       t.ID_SPRINT,
                        t.TITLE,
                        t.DESCRIPTION,
                        t.START_TIME,
@@ -331,6 +350,7 @@ public class TaskController {
                         rs.getInt("ID_TASK"),
                         rs.getObject("ID_USER"),
                     rs.getObject("ID_PROJECT"),
+                    rs.getObject("ID_SPRINT"),
                         rs.getString("TITLE"),
                         rs.getString("DESCRIPTION"),
                         rs.getObject("START_TIME"),
@@ -357,6 +377,7 @@ public class TaskController {
                 """
                 SELECT t.ID_USER,
                        t.ID_PROJECT,
+                       t.ID_SPRINT,
                        t.TITLE,
                        t.DESCRIPTION,
                        t.START_TIME,
@@ -373,9 +394,13 @@ public class TaskController {
                 ) pt ON pt.ID_TASK = t.ID_TASK
                 WHERE t.ID_TASK = ?
                 """,
-                (rs, rowNum) -> new ExistingTaskSnapshot(
+                (rs, rowNum) -> {
+                    Object sprintIdRaw = rs.getObject("ID_SPRINT");
+                    Integer sprintId = sprintIdRaw instanceof Number number ? number.intValue() : null;
+                    return new ExistingTaskSnapshot(
                         rs.getInt("ID_USER"),
                         rs.getInt("ID_PROJECT"),
+                        sprintId,
                         rs.getString("TITLE"),
                         rs.getString("DESCRIPTION"),
                         rs.getTimestamp("START_TIME"),
@@ -383,7 +408,8 @@ public class TaskController {
                         toNullableDouble(rs.getObject("ESTIMATED_TIME")),
                         toNullableDouble(rs.getObject("REAL_TIME")),
                         rs.getString("PRIORITY")
-                ),
+                    );
+                },
                 taskId
         );
 
@@ -497,6 +523,7 @@ public class TaskController {
             int id,
             Object idUser,
             Object idProject,
+            Object idSprint,
             String title,
             String description,
             Object startTime,
@@ -514,6 +541,7 @@ public class TaskController {
     ) {
         TaskDTO task = new TaskDTO();
         task.setId(String.valueOf(id));
+        task.setSprintId(idSprint instanceof Number number ? number.intValue() : null);
 
         String resolvedTitle = (title != null && !title.isBlank()) ? title : description;
         task.setTitle(resolvedTitle != null ? resolvedTitle : "Untitled task");
@@ -531,6 +559,25 @@ public class TaskController {
         task.setAssignedTo(List.of(displayName));
 
         return task;
+    }
+
+    private Integer resolveSprintIdStrict(Integer sprintId, int projectId) {
+        if (sprintId == null) {
+            return null;
+        }
+
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM SPRINT WHERE ID_SPRINT = ? AND ID_PROJECT = ?",
+                Integer.class,
+                sprintId,
+                projectId
+        );
+
+        if (count != null && count > 0) {
+            return sprintId;
+        }
+
+        return null;
     }
 
     private String buildDisplayName(String firstName, String lastName, String username, Object idUser) {
@@ -844,6 +891,7 @@ public class TaskController {
     private record ExistingTaskSnapshot(
             int idUser,
             int idProject,
+            Integer idSprint,
             String title,
             String description,
             Timestamp startTime,
