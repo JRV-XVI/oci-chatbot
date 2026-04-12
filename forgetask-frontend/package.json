@@ -13,6 +13,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.9",
     "@mui/x-date-pickers": "^8.27.2",
+    "@radix-ui/react-slot": "^1.2.4",
     "@stomp/stompjs": "^7.0.0",
     "class-variance-authority": "0.7.1",
     "clsx": "^2.1.1",
