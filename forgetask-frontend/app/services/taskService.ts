@@ -18,9 +18,6 @@ class TaskService {
     try {
       const response = await fetch(`${API_BASE_URL}/todolist`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {
@@ -41,9 +38,6 @@ class TaskService {
     try {
       const response = await fetch(`${API_BASE_URL}/todolist/${id}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {
@@ -137,9 +131,6 @@ class TaskService {
       const query = projectId !== undefined ? `?projectId=${projectId}` : "";
       const response = await fetch(`${API_BASE_URL}/todolist/meta/users${query}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {
