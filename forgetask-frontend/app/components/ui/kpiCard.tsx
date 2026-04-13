@@ -22,6 +22,8 @@ interface KpiCardProps {
     color?: AvailableChartColorsKeys;
   };
 
+  bottomContent?: React.ReactNode;
+
   icon?: React.ReactNode;
 }
 
@@ -34,6 +36,7 @@ export default function KpiCard({
   donutData,
   donutColors,
   progressData,
+  bottomContent,
   icon,
 }: KpiCardProps) {
 
@@ -102,6 +105,9 @@ export default function KpiCard({
             />
           </div>
         )}
+
+        {/* Renderiza la Barra de categoria si se pasan los datos */}
+        {bottomContent && <div className="w-full">{bottomContent}</div>}
       </div>
     </Card>
   );

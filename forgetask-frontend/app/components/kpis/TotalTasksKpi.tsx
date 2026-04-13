@@ -1,7 +1,6 @@
 import { CheckSquare } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
 
-// Aquí recibes tus datos calculados como prop o desde un hook/API
 interface TotalTasksKpiProps {
   total: number;
   done: number;

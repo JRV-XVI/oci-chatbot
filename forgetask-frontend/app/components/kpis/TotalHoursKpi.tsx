@@ -1,4 +1,3 @@
-// src/components/kpis/TotalHoursKpi.tsx
 import { Clock } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
 import { AvailableChartColorsKeys } from "../ui/DonutChart"; // O de donde exportes los tipos
