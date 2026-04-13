@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -120,7 +120,7 @@ public class SprintController {
                 "INSERT INTO SPRINT (ID_SPRINT, ID_PROJECT, TITLE, GOAL, START_DATE, END_DATE) VALUES (?, ?, ?, ?, ?, ?)",
                 nextId,
                 resolvedProjectId,
-            title,
+                title,
                 normalizeTextOrNull(request.goal),
                 startDate,
                 endDate
@@ -226,10 +226,9 @@ public class SprintController {
             return ResponseEntity.notFound().build();
         }
 
-        // Clear sprint assignment from tasks first to satisfy FK constraints.
         jdbcTemplate.update(
-            "UPDATE TASK SET ID_SPRINT = NULL WHERE ID_SPRINT = ?",
-            sprintId
+                "UPDATE TASK SET ID_SPRINT = NULL WHERE ID_SPRINT = ?",
+                sprintId
         );
 
         jdbcTemplate.update(

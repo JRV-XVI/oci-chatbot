@@ -1,0 +1,45 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg {
+  display: block;
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.14);
+}
+
+.indicator {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 320ms ease;
+}
+
+.value {
+  position: absolute;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff5ef;
+}
+
+.default {
+  color: #e76b36;
+}
+
+.warning {
+  color: #f59e0b;
+}
+
+.success {
+  color: #22c55e;
+}
+
+.error {
+  color: #ef4444;
+}
