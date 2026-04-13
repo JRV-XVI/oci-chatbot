@@ -5,8 +5,8 @@ import { DonutChart, type AvailableChartColorsKeys } from './DonutChart';
 import { ProgressBar } from './ProgressBar';
 
 interface KpiCardProps {
-  title: string;
-  value: number;
+  title?: string;
+  value?: number;
   prefix?: string;
   suffix?: string;
   badge?: string;
@@ -46,36 +46,45 @@ export default function KpiCard({
                            'text-muted-foreground';
 
   const badgeArrow = badgeType === 'up' ? '↑' : badgeType === 'down' ? '↓' : '→';
+  const hasTitle = typeof title === 'string' && title.trim().length > 0;
+  const hasValue = typeof value === 'number';
 
   return (
     <Card className="px-5 py-4 flex flex-col gap-2 justify-between">
       {/* ── Header ── */}
+      {(hasTitle || icon) && (
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          {title}
-        </span>
+        {hasTitle ? (
+          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            {title}
+          </span>
+        ) : (
+          <span />
+        )}
         {icon && <span className="text-muted-foreground opacity-60">{icon}</span>}
       </div>
+      )}
 
       {/* ── Body: Número + (Dona O Barra) ── */}
       <div className={progressData ? "flex flex-col gap-3" : "flex items-center gap-3"}>
-        
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-baseline gap-1">
-            <NumberTicker
-              value={value}
-              className="text-4xl font-bold text-foreground tabular-nums"
-            />
-            {suffix && (
-              <span className="text-sm font-medium text-muted-foreground">{suffix}</span>
+        {hasValue && (
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-baseline gap-1">
+              <NumberTicker
+                value={value}
+                className="text-4xl font-bold text-foreground tabular-nums"
+              />
+              {suffix && (
+                <span className="text-sm font-medium text-muted-foreground">{suffix}</span>
+              )}
+            </div>
+            {badge && !progressData && (
+              <p className={`text-xs font-medium mt-0.5 ${badgeColor}`}>
+                {badgeArrow} {badge}
+              </p>
             )}
           </div>
-          {badge && !progressData && (
-            <p className={`text-xs font-medium mt-0.5 ${badgeColor}`}>
-              {badgeArrow} {badge}
-            </p>
-          )}
-        </div>
+        )}
 
         {/* Renderiza la Dona si se pasan datos de Dona */}
         {donutData && (

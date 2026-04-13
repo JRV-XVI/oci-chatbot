@@ -1,6 +1,7 @@
 package com.cloudforge.api.forgetask.service;
 
 import com.cloudforge.api.forgetask.dto.KPIMetrics;
+import com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO;
 import com.cloudforge.api.forgetask.dto.RealHoursByUserDTO;
 import com.cloudforge.api.forgetask.dto.RealHoursBySprintUserDTO;
 import com.cloudforge.api.forgetask.dto.RealHoursTaskDetailDTO;
@@ -310,5 +311,132 @@ public class KPIService {
         summary.put("variance", totalReal - totalEstimated);
 
         return summary;
+    }
+
+    /**
+     * Calcula todos los KPIs del dashboard para un proyecto dado.
+     * Consulta directamente la BD sin necesitar que el frontend envíe datos.
+     */
+    public ProjectKpisSummaryDTO getProjectKpisSummary(Integer projectId) {
+
+        // ── KPI 1: Conteo de tasks por estado ──
+        // TASK_STATE tiene los estados: backlog, ready, in_progress, review, done
+        String taskCountsSql = """
+            SELECT
+                COUNT(t.ID_TASK) AS TOTAL_TASKS,
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'backlog'     THEN 1 ELSE 0 END), 0) AS BACKLOG,
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'ready'       THEN 1 ELSE 0 END), 0) AS READY,
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'in_progress' THEN 1 ELSE 0 END), 0) AS IN_PROGRESS,
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'review'      THEN 1 ELSE 0 END), 0) AS REVIEW,
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'done'        THEN 1 ELSE 0 END), 0) AS DONE
+            FROM TASK t
+            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+            WHERE t.ID_PROJECT = ?
+            """;
+
+        Map<String, Object> taskCounts = jdbcTemplate.queryForMap(taskCountsSql, projectId);
+
+        int totalTasks    = ((Number) taskCounts.get("TOTAL_TASKS")).intValue();
+        int tasksBacklog  = ((Number) taskCounts.get("BACKLOG")).intValue();
+        int tasksReady    = ((Number) taskCounts.get("READY")).intValue();
+        int tasksInProgress = ((Number) taskCounts.get("IN_PROGRESS")).intValue();
+        int tasksReview   = ((Number) taskCounts.get("REVIEW")).intValue();
+        int tasksDone     = ((Number) taskCounts.get("DONE")).intValue();
+
+        // ── KPI 2: Horas reales vs estimadas ──
+        // Leídas directamente de PROJECT (las columnas ya existen en tu tabla)
+        String hoursSql = """
+            SELECT
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'done' THEN t.REAL_TIME ELSE 0 END), 0) AS REAL_TIME,
+                NVL(SUM(t.ESTIMATED_TIME), 0) AS ESTIMATED_TIME
+            FROM TASK t
+            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+            WHERE t.ID_PROJECT = ?
+            """;
+
+        Map<String, Object> hours = jdbcTemplate.queryForMap(hoursSql, projectId);
+        double realHours      = ((Number) hours.get("REAL_TIME")).doubleValue();
+        double estimatedHours = ((Number) hours.get("ESTIMATED_TIME")).doubleValue();
+
+        // ── KPI 3 y 4: Número de developers del proyecto ──
+        // Solo contamos usuarios con ROLE = 'developer', no managers
+        String devCountSql = """
+            SELECT COUNT(DISTINCT ua.ID_USER) AS TOTAL_DEVS
+            FROM USER_ACCOUNT ua
+            JOIN USER_ROLE ur ON ur.ID_USER = ua.ID_USER
+            WHERE ua.ID_PROJECT = ?
+            AND LOWER(ur.ROLE) = 'developer'
+            """;
+
+        Integer totalDevsResult = jdbcTemplate.queryForObject(devCountSql, Integer.class, projectId);
+        int totalDevs = (totalDevsResult != null) ? totalDevsResult : 0;
+
+        // ── KPI 3: Promedio tasks por developer ──
+        double avgTasksPerDev = totalDevs > 0
+            ? Math.round((double) totalTasks / totalDevs * 10.0) / 10.0
+            : 0;
+        
+        String sprintTasksSql = """
+            SELECT COUNT(t.ID_TASK) AS SPRINT_TOTAL_TASKS
+            FROM TASK t
+            WHERE t.ID_PROJECT = ?
+            AND t.ID_SPRINT = NVL((
+                SELECT ID_SPRINT FROM (
+                    SELECT s.ID_SPRINT
+                    FROM SPRINT s
+                    WHERE s.ID_PROJECT = ?
+                        AND s.START_DATE <= SYSDATE
+                        AND s.END_DATE   >= SYSDATE
+                ) WHERE ROWNUM = 1
+            ), -1)
+            """;
+        
+        Integer sprintTasksResult = jdbcTemplate.queryForObject(
+            sprintTasksSql, Integer.class, projectId, projectId
+        );
+        int sprintTasks = sprintTasksResult != null ? sprintTasksResult : 0;
+
+        // ── KPI 4: Promedio horas por developer ──
+        double avgHoursPerDev = totalDevs > 0
+            ? Math.round(realHours / totalDevs * 10.0) / 10.0
+            : 0;
+
+        double expectedHoursPerDev = totalDevs > 0
+            ? Math.round(estimatedHours / totalDevs * 10.0) / 10.0
+            : 0;
+
+        String sprintHoursSql = """
+            SELECT
+                NVL(SUM(t.ESTIMATED_TIME), 0) AS SPRINT_ESTIMATED_HOURS,
+                NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'done' THEN t.REAL_TIME ELSE 0 END), 0) AS SPRINT_REAL_HOURS
+            FROM TASK t
+            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+            WHERE t.ID_PROJECT = ?
+            AND t.ID_SPRINT = NVL((
+                SELECT ID_SPRINT FROM (
+                    SELECT s.ID_SPRINT
+                    FROM SPRINT s
+                    WHERE s.ID_PROJECT = ?
+                        AND s.START_DATE <= SYSDATE
+                        AND s.END_DATE   >= SYSDATE
+                ) WHERE ROWNUM = 1
+            ), -1)
+            """;
+
+        Map<String, Object> sprintHours = jdbcTemplate.queryForMap(
+            sprintHoursSql, projectId, projectId
+        );
+        double sprintEstimatedHours = ((Number) sprintHours.get("SPRINT_ESTIMATED_HOURS")).doubleValue();
+        double sprintRealHours      = ((Number) sprintHours.get("SPRINT_REAL_HOURS")).doubleValue();
+
+        return new ProjectKpisSummaryDTO(
+            totalTasks, tasksBacklog, tasksReady, tasksInProgress, tasksReview, tasksDone,
+            realHours, estimatedHours,
+            totalDevs,
+            avgTasksPerDev,
+            sprintTasks,
+            totalDevs,
+            avgHoursPerDev, expectedHoursPerDev, sprintRealHours, sprintEstimatedHours
+        );
     }
 }

@@ -1,33 +1,81 @@
 import { CheckSquare } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
+import React from "react";
+import { DonutChart } from "../ui/DonutChart";
+
+interface DonutPayloadItem {
+  category: string;
+  value: number;
+  color: string;
+}
+
+interface DonutTooltipState {
+  active: boolean | undefined;
+  payload: DonutPayloadItem[];
+}
 
 interface TotalTasksKpiProps {
   total: number;
-  done: number;
+  backlog: number;
+  ready: number;
   inProgress: number;
-  todo: number;
+  review: number;
+  done: number;
 }
 
-export default function TotalTasksKpi({ total, done, inProgress, todo }: TotalTasksKpiProps) {
+export default function TotalTasksKpi({ total, backlog, ready, inProgress, review, done }: TotalTasksKpiProps) {
+
+  const [tooltipData, setTooltipData] = React.useState<DonutTooltipState | null>(null);
+
   const donutData = [
-    { name: "Completadas", value: done, color: "emerald" },
-    { name: "En progreso", value: inProgress, color: "blue" },
-    { name: "Pendientes", value: todo, color: "slate" },
+    { name: "Done",        value: done },
+    { name: "In Progress", value: inProgress },
+    { name: "Review",      value: review },
+    { name: "Ready",       value: ready },
+    { name: "Backlog",     value: backlog },
   ];
+
+  const donutColors = ["emerald", "blue", "violet", "amber", "indigo"] as const;
+
+  const activePayload = tooltipData?.payload?.[0];
+  const centerLabel   = activePayload ? activePayload.category : "Total";
+  const centerValue   = activePayload ? activePayload.value    : total;
 
   return (
     <KpiCard
-        title="Tareas totales del proyecto"
-        value={142}
-        badge="12 esta semana"
-        badgeType="up"
-        donutData={[
-            { name: "Completadas", value: 92 },
-            { name: "En progreso", value: 28 },
-            { name: "Pendientes", value: 22 },
-        ]}
-        donutColors={["emerald", "amber", "indigo"]} // ← orden = mismo orden del array de datos
-        icon={<CheckSquare size={18} />}
+      title="Tareas totales"
+      value={total}
+      suffix="tareas"
+      icon={<CheckSquare size={18} />}
+      badgeType="up"
+      // Le pasamos el donut como bottomContent para tener control total del layout
+      bottomContent={
+        <div>
+          {/* DonutChart interactivo con tooltipCallback */}
+          <DonutChart
+            data={donutData}
+            category="name"
+            value="value"
+            colors={[...donutColors]}
+            className="mx-auto mt-2 h-20"
+            showLabel={false}
+            showTooltip={true}
+            tooltipCallback={(props) => {
+              if (props.active) {
+                setTooltipData((prev) => {
+                  // Evita re-renders innecesarios si ya es la misma categoría
+                  if (prev?.payload[0]?.category === props.payload[0]?.category)
+                    return prev;
+                  return props;
+                });
+              } else {
+                setTooltipData(null);
+              }
+              return null;
+            }}
+          />
+        </div>
+      }
     />
   );
 }

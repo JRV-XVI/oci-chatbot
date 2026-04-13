@@ -1,4 +1,6 @@
-// src/components/kpis/AvgTasksKpi.tsx
+"use client";
+
+import React from "react";
 import { Users } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
 import { CategoryBar } from "../ui/CategoryBar";
@@ -6,6 +8,8 @@ import { CategoryBar } from "../ui/CategoryBar";
 interface AvgTasksKpiProps {
   totalTasks: number;
   totalDevs: number;
+  sprintTasks?: number;
+  sprintDevs?: number;
   healthyMax?: number;
   warningMax?: number;
   dangerMax?: number;
@@ -14,69 +18,107 @@ interface AvgTasksKpiProps {
 export default function AvgTasksKpi({
   totalTasks,
   totalDevs,
+  sprintTasks,
+  sprintDevs,
   healthyMax = 10,
   warningMax = 18,
   dangerMax = 28,
 }: AvgTasksKpiProps) {
 
+  const [mode, setMode] = React.useState<"project" | "sprint">("project");
+
+  const activeTasks = mode === "project" ? totalTasks : (sprintTasks ?? 0);
+  const activeDevs  = mode === "project" ? totalDevs  : (sprintDevs  ?? totalDevs);
+  const hasSprintData = sprintTasks !== undefined;
+  const activeScopeLabel = mode === "project" ? "en el proyecto" : "en sprint actual";
+
+  // ── Umbrales dinámicos por modo ──
+  // Proyecto usa una escala más amplia que sprint.
+  const currentHealthyMax = mode === "project" ? healthyMax * 4 : healthyMax;
+  const currentWarningMax = mode === "project" ? warningMax * 4 : warningMax;
+  const currentDangerMax  = mode === "project" ? dangerMax  * 4 : dangerMax;
+
   // ── Cálculo del promedio ──
-  const avg = totalDevs > 0
-    ? Math.round((totalTasks / totalDevs) * 10) / 10
+  const avg = activeDevs > 0
+    ? Math.round((activeTasks / activeDevs) * 10) / 10
     : 0;
 
   // ── Lógica de salud (texto e ícono del badge) ──
   let healthLabel: string;
   let badgeType: "up" | "down" | "neutral";
 
-  if (avg <= healthyMax) {
+  if (avg <= currentHealthyMax) {
     healthLabel = "Carga saludable";
-    badgeType = "up";       // verde (text-primary en tu tema)
-  } else if (avg <= warningMax) {
+    badgeType = "up";
+  } else if (avg <= currentWarningMax) {
     healthLabel = "Riesgo de sobrecarga";
-    badgeType = "neutral";  // ámbar/gris
+    badgeType = "neutral";
   } else {
     healthLabel = "Equipo sobrecargado";
-    badgeType = "down";     // rojo (text-destructive)
+    badgeType = "down";
   }
 
   // ── Zonas de la CategoryBar ──
   // Los valores representan PORCENTAJES de la barra (deben sumar 100)
-  // Zona verde: 0 → healthyMax
-  // Zona amarilla: healthyMax → warningMax
-  // Zona roja: warningMax → dangerMax
-  const greenPct  = Math.round((healthyMax / dangerMax) * 100);         // ej: ~36%
-  const yellowPct = Math.round(((warningMax - healthyMax) / dangerMax) * 100); // ej: ~29%
-  const redPct    = 100 - greenPct - yellowPct;                         // resto: ~35%
+  const greenPct  = Math.round((currentHealthyMax / currentDangerMax) * 100);
+  const yellowPct = Math.round(((currentWarningMax - currentHealthyMax) / currentDangerMax) * 100);
+  const redPct    = 100 - greenPct - yellowPct;
 
   return (
     <KpiCard
       title="Promedio de tareas por dev"
       value={avg}
-      suffix="tareas"
+      suffix="tareas/dev"
       icon={<Users size={18} />}
-      badge={`${totalDevs} developers en el proyecto`}
-      badgeType="neutral"
+      badge={`${activeDevs} developers ${activeScopeLabel}`}
+      badgeType={badgeType}
       bottomContent={
-        <div className="mt-3 w-full">
+        <div className="mt-1 w-full">
 
-          {/* Etiquetas de estado + número máximo */}
+          {/* ── Toggle — solo aparece si hay datos del sprint ── */}
+          {hasSprintData && (
+            <div className="flex items-center gap-1 mb-4 p-0.5 bg-muted rounded-lg w-fit">
+              <button
+                onClick={() => setMode("project")}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                  mode === "project"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Proyecto
+              </button>
+              <button
+                onClick={() => setMode("sprint")}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                  mode === "sprint"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sprint actual
+              </button>
+            </div>
+          )}
+
+          {/* ── Etiquetas de estado ── */}
           <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
             <span className={
-              avg <= healthyMax    ? "text-primary font-medium" :
-              avg <= warningMax   ? "text-amber-500 font-medium" :
-                                    "text-destructive font-medium"
+              avg <= currentHealthyMax ? "text-primary font-medium" :
+              avg <= currentWarningMax ? "text-amber-500 font-medium" :
+                                  "text-destructive font-medium"
             }>
               {healthLabel}
             </span>
-            <span>Máx: {dangerMax}</span>
+            <span>Máx: {currentDangerMax}</span>
           </div>
 
-          {/* CategoryBar con marcador animado */}
+          {/* ── CategoryBar ── */}
           <CategoryBar
             values={[greenPct, yellowPct, redPct]}
             colors={["emerald", "amber", "rose"]}
             marker={{
-              value: Math.min((avg / dangerMax) * 100, 100), // posición del marcador en %
+              value: Math.min((avg / currentDangerMax) * 100, 100),
               tooltip: `${avg} tasks/dev`,
               showAnimation: true,
             }}
@@ -84,12 +126,11 @@ export default function AvgTasksKpi({
             className="h-2"
           />
 
-          {/* Leyenda mínima debajo de la barra */}
           <div className="flex justify-between text-[10px] text-muted-foreground mt-1 opacity-60">
             <span>0</span>
-            <span>{healthyMax}</span>
-            <span>{warningMax}</span>
-            <span>{dangerMax}+</span>
+            <span>{currentHealthyMax}</span>
+            <span>{currentWarningMax}</span>
+            <span>{currentDangerMax}+</span>
           </div>
 
         </div>

@@ -12,6 +12,8 @@ import metricsService, {
   type SprintUserPerformance,
 } from "../services/metricsService";
 
+import kpiService, { ProjectKpisSummary } from "../services/kpiService";
+
 interface User {
   id: string;
   name: string;
@@ -23,11 +25,14 @@ export default function KPIsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [kpis, setKpis] = useState<ProjectKpisSummary | null>(null);
+  const [kpisLoading, setKpisLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserTasksData = async () => {
       try {
         setLoading(true);
+        setKpisLoading(true);
         // Get the sprint ID
         const sprintId = 5; // HARDCODED: MODIFY LATER
         
@@ -43,6 +48,11 @@ export default function KPIsPage() {
         }));
 
         setUsers(transformedUsers);
+
+        const projectId = 1; // HARDCODED: MODIFY LATER
+        const kpisData = await kpiService.getProjectKpisSummary(projectId);
+        setKpis(kpisData);
+
         setError(null);
       } catch (err) {
         const errorMessage =
@@ -51,6 +61,7 @@ export default function KPIsPage() {
         console.error("Error fetching metrics:", err);
       } finally {
         setLoading(false);
+        setKpisLoading(false);
       }
     };
 
@@ -58,14 +69,44 @@ export default function KPIsPage() {
   }, []);
 
   return (
-    <main className="p-8">
+    <main className="px-6 py-4">
       {/* ── Sección KPIs ── */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10 items-start">
-        <TotalTasksKpi total={142} done={92} inProgress={28} todo={22} />
-        <TotalHoursKpi realHours={50} estimatedHours={100} />
-        <AvgTasksKpi totalTasks={142} totalDevs={14} />
-        <AvgHoursDevKpi totalHours={250} totalDevs={4} expectedHours={60} />
-      </section>
+      {kpisLoading ? (
+        // Skeleton mientras cargan los datos
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 rounded-xl bg-muted animate-pulse" />
+          ))}
+        </div>
+      ) : kpis ? (
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 items-start">
+          <TotalTasksKpi
+            total={kpis.totalTasks}
+            backlog={kpis.tasksBacklog}
+            ready={kpis.tasksReady}
+            inProgress={kpis.tasksInProgress}
+            review={kpis.tasksReview}
+            done={kpis.tasksDone}
+          />
+          <TotalHoursKpi
+            realHours={kpis.realHours}
+            estimatedHours={kpis.estimatedHours}
+          />
+          <AvgTasksKpi
+            totalTasks={kpis.totalTasks}
+            totalDevs={kpis.totalDevs}
+            sprintTasks={kpis.sprintTasks}
+            sprintDevs={kpis.sprintDevs}
+          />
+          <AvgHoursDevKpi
+            totalHours={kpis.realHours}
+            totalDevs={kpis.totalDevs}
+            expectedHoursPerDev={kpis.expectedHoursPerDev}
+            sprintRealHours={kpis.sprintRealHours}
+            sprintEstimatedHours={kpis.sprintEstimatedHours}
+          />
+        </section>
+      ) : null}
 
       {/* ── User Tasks Completion KPI ── */}
       <section className="mb-10">
@@ -79,7 +120,8 @@ export default function KPIsPage() {
           <UserTasksCompletionKpi users={users} />
         )}
       </section>
-      
+
+      {/* ── Real Total Hours by User KPI ── */}
       <section className="mb-10">
         <RealTotalHoursByUserKpi />
       </section>

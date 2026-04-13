@@ -63,6 +63,32 @@ export interface RealHoursBySprintUser {
   doneTasks: number;
 }
 
+export interface ProjectKpisSummary {
+  // KPI 1 — TotalTasksKpi
+  totalTasks: number;
+  tasksBacklog: number;
+  tasksReady: number;
+  tasksInProgress: number;
+  tasksReview: number;
+  tasksDone: number;
+
+  // KPI 2 — TotalHoursKpi
+  realHours: number;
+  estimatedHours: number;
+
+  // KPI 3 — AvgTasksKpi
+  totalDevs: number;
+  avgTasksPerDev: number;
+  sprintTasks?: number;
+  sprintDevs?: number;
+
+  // KPI 4 — AvgHoursDevKpi
+  avgHoursPerDev: number;
+  expectedHoursPerDev: number;
+  sprintRealHours?: number;
+  sprintEstimatedHours?: number;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 class KPIService {
@@ -278,6 +304,33 @@ class KPIService {
     } catch (error) {
       console.error("Error checking KPI service health:", error);
       return false;
+    }
+  }
+
+  /**
+   * Obtiene los 4 KPIs del dashboard en una sola llamada.
+   * GET /api/kpi/project/{projectId}/summary
+   */
+  async getProjectKpisSummary(projectId: number): Promise<ProjectKpisSummary> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/kpi/project/${projectId}/summary`,
+        {
+          method: "GET",
+          cache: "no-store", // siempre datos frescos, sin caché
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch project KPIs summary: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching project KPIs summary:", error);
+      throw error;
     }
   }
 }

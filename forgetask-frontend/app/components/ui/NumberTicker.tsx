@@ -26,7 +26,7 @@ export function NumberTicker({
   const motionValue = useMotionValue(direction === "down" ? value : startValue)
   const springValue = useSpring(motionValue, {
     damping: 60,
-    stiffness: 100,
+    stiffness: 400,
   })
   const isInView = useInView(ref, { once: true, margin: "0px" })
 
