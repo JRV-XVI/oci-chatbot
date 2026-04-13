@@ -6,6 +6,7 @@ import TotalHoursKpi from "../components/kpis/TotalHoursKpi";
 import AvgTasksKpi from "../components/kpis/AvgTasksKpi";
 import AvgHoursDevKpi from "../components/kpis/AvgHoursDevKpi";
 import UserTasksCompletionKpi from "../components/kpis/UserTasksCompletionKpi";
+import RealTotalHoursByUserKpi from "@/app/components/chart/RealTotalHoursByUserKpi";
 
 import metricsService, {
   type SprintUserPerformance,
@@ -77,6 +78,10 @@ export default function KPIsPage() {
         ) : (
           <UserTasksCompletionKpi users={users} />
         )}
+      </section>
+      
+      <section className="mb-10">
+        <RealTotalHoursByUserKpi />
       </section>
     </main>
   );

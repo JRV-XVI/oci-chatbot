@@ -42,9 +42,117 @@ export interface TimeMetricsSummary {
   variance: number;
 }
 
+export interface RealHoursByUser {
+  username: string;
+  realTotalHours: number;
+  doneTasks: number;
+}
+
+export interface RealHoursTaskDetail {
+  taskId: string;
+  title: string;
+  realTime: number;
+}
+
+export interface RealHoursBySprintUser {
+  sprintId: number;
+  sprintNumber: number;
+  sprintTitle: string;
+  username: string;
+  realTotalHours: number;
+  doneTasks: number;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 class KPIService {
+  /**
+   * Get real worked hours grouped by user.
+   * Optionally filtered by sprintId.
+   */
+  async getRealHoursByUser(sprintId?: number): Promise<RealHoursByUser[]> {
+    try {
+      const query = sprintId !== undefined ? `?sprintId=${sprintId}` : "";
+      const response = await fetch(`${API_BASE_URL}/api/kpi/real-hours-by-user${query}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch real hours by user: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching real hours by user:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get done tasks for one user in KPI drill-down.
+   * Optionally filtered by sprintId.
+   */
+  async getRealHoursTasksByUser(
+    username: string,
+    sprintId?: number
+  ): Promise<RealHoursTaskDetail[]> {
+    try {
+      const params = new URLSearchParams();
+      params.set("username", username);
+      if (sprintId !== undefined) {
+        params.set("sprintId", String(sprintId));
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/kpi/real-hours-by-user/tasks?${params.toString()}`,
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch real hours tasks by user: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching real hours tasks by user:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get general KPI rows where topic is sprint and group is user.
+   * Optionally filtered by one sprint.
+   */
+  async getRealHoursBySprintUser(sprintId?: number): Promise<RealHoursBySprintUser[]> {
+    try {
+      const params = new URLSearchParams();
+      if (sprintId !== undefined) {
+        params.set("sprintId", String(sprintId));
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/kpi/real-hours-by-sprint-user?${params.toString()}`,
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch real hours by sprint-user: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching real hours by sprint-user:", error);
+      throw error;
+    }
+  }
+
   /**
    * Calculate KPI metrics from a list of tasks
    * Includes overload detection based on expected task counts
@@ -164,9 +272,6 @@ class KPIService {
     try {
       const response = await fetch(`${API_BASE_URL}/api/kpi/health`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       return response.ok;

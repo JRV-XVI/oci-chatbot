@@ -1,6 +1,9 @@
 package com.cloudforge.api.forgetask.controller;
 
 import com.cloudforge.api.forgetask.dto.KPIMetrics;
+import com.cloudforge.api.forgetask.dto.RealHoursBySprintUserDTO;
+import com.cloudforge.api.forgetask.dto.RealHoursByUserDTO;
+import com.cloudforge.api.forgetask.dto.RealHoursTaskDetailDTO;
 import com.cloudforge.api.forgetask.dto.TaskDTO;
 import com.cloudforge.api.forgetask.service.KPIService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +106,69 @@ public class KPIController {
 
             Map<String, Double> summary = kpiService.getTimeMetricsSummary(tasks);
             return ResponseEntity.ok(summary);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Get users with tasks and their done metrics aggregated by user.
+     * GET /api/kpi/real-hours-by-user?sprintId=1
+     *
+     * @param sprintId Optional sprint ID filter.
+     * @return Aggregated KPI rows by username.
+     */
+    @GetMapping("/real-hours-by-user")
+    public ResponseEntity<List<RealHoursByUserDTO>> getRealHoursByUser(
+            @RequestParam(required = false) Integer sprintId
+    ) {
+        try {
+            List<RealHoursByUserDTO> rows = kpiService.getRealHoursByUser(sprintId);
+            return ResponseEntity.ok(rows);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Get done tasks for one user used by KPI drill-down.
+     * GET /api/kpi/real-hours-by-user/tasks?username=jane&sprintId=1
+     *
+     * @param username Required username.
+     * @param sprintId Optional sprint filter.
+     * @return Task rows with title and real time.
+     */
+    @GetMapping("/real-hours-by-user/tasks")
+    public ResponseEntity<List<RealHoursTaskDetailDTO>> getRealHoursTasksByUser(
+            @RequestParam String username,
+            @RequestParam(required = false) Integer sprintId
+    ) {
+        try {
+            if (username == null || username.isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            List<RealHoursTaskDetailDTO> rows = kpiService.getRealHoursTasksByUser(username, sprintId);
+            return ResponseEntity.ok(rows);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Get general KPI rows where topic is sprint and group is user.
+     * GET /api/kpi/real-hours-by-sprint-user?sprintId=1
+     *
+     * @param sprintId Optional sprint filter.
+     * @return KPI rows by sprint and user.
+     */
+    @GetMapping("/real-hours-by-sprint-user")
+    public ResponseEntity<List<RealHoursBySprintUserDTO>> getRealHoursBySprintUser(
+            @RequestParam(required = false) Integer sprintId
+    ) {
+        try {
+            List<RealHoursBySprintUserDTO> rows = kpiService.getRealHoursBySprintUser(sprintId);
+            return ResponseEntity.ok(rows);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
