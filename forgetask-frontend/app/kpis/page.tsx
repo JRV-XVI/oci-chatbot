@@ -6,6 +6,7 @@ import TotalHoursKpi from "../components/kpis/TotalHoursKpi";
 import AvgTasksKpi from "../components/kpis/AvgTasksKpi";
 import AvgHoursDevKpi from "../components/kpis/AvgHoursDevKpi";
 import UserTasksCompletionKpi from "../components/kpis/UserTasksCompletionKpi";
+
 import metricsService, {
   type SprintUserPerformance,
 } from "../services/metricsService";
