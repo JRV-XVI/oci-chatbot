@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/todolist")
+@RequestMapping("/api/tasks")
 public class TaskController {
 
     private static final String SELECT_TASKS_SQL = """
@@ -39,10 +39,10 @@ public class TaskController {
                t.ID_SPRINT,
                    t.TITLE,
                    t.DESCRIPTION,
-                   t.START_TIME,
-                   t.END_TIME,
-                     TO_CHAR(t.START_TIME, 'YYYY-MM-DD') AS START_DATE_TEXT,
-                     TO_CHAR(t.END_TIME, 'YYYY-MM-DD') AS END_DATE_TEXT,
+                                     t.START_DATE,
+                                     t.END_DATE,
+                                         TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+                                         TO_CHAR(t.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
                    t.ESTIMATED_TIME,
                    t.REAL_TIME,
                                      ts.STATE,
@@ -84,8 +84,8 @@ public class TaskController {
             rs.getObject("ID_SPRINT"),
                 rs.getString("TITLE"),
                 rs.getString("DESCRIPTION"),
-                rs.getObject("START_TIME"),
-                rs.getObject("END_TIME"),
+                rs.getObject("START_DATE"),
+                rs.getObject("END_DATE"),
                 rs.getString("START_DATE_TEXT"),
                 rs.getString("END_DATE_TEXT"),
                 rs.getObject("ESTIMATED_TIME"),
@@ -150,7 +150,7 @@ public class TaskController {
         String priority = normalizePriority(task.getPriority(), "medium");
 
         jdbcTemplate.update(
-            "INSERT INTO TASK (ID_TASK, ID_USER, ID_PROJECT, ID_SPRINT, TITLE, DESCRIPTION, START_TIME, END_TIME, ESTIMATED_TIME, REAL_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO TASK (ID_TASK, ID_USER, ID_PROJECT, ID_SPRINT, TITLE, DESCRIPTION, START_DATE, END_DATE, ESTIMATED_TIME, REAL_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 nextId,
                 idUser,
                 idProject,
@@ -189,7 +189,7 @@ public class TaskController {
         Integer requestedSprintId = task.getSprintId();
         Integer resolvedSprintId;
         if (requestedSprintId == null) {
-            resolvedSprintId = existingTask.idSprint();
+            resolvedSprintId = null;
         } else {
             resolvedSprintId = resolveSprintIdStrict(requestedSprintId, idProject);
             if (resolvedSprintId == null) {
@@ -211,7 +211,7 @@ public class TaskController {
         String priority = normalizePriority(task.getPriority(), existingTask.priority());
 
         jdbcTemplate.update(
-            "UPDATE TASK SET ID_USER = ?, ID_PROJECT = ?, ID_SPRINT = ?, TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, ESTIMATED_TIME = ?, REAL_TIME = ? WHERE ID_TASK = ?",
+            "UPDATE TASK SET ID_USER = ?, ID_PROJECT = ?, ID_SPRINT = ?, TITLE = ?, DESCRIPTION = ?, START_DATE = ?, END_DATE = ?, ESTIMATED_TIME = ?, REAL_TIME = ? WHERE ID_TASK = ?",
             idUser,
             idProject,
             resolvedSprintId,
@@ -318,10 +318,10 @@ public class TaskController {
                        t.ID_SPRINT,
                        t.TITLE,
                        t.DESCRIPTION,
-                       t.START_TIME,
-                       t.END_TIME,
-                      TO_CHAR(t.START_TIME, 'YYYY-MM-DD') AS START_DATE_TEXT,
-                      TO_CHAR(t.END_TIME, 'YYYY-MM-DD') AS END_DATE_TEXT,
+                       t.START_DATE,
+                       t.END_DATE,
+                      TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+                      TO_CHAR(t.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
                        t.ESTIMATED_TIME,
                        t.REAL_TIME,
                        ts.STATE,
@@ -353,8 +353,8 @@ public class TaskController {
                     rs.getObject("ID_SPRINT"),
                         rs.getString("TITLE"),
                         rs.getString("DESCRIPTION"),
-                        rs.getObject("START_TIME"),
-                        rs.getObject("END_TIME"),
+                        rs.getObject("START_DATE"),
+                        rs.getObject("END_DATE"),
                         rs.getString("START_DATE_TEXT"),
                         rs.getString("END_DATE_TEXT"),
                         rs.getObject("ESTIMATED_TIME"),
@@ -380,8 +380,8 @@ public class TaskController {
                        t.ID_SPRINT,
                        t.TITLE,
                        t.DESCRIPTION,
-                       t.START_TIME,
-                       t.END_TIME,
+                       t.START_DATE,
+                       t.END_DATE,
                        t.ESTIMATED_TIME,
                        t.REAL_TIME,
                        pt.PRIORITY
@@ -403,8 +403,8 @@ public class TaskController {
                         sprintId,
                         rs.getString("TITLE"),
                         rs.getString("DESCRIPTION"),
-                        rs.getTimestamp("START_TIME"),
-                        rs.getTimestamp("END_TIME"),
+                        rs.getTimestamp("START_DATE"),
+                        rs.getTimestamp("END_DATE"),
                         toNullableDouble(rs.getObject("ESTIMATED_TIME")),
                         toNullableDouble(rs.getObject("REAL_TIME")),
                         rs.getString("PRIORITY")

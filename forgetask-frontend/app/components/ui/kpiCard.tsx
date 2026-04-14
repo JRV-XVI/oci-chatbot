@@ -50,12 +50,12 @@ export default function KpiCard({
   const hasValue = typeof value === 'number';
 
   return (
-    <Card className="px-5 py-4 flex flex-col gap-2 justify-between">
+    <Card className="h-[130px] overflow-hidden px-3 py-2 flex flex-col gap-1 justify-between">
       {/* ── Header ── */}
       {(hasTitle || icon) && (
       <div className="flex items-center justify-between">
         {hasTitle ? (
-          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             {title}
           </span>
         ) : (
@@ -66,20 +66,20 @@ export default function KpiCard({
       )}
 
       {/* ── Body: Número + (Dona O Barra) ── */}
-      <div className={progressData ? "flex flex-col gap-3" : "flex items-center gap-3"}>
+      <div className={progressData ? "flex flex-col gap-1" : "flex items-center gap-1.5"}>
         {hasValue && (
           <div className="flex flex-col min-w-0">
             <div className="flex items-baseline gap-1">
               <NumberTicker
                 value={value}
-                className="text-4xl font-bold text-foreground tabular-nums"
+                className="text-xl font-bold text-foreground tabular-nums"
               />
               {suffix && (
-                <span className="text-sm font-medium text-muted-foreground">{suffix}</span>
+                <span className="text-xs font-medium text-muted-foreground">{suffix}</span>
               )}
             </div>
             {badge && !progressData && (
-              <p className={`text-xs font-medium mt-0.5 ${badgeColor}`}>
+              <p className={`text-[11px] font-medium mt-0 ${badgeColor}`}>
                 {badgeArrow} {badge}
               </p>
             )}
@@ -93,7 +93,7 @@ export default function KpiCard({
             category="name"
             value="value"
             colors={donutColors}
-            className="w-[72px] h-[72px] shrink-0 ml-auto"
+            className="w-[56px] h-[56px] shrink-0 ml-auto"
             showLabel={false}
             showTooltip={true}
           />
@@ -101,16 +101,16 @@ export default function KpiCard({
 
         {/* Renderiza la Barra de Progreso si se pasan datos de Progreso */}
         {progressData && (
-          <div className="w-full mt-1">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+          <div className="w-full mt-0">
+            <div className="flex justify-between text-[11px] text-muted-foreground mb-0.5">
               <span>{progressData.label || 'Progreso'}</span>
               <span>{Math.round((progressData.value / progressData.target) * 100)}%</span>
             </div>
             <ProgressBar
               value={progressData.value}
               max={progressData.target}
-              color={progressData.color || "emerald"}
-              className="h-2"
+              color={progressData.color || "orange"}
+              className="h-1.5"
             />
           </div>
         )}

@@ -23,15 +23,15 @@ export function UserTaskItemCard({
   return (
     <div className="flex items-center justify-center gap-4">
       <ProgressCircle value={percentage} radius={70} color={circleColor}>
-        <span className="text-xl font-semibold text-gray-900 dark:text-gray-200">
+        <span className="text-xl font-semibold text-[#e6edf3]">
           {percentage}%
         </span>
       </ProgressCircle>
       <div className="flex flex-col gap-0.5">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+        <p className="text-sm font-medium text-[#e6edf3]">
           {user.completedTasks}/{user.totalTasks}
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-[#9aa4b2]">
           {user.name}
         </p>
       </div>

@@ -5,9 +5,9 @@
 }
 
 .circleCard {
-  border: 1px solid rgba(251, 146, 60, 0.25);
+  border: 1px solid rgba(43, 53, 66, 0.95);
   border-radius: 1rem;
-  background: rgba(27, 18, 15, 0.82);
+  background: rgba(13, 17, 23, 0.86);
   padding: 0.9rem;
   display: flex;
   flex-direction: column;
@@ -18,18 +18,18 @@
 }
 
 .circleCard:hover {
-  border-color: rgba(251, 146, 60, 0.58);
-  box-shadow: 0 0 18px rgba(231, 107, 54, 0.24);
+  border-color: rgba(231, 107, 54, 0.52);
+  box-shadow: 0 0 16px rgba(231, 107, 54, 0.2);
   transform: translateY(-2px);
 }
 
 .circleCardActive {
-  border-color: rgba(251, 146, 60, 0.72);
-  box-shadow: 0 0 24px rgba(231, 107, 54, 0.32);
+  border-color: rgba(231, 107, 54, 0.72);
+  box-shadow: 0 0 20px rgba(231, 107, 54, 0.28);
 }
 
 .userName {
-  color: #fff5ef;
+  color: #e6edf3;
   font-size: 0.95rem;
   font-weight: 600;
   max-width: 100%;
@@ -39,21 +39,21 @@
 }
 
 .hours {
-  color: #fec7aa;
+  color: #f19367;
   font-size: 0.86rem;
   font-weight: 500;
 }
 
 .share {
-  color: #fcd9c9;
+  color: #9aa4b2;
   font-size: 0.8rem;
   opacity: 0.9;
 }
 
 .progressCard {
-  border: 1px solid rgba(251, 146, 60, 0.25);
+  border: 1px solid rgba(43, 53, 66, 0.95);
   border-radius: 0.9rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(17, 22, 31, 0.72);
   padding: 0.9rem;
 }
 
@@ -82,19 +82,19 @@
 }
 
 .metricProgressTasks::-webkit-progress-value {
-  background: linear-gradient(90deg, #22c55e 0%, #86efac 100%);
+  background: linear-gradient(90deg, #e76b36 0%, #f19367 100%);
 }
 
 .metricProgressTasks::-moz-progress-bar {
-  background: linear-gradient(90deg, #22c55e 0%, #86efac 100%);
+  background: linear-gradient(90deg, #e76b36 0%, #f19367 100%);
 }
 
 .metricProgressHours::-webkit-progress-value {
-  background: linear-gradient(90deg, #e76b36 0%, #ffb074 100%);
+  background: linear-gradient(90deg, #c45223 0%, #e76b36 100%);
 }
 
 .metricProgressHours::-moz-progress-bar {
-  background: linear-gradient(90deg, #e76b36 0%, #ffb074 100%);
+  background: linear-gradient(90deg, #c45223 0%, #e76b36 100%);
 }
 
 .progressMeta {
@@ -102,6 +102,6 @@
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  color: #fcd9c9;
+  color: #9aa4b2;
   font-size: 0.8rem;
 }

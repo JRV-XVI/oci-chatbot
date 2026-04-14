@@ -4,6 +4,7 @@ import React from "react"
 import { tv, type VariantProps } from "tailwind-variants"
 
 import { cn } from "./utils"
+import { getColorClassName, type AvailableChartColorsKeys } from "./DonutChart"
 
 const progressBarVariants = tv({
   slots: {
@@ -46,6 +47,16 @@ interface ProgressBarProps
   max?: number
   showAnimation?: boolean
   label?: string
+  color?: AvailableChartColorsKeys
+}
+
+const progressBackgroundColorMap: Partial<Record<AvailableChartColorsKeys, string>> = {
+  orange: "bg-[#e76b36]/20",
+  orangeSoft: "bg-[#f19367]/20",
+  orangeDeep: "bg-[#c45223]/20",
+  slate: "bg-[#2b3542]/40",
+  slateLight: "bg-[#6e7d91]/30",
+  slateDim: "bg-[#1f2937]/45",
 }
 
 const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
@@ -56,6 +67,7 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
       label,
       showAnimation = false,
       variant,
+      color,
       className,
       ...props
     }: ProgressBarProps,
@@ -63,6 +75,8 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
   ) => {
     const safeValue = Math.min(max, Math.max(value, 0))
     const { background, bar } = progressBarVariants({ variant })
+    const backgroundColorClass = color ? progressBackgroundColorMap[color] : undefined
+    const barColorClass = color ? getColorClassName(color, "bg") : undefined
     return (
       <div
         ref={forwardedRef}
@@ -77,13 +91,13 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
         <div
           className={cn(
             "relative flex h-2 w-full items-center rounded-full",
-            background(),
+            backgroundColorClass ?? background(),
           )}
         >
           <div
             className={cn(
               "h-full flex-col rounded-full",
-              bar(),
+              barColorClass ?? bar(),
               showAnimation &&
                 "transform-gpu transition-all duration-300 ease-in-out",
             )}

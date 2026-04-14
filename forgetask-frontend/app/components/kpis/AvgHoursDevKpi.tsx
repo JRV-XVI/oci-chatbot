@@ -44,16 +44,15 @@ export default function AvgHoursDevKpi({
 
   const maxVisual   = 140;
   const BAR_VALUES  = [71, 15, 14] as const;
-  const BAR_COLORS  = ["emerald", "amber", "rose"] as const;
 
   const markerPosition = Math.min((percentage / maxVisual) * 100, 100);
 
   const health =
     percentage <= 100
-      ? { label: "Carga normal",           color: "text-emerald-500", badgeType: "up"      as const }
+      ? { label: "Carga normal",           color: "text-primary", badgeType: "up"      as const }
       : percentage <= 120
-      ? { label: "Horas extra detectadas", color: "text-amber-500",   badgeType: "neutral" as const }
-      : { label: "Riesgo de Burnout",      color: "text-destructive", badgeType: "down"    as const };
+      ? { label: "Horas extra detectadas", color: "text-[#f19367]",   badgeType: "neutral" as const }
+      : { label: "Riesgo de Burnout",      color: "text-[#ffb28e]", badgeType: "down"    as const };
 
   return (
     <KpiCard
@@ -64,14 +63,14 @@ export default function AvgHoursDevKpi({
       badge={`${percentage}% de ${activeExpected} hrs esperadas`}
       badgeType={health.badgeType}
       bottomContent={
-        <div className="mt-1 w-full">
+        <div className="mt-0 w-full">
 
           {/* ── Toggle ── */}
           {hasSprintData && (
-            <div className="flex items-center gap-1 mb-4 p-0.5 bg-muted rounded-lg w-fit">
+            <div className="flex items-center gap-1 mb-1 p-0.5 bg-muted rounded-lg w-fit">
               <button
                 onClick={() => setMode("project")}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-md transition-all ${
                   mode === "project"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -81,7 +80,7 @@ export default function AvgHoursDevKpi({
               </button>
               <button
                 onClick={() => setMode("sprint")}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-md transition-all ${
                   mode === "sprint"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -93,7 +92,7 @@ export default function AvgHoursDevKpi({
           )}
 
           {/* ── Estado de salud ── */}
-          <div className="flex justify-between text-xs mb-1.5">
+          <div className="flex justify-between text-[11px] mb-0.5">
             <span className={`${health.color} font-medium`}>{health.label}</span>
             <span className="text-muted-foreground">Esperado: {activeExpected} hrs</span>
           </div>
@@ -101,17 +100,17 @@ export default function AvgHoursDevKpi({
           {/* ── CategoryBar ── */}
           <CategoryBar
             values={[...BAR_VALUES]}
-            colors={[...BAR_COLORS]}
+            colors={["slateLight", "orangeSoft", "orange"]}
             marker={{
               value: markerPosition,
               tooltip: `${avg} hrs/dev (${percentage}%)`,
               showAnimation: true,
             }}
             showLabels={false}
-            className="h-2"
+            className="h-1.5"
           />
 
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-1 opacity-60">
+          <div className="flex justify-between text-[9px] text-muted-foreground mt-0 opacity-60">
             <span>0</span>
             <span>100% ({activeExpected}h)</span>
             <span>120%+</span>

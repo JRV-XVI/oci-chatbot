@@ -128,12 +128,12 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
       </Button>
       {open && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
-          <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#923811]/70 bg-[#140c09] p-6 shadow-[0_0_28px_rgba(231,107,54,0.28)]">
+          <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#2b3542] bg-[#0d1117] p-6 shadow-[0_0_24px_rgba(0,0,0,0.35)]">
             <form onSubmit={handleSubmit}>
-              <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#923811]/40">
+              <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#2b3542]">
                 <div>
-                  <h2 className="text-xl font-semibold neon-orange">Create New Sprint</h2>
-                  <p className="text-sm text-[#ffd5c2]/85 mt-1">
+                  <h2 className="text-xl font-semibold text-[#e6edf3]">Create New Sprint</h2>
+                  <p className="text-sm text-[#9aa4b2] mt-1">
                     Add a new sprint to your project.
                   </p>
                 </div>
@@ -143,7 +143,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
               </div>
 
               <div className="grid gap-4 py-5">
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-select">Sprint (optional)</Label>
                   <select
                     id="sprint-select"
@@ -181,7 +181,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   </select>
                 </div>
 
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-number">Sprint Number *</Label>
                   <Input
                     id="sprint-number"
@@ -193,7 +193,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   />
                 </div>
 
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-goal">Goal</Label>
                   <Textarea
                     id="sprint-goal"
@@ -204,18 +204,18 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   />
                 </div>
 
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-start">Start Date</Label>
                   <DatePickerInput id="sprint-start" value={startDate} onChange={setStartDate} />
                 </div>
 
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-end">End Date</Label>
                   <DatePickerInput id="sprint-end" value={endDate} onChange={setEndDate} />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-[#923811]/40">
+              <div className="flex justify-end gap-2 pt-4 border-t border-[#2b3542]">
                 {isEditMode && (
                   <Button
                     type="button"
@@ -232,7 +232,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                 </Button>
                 <Button
                   type="submit"
-                  className="cursor-pointer neon-orange-bg text-white"
+                  className="cursor-pointer"
                   disabled={!projectId || submitting}
                 >
                   {submitting ? 'Saving...' : isEditMode ? 'Save Changes' : 'Create Sprint'}
