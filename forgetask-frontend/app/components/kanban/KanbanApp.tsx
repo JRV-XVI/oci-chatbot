@@ -16,6 +16,7 @@ import { ProjectBoard } from './project-board'
 import { useTaskWebSocket, type TaskEventMessage } from '@/app/hooks/useTaskWebSocket'
 import { useTaskStore } from '@/app/store/taskStore'
 import taskService from '@/app/services/taskService'
+import projectService from '@/app/services/projectService'
 import type { TaskAssigneeOption } from '@/app/types/task'
 import sprintService from '@/app/services/sprintService'
 import type { SprintOption } from '@/app/types/sprint'
@@ -25,6 +26,7 @@ export function KanbanApp() {
   const { tasks, setTasks, updateTask, addTask, removeTask } = useTaskStore()
   const [assigneeOptions, setAssigneeOptions] = useState<TaskAssigneeOption[]>([])
   const [projectId, setProjectId] = useState<number | null>(null)
+  const [projectTitle, setProjectTitle] = useState<string>('Project Board')
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([])
 
   /**
@@ -81,26 +83,48 @@ export function KanbanApp() {
    */
   useEffect(() => {
     const loadInitialTasks = async () => {
-      try {
-        console.log('📥 Cargando tareas iniciales desde el backend...')
-        const [tasks, users] = await Promise.all([
-          taskService.getAllTasks(),
-          taskService.getProjectUsers()
-        ])
-        console.log('✅ Tareas cargadas:', tasks.length)
-        setTasks(tasks)
-        setAssigneeOptions(users)
+      const maxAttempts = 6
+      const retryDelayMs = 2000
 
-        const resolvedProjectId = users.length > 0 ? users[0].idProject : null
-        setProjectId(resolvedProjectId)
-        if (resolvedProjectId) {
-          const sprints = await sprintService.listSprints(resolvedProjectId)
-          setSprintOptions(sprints)
-        } else {
-          setSprintOptions([])
+      const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          console.log(`📥 Cargando tareas iniciales desde el backend (intento ${attempt}/${maxAttempts})...`)
+          const [tasks, projects] = await Promise.all([
+            taskService.getAllTasks(),
+            projectService.listProjects()
+          ])
+          console.log('✅ Tareas cargadas:', tasks.length)
+          setTasks(tasks)
+
+          const resolvedProjectId = projects.length > 0 ? projects[0].idProject : null
+          setProjectId(resolvedProjectId)
+          const resolvedProjectTitle = projects.length > 0 && projects[0].title
+            ? projects[0].title
+            : 'Project Board'
+          setProjectTitle(resolvedProjectTitle)
+
+          if (resolvedProjectId) {
+            const [users, sprints] = await Promise.all([
+              taskService.getProjectUsers(resolvedProjectId),
+              sprintService.listSprints(resolvedProjectId)
+            ])
+            setAssigneeOptions(users)
+            setSprintOptions(sprints)
+          } else {
+            setAssigneeOptions([])
+            setSprintOptions([])
+          }
+
+          return
+        } catch (error) {
+          console.error(`❌ Error cargando tareas iniciales (intento ${attempt}/${maxAttempts}):`, error)
+          if (attempt === maxAttempts) {
+            return
+          }
+          await sleep(retryDelayMs)
         }
-      } catch (error) {
-        console.error('❌ Error cargando tareas iniciales:', error)
       }
     }
 
@@ -129,6 +153,7 @@ export function KanbanApp() {
       <div className="h-screen app-background">
         {/* ProjectBoard accederá a tareas del store global y tendrá funciones WebSocket vía Context */}
         <ProjectBoard
+          projectTitle={projectTitle}
           onSendUpdate={sendUpdateTask}
           onSendCreate={sendCreateTask}
           onSendDelete={sendDeleteTask}

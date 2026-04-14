@@ -18,6 +18,7 @@ interface BarChartProps {
   valueFormatter?: (value: number) => string;
   onValueChange?: (value: BarChartValueChange | null) => void;
   yAxisWidth?: number;
+  orientation?: "horizontal" | "vertical";
 }
 
 const COLOR_CLASS_MAP: Record<string, string> = {
@@ -30,6 +31,11 @@ const COLOR_CLASS_MAP: Record<string, string> = {
   amber: styles.amber,
   orange: styles.orange,
   red: styles.red,
+  orangeSoft: styles.orangeSoft,
+  orangeDeep: styles.orangeDeep,
+  slate: styles.slate,
+  slateLight: styles.slateLight,
+  slateDim: styles.slateDim,
 };
 
 function formatDefault(value: number): string {
@@ -77,6 +83,7 @@ function BarChartComponent({
   valueFormatter = formatDefault,
   onValueChange,
   yAxisWidth = 120,
+  orientation = "horizontal",
 }: BarChartProps) {
   const labelWidthClass = useMemo(() => resolveLabelWidthClass(yAxisWidth), [yAxisWidth]);
 
@@ -106,55 +113,120 @@ function BarChartComponent({
         })}
       </div>
 
-      {data.map((row, rowIndex) => {
-        const indexValue = String(row[index] ?? `Row ${rowIndex + 1}`);
-        return (
-          <div
-            key={`${indexValue}-${rowIndex}`}
-            className={`${styles.row} ${labelWidthClass}`}
-          >
-            <span className={styles.index} title={indexValue}>
-              {indexValue}
-            </span>
+      {orientation === "vertical" ? (
+        <div className={styles.verticalRows}>
+          {data.map((row, rowIndex) => {
+            const indexValue = String(row[index] ?? `Row ${rowIndex + 1}`);
 
-            <div className={styles.bars}>
-              {categories.map((category, idx) => {
-                const value = Number(row[category] ?? 0);
-                const safeValue = Number.isFinite(value) && value > 0 ? value : 0;
-                const colorClass = resolveColorClass(colors[idx % colors.length]);
-                const label = `${indexValue} - ${category}: ${valueFormatter(safeValue)}`;
+            return (
+              <div key={`${indexValue}-${rowIndex}`} className={styles.verticalRow}>
+                <span className={styles.verticalIndex} title={indexValue}>
+                  {indexValue}
+                </span>
 
-                return (
-                  <div key={`${indexValue}-${category}`}>
-                    <div className={styles.barHeader}>
-                      <span className={styles.barCategory} title={category}>{category}</span>
-                      <span className={styles.barValue}>{valueFormatter(safeValue)}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.barButton}
-                      title={label}
-                      aria-label={label}
-                      onClick={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
-                      onMouseEnter={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
-                      onMouseLeave={() => onValueChange?.(null)}
-                      onFocus={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
-                      onBlur={() => onValueChange?.(null)}
-                    >
-                      <progress
-                        className={`${styles.progress} ${colorClass}`}
-                        value={safeValue}
-                        max={maxValue}
-                      />
-                      <span className={styles.srOnly}>{label}</span>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                <div className={styles.verticalBars}>
+                  {categories.map((category, idx) => {
+                    const value = Number(row[category] ?? 0);
+                    const safeValue = Number.isFinite(value) && value > 0 ? value : 0;
+                    const colorClass = resolveColorClass(colors[idx % colors.length]);
+                    const normalizedHeight = Math.max(0, (safeValue / maxValue) * 100);
+                    const yOffset = 100 - normalizedHeight;
+                    const label = `${indexValue} - ${category}: ${valueFormatter(safeValue)}`;
+
+                    return (
+                      <div key={`${indexValue}-${category}`} className={styles.verticalBarItem}>
+                        <span className={styles.verticalValue}>{valueFormatter(safeValue)}</span>
+                        <button
+                          type="button"
+                          className={`${styles.verticalBarButton} ${colorClass}`}
+                          title={label}
+                          aria-label={label}
+                          onClick={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
+                          onMouseEnter={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
+                          onMouseLeave={() => onValueChange?.(null)}
+                          onFocus={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
+                          onBlur={() => onValueChange?.(null)}
+                        >
+                          <svg
+                            className={styles.verticalSvg}
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              className={styles.verticalRect}
+                              x="0"
+                              y={yOffset}
+                              width="100"
+                              height={normalizedHeight}
+                              rx="8"
+                              ry="8"
+                            />
+                          </svg>
+                          <span className={styles.srOnly}>{label}</span>
+                        </button>
+                        <span className={styles.verticalCategory} title={category}>{category}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {orientation === "horizontal"
+        ? data.map((row, rowIndex) => {
+            const indexValue = String(row[index] ?? `Row ${rowIndex + 1}`);
+            return (
+              <div
+                key={`${indexValue}-${rowIndex}`}
+                className={`${styles.row} ${labelWidthClass}`}
+              >
+                <span className={styles.index} title={indexValue}>
+                  {indexValue}
+                </span>
+
+                <div className={styles.bars}>
+                  {categories.map((category, idx) => {
+                    const value = Number(row[category] ?? 0);
+                    const safeValue = Number.isFinite(value) && value > 0 ? value : 0;
+                    const colorClass = resolveColorClass(colors[idx % colors.length]);
+                    const label = `${indexValue} - ${category}: ${valueFormatter(safeValue)}`;
+
+                    return (
+                      <div key={`${indexValue}-${category}`}>
+                        <div className={styles.barHeader}>
+                          <span className={styles.barCategory} title={category}>{category}</span>
+                          <span className={styles.barValue}>{valueFormatter(safeValue)}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.barButton}
+                          title={label}
+                          aria-label={label}
+                          onClick={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
+                          onMouseEnter={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
+                          onMouseLeave={() => onValueChange?.(null)}
+                          onFocus={() => onValueChange?.({ index: indexValue, category, value: safeValue })}
+                          onBlur={() => onValueChange?.(null)}
+                        >
+                          <progress
+                            className={`${styles.progress} ${colorClass}`}
+                            value={safeValue}
+                            max={maxValue}
+                          />
+                          <span className={styles.srOnly}>{label}</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })
+        : null}
     </div>
   );
 }

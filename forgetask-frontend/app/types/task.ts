@@ -1,6 +1,6 @@
 export interface Task {
   id: string;
-  sprintId?: number;
+  sprintId?: number | null;
   title: string;
   description?: string;
   status: "backlog" | "ready" | "in-progress" | "review" | "done";

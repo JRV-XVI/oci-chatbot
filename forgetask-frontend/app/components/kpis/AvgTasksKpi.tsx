@@ -73,14 +73,14 @@ export default function AvgTasksKpi({
       badge={`${activeDevs} developers ${activeScopeLabel}`}
       badgeType={badgeType}
       bottomContent={
-        <div className="mt-1 w-full">
+        <div className="mt-0 w-full">
 
           {/* ── Toggle — solo aparece si hay datos del sprint ── */}
           {hasSprintData && (
-            <div className="flex items-center gap-1 mb-4 p-0.5 bg-muted rounded-lg w-fit">
+            <div className="flex items-center gap-1 mb-1 p-0.5 bg-muted rounded-lg w-fit">
               <button
                 onClick={() => setMode("project")}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-md transition-all ${
                   mode === "project"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -90,7 +90,7 @@ export default function AvgTasksKpi({
               </button>
               <button
                 onClick={() => setMode("sprint")}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-md transition-all ${
                   mode === "sprint"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -102,11 +102,11 @@ export default function AvgTasksKpi({
           )}
 
           {/* ── Etiquetas de estado ── */}
-          <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+          <div className="flex justify-between text-[11px] text-muted-foreground mb-0.5">
             <span className={
               avg <= currentHealthyMax ? "text-primary font-medium" :
-              avg <= currentWarningMax ? "text-amber-500 font-medium" :
-                                  "text-destructive font-medium"
+              avg <= currentWarningMax ? "text-[#f19367] font-medium" :
+                                  "text-[#ffb28e] font-medium"
             }>
               {healthLabel}
             </span>
@@ -116,17 +116,17 @@ export default function AvgTasksKpi({
           {/* ── CategoryBar ── */}
           <CategoryBar
             values={[greenPct, yellowPct, redPct]}
-            colors={["emerald", "amber", "rose"]}
+            colors={["slateLight", "orangeSoft", "orange"]}
             marker={{
               value: Math.min((avg / currentDangerMax) * 100, 100),
               tooltip: `${avg} tasks/dev`,
               showAnimation: true,
             }}
             showLabels={false}
-            className="h-2"
+            className="h-1.5"
           />
 
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-1 opacity-60">
+          <div className="flex justify-between text-[9px] text-muted-foreground mt-0 opacity-60">
             <span>0</span>
             <span>{currentHealthyMax}</span>
             <span>{currentWarningMax}</span>

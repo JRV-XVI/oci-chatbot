@@ -51,9 +51,9 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
   }))
 
   const priorityColors = {
-    low: 'bg-green-500/20 text-green-400 border-green-500/30',
-    medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    high: 'bg-red-500/20 text-red-400 border-red-500/30',
+    low: 'bg-[#1f2937]/80 text-[#9aa4b2] border-[#2b3542]',
+    medium: 'bg-[#e76b36]/15 text-[#f19367] border-[#e76b36]/35',
+    high: 'bg-[#c45223]/18 text-[#ffb28e] border-[#c45223]/40',
   }
 
   /**
@@ -92,7 +92,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
       ref={(node) => {
         drag(node)
       }}
-      className={`bg-[#1a110d] rounded-lg border border-[#923811]/45 p-3 group hover:border-[#e76b36]/60 hover:shadow-[0_0_14px_rgba(231,107,54,0.18)] transition-all cursor-pointer ${
+      className={`bg-[#0d1117] rounded-lg border border-[#2b3542] p-3 group hover:border-[#e76b36]/55 hover:shadow-[0_0_12px_rgba(231,107,54,0.18)] transition-all cursor-pointer ${
         isDragging ? 'opacity-50' : 'opacity-100'
       }`}
     >
@@ -104,7 +104,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
         {/* Task Content */}
         <div className="flex-1 min-w-0 space-y-2" onClick={handleCardClick}>
-          <h3 className="font-medium text-[#fff1e9]">{task.title}</h3>
+          <h3 className="font-medium text-[#e6edf3]">{task.title}</h3>
 
           {/* Priority Badge */}
           {task.priority && (
@@ -115,7 +115,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
           {/* Sprint */}
           {task.sprintId !== undefined && task.sprintId !== null && sprintLabel && (
-            <div className="flex items-center gap-1 text-xs text-[#d4a791]" title={sprintRangeTitle}>
+            <div className="flex items-center gap-1 text-xs text-[#9aa4b2]" title={sprintRangeTitle}>
               <Layers className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{sprintLabel}</span>
             </div>
@@ -123,8 +123,8 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
           {/* Date Range */}
           {hasAnyDate && (
-            <div className="flex items-center gap-1 text-xs text-[#fff1e9]">
-              <Calendar className="w-3 h-3 flex-shrink-0 text-[#ffb693]" />
+            <div className="flex items-center gap-1 text-xs text-[#e6edf3]">
+              <Calendar className="w-3 h-3 flex-shrink-0 text-[#f19367]" />
               <div className="inline-block font-medium">
                 {dateRangeLabel}
               </div>
@@ -132,7 +132,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
           )}
 
           {/* Time Estimates */}
-          <div className="flex items-center gap-3 text-xs text-[#d4a791]">
+          <div className="flex items-center gap-3 text-xs text-[#9aa4b2]">
             {task.estimatedTime !== undefined && (
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3 flex-shrink-0" />
@@ -149,7 +149,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
           {/* Assignee */}
           {task.assignedTo && task.assignedTo.length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-[#d4a791]">
+            <div className="flex items-center gap-1 text-xs text-[#9aa4b2]">
               <User className="w-3 h-3 flex-shrink-0" />
               <span>{task.assignedTo.join(', ')}</span>
             </div>

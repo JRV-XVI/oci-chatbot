@@ -17,7 +17,7 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
   children,
   className,
   radius = 50,
-  color = "#3b82f6", // default blue
+  color = "#e76b36",
 }) => {
   const normalizedValue = Math.min(Math.max(value, 0), 100)
   const chartSize = radius * 2 + 20
@@ -47,7 +47,7 @@ export const ProgressCircle: React.FC<ProgressCircleProps> = ({
             isAnimationActive={false}
           >
             <Cell fill={color} />
-            <Cell fill="#e5e7eb" /> {/* light gray for remaining */}
+            <Cell fill="#2b3542" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>

@@ -35,7 +35,7 @@ export default function TotalTasksKpi({ total, backlog, ready, inProgress, revie
     { name: "Backlog",     value: backlog },
   ];
 
-  const donutColors = ["emerald", "blue", "violet", "amber", "indigo"] as const;
+  const donutColors = ["orange", "orangeSoft", "slateLight", "slate", "slateDim"] as const;
 
   const activePayload = tooltipData?.payload?.[0];
   const centerLabel   = activePayload ? activePayload.category : "Total";
@@ -57,7 +57,7 @@ export default function TotalTasksKpi({ total, backlog, ready, inProgress, revie
             category="name"
             value="value"
             colors={[...donutColors]}
-            className="mx-auto mt-2 h-20"
+            className="mx-auto mt-0 h-14"
             showLabel={false}
             showTooltip={true}
             tooltipCallback={(props) => {

@@ -12,7 +12,7 @@
 
 .track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.14);
+  stroke: rgba(43, 53, 66, 0.8);
 }
 
 .indicator {
@@ -25,7 +25,7 @@
   position: absolute;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #fff5ef;
+  color: #e6edf3;
 }
 
 .default {
@@ -33,13 +33,13 @@
 }
 
 .warning {
-  color: #f59e0b;
+  color: #f19367;
 }
 
 .success {
-  color: #22c55e;
+  color: #6e7d91;
 }
 
 .error {
-  color: #ef4444;
+  color: #c45223;
 }
