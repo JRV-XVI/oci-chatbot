@@ -7,9 +7,6 @@ class SprintService {
     const query = projectId !== undefined ? `?projectId=${projectId}` : "";
     const response = await fetch(`${API_BASE_URL}/api/sprints${query}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -54,9 +51,6 @@ class SprintService {
   async deleteSprint(sprintId: number): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/sprints/${sprintId}`, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {

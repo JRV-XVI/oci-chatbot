@@ -1,0 +1,199 @@
+.chart {
+  border: 1px solid rgba(251, 146, 60, 0.24);
+  border-radius: 0.9rem;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 0.85rem;
+}
+
+.labelW48 {
+  --label-width: 48px;
+}
+
+.labelW64 {
+  --label-width: 64px;
+}
+
+.labelW80 {
+  --label-width: 80px;
+}
+
+.labelW96 {
+  --label-width: 96px;
+}
+
+.labelW120 {
+  --label-width: 120px;
+}
+
+.labelW140 {
+  --label-width: 140px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #fbd2bd;
+  font-size: 0.78rem;
+}
+
+.legendDot {
+  width: 0.68rem;
+  height: 0.68rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--label-width) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.row + .row {
+  margin-top: 0.6rem;
+}
+
+.index {
+  color: #ffe9dc;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.barHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.barCategory {
+  color: #f7d7c6;
+  font-size: 0.74rem;
+  max-width: 70%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barButton {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  height: 1rem;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress {
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  accent-color: var(--bar-color, currentColor);
+}
+
+.progress::-webkit-progress-bar {
+  background: transparent;
+}
+
+.progress::-webkit-progress-value {
+  background: var(--bar-color, currentColor);
+  border-radius: 9999px;
+}
+
+.progress::-moz-progress-bar {
+  background: var(--bar-color, currentColor);
+  border-radius: 9999px;
+}
+
+.blue {
+  --bar-color: #4f9cff;
+  color: #4f9cff;
+}
+
+.emerald {
+  --bar-color: #22c55e;
+  color: #22c55e;
+}
+
+.violet {
+  --bar-color: #a78bfa;
+  color: #a78bfa;
+}
+
+.cyan {
+  --bar-color: #22d3ee;
+  color: #22d3ee;
+}
+
+.fuchsia {
+  --bar-color: #e879f9;
+  color: #e879f9;
+}
+
+.pink {
+  --bar-color: #fb7185;
+  color: #fb7185;
+}
+
+.amber {
+  --bar-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.orange {
+  --bar-color: #fb923c;
+  color: #fb923c;
+}
+
+.red {
+  --bar-color: #f87171;
+  color: #f87171;
+}
+
+.barValue {
+  color: #f8cfba;
+  font-size: 0.72rem;
+}
+
+.empty {
+  color: #f8cfba;
+  font-size: 0.84rem;
+  opacity: 0.9;
+}
+
+.srOnly {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
