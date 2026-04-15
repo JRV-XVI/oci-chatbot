@@ -136,91 +136,107 @@ export default function KPIsPage() {
 
   return (
     <main className="h-full overflow-y-auto app-background px-6 py-6">
-      <div className="mx-auto max-w-7xl">
-        {/* ── Sección KPIs ── */}
-        {kpisLoading ? (
-          // Skeleton mientras cargan los datos
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 rounded-xl bg-muted animate-pulse" />
-            ))}
-          </div>
-        ) : kpis ? (
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 auto-rows-fr items-stretch">
-            <TotalTasksKpi
-              total={kpis.totalTasks}
-              backlog={kpis.tasksBacklog}
-              ready={kpis.tasksReady}
-              inProgress={kpis.tasksInProgress}
-              review={kpis.tasksReview}
-              done={kpis.tasksDone}
-            />
-            <TotalHoursKpi
-              realHours={kpis.realHours}
-              estimatedHours={kpis.estimatedHours}
-            />
-            <AvgTasksKpi
-              totalTasks={kpis.totalTasks}
-              totalDevs={kpis.totalDevs}
-              sprintTasks={kpis.sprintTasks}
-              sprintDevs={kpis.sprintDevs}
-            />
-            <AvgHoursDevKpi
-              totalHours={kpis.realHours}
-              totalDevs={kpis.totalDevs}
-              expectedHoursPerDev={kpis.expectedHoursPerDev}
-              sprintRealHours={kpis.sprintRealHours}
-              sprintEstimatedHours={kpis.sprintEstimatedHours}
-            />
+      <div className="mx-auto max-w-8xl">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-5 xl:items-start">
+          <section className="space-y-8 xl:col-span-4">
+            <section className="rounded-xl border border-[#2b3542] bg-[#0d1117] p-4">
+              <label className="block space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9aa4b2]">
+                  Sprint para KPIs de usuario
+                </span>
+                <select
+                  value={selectedSprintId ?? ""}
+                  onChange={(event) => {
+                    const nextSprintId = Number(event.target.value);
+                    setSelectedSprintId(Number.isFinite(nextSprintId) ? nextSprintId : null);
+                  }}
+                  className="w-full rounded-lg border border-[#30363d] bg-[#0d1117] px-3 py-2 text-sm text-[#e6edf3] focus-visible:outline-none"
+                  disabled={sprintsLoading || sprints.length === 0}
+                >
+                  {sprintsLoading ? (
+                    <option value="">Cargando sprints...</option>
+                  ) : null}
+                  {!sprintsLoading && sprints.length === 0 ? (
+                    <option value="">Sin sprints disponibles</option>
+                  ) : null}
+                  {sprints.map((sprint) => (
+                    <option key={sprint.idSprint} value={String(sprint.idSprint)}>
+                      {getSprintLabel(sprint)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </section>
+
+            {/* ── User Tasks Completion KPI ── */}
+            <section>
+              {error ? (
+                <div className="rounded-lg border border-[#c45223]/45 bg-[#e76b36]/10 p-4 text-[#ffb28e]">
+                  Error loading data: {error}
+                </div>
+              ) : loading ? (
+                <div className="p-4 text-[#9aa4b2]">Loading user task data...</div>
+              ) : (
+                <UserTasksCompletionKpi users={users} title={usersCardTitle} />
+              )}
+            </section>
+
+            {/* ── Real Total Hours by User KPI ── */}
+            <section>
+              <RealTotalHoursByUserKpi selectedSprintId={selectedSprintId ?? undefined} />
+            </section>
           </section>
-        ) : null}
 
-        <section className="mb-8 rounded-xl border border-[#2b3542] bg-[#0d1117] p-4">
-          <label className="block space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9aa4b2]">
-              Sprint para KPIs de usuario
-            </span>
-            <select
-              value={selectedSprintId ?? ""}
-              onChange={(event) => {
-                const nextSprintId = Number(event.target.value);
-                setSelectedSprintId(Number.isFinite(nextSprintId) ? nextSprintId : null);
-              }}
-              className="w-full rounded-lg border border-[#30363d] bg-[#0d1117] px-3 py-2 text-sm text-[#e6edf3] focus-visible:outline-none"
-              disabled={sprintsLoading || sprints.length === 0}
-            >
-              {sprintsLoading ? (
-                <option value="">Cargando sprints...</option>
-              ) : null}
-              {!sprintsLoading && sprints.length === 0 ? (
-                <option value="">Sin sprints disponibles</option>
-              ) : null}
-              {sprints.map((sprint) => (
-                <option key={sprint.idSprint} value={String(sprint.idSprint)}>
-                  {getSprintLabel(sprint)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </section>
+          <aside className="xl:col-span-1">
+            <section className="rounded-2xl border border-[#2b3542] bg-gradient-to-b from-[#111825] via-[#0f1722] to-[#0d1117] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.28)] md:p-5 xl:sticky xl:top-6">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9aa4b2]">
+                  Indicadores clave
+                </h2>
+              </div>
 
-        {/* ── User Tasks Completion KPI ── */}
-        <section className="mb-10">
-          {error ? (
-            <div className="rounded-lg border border-[#c45223]/45 bg-[#e76b36]/10 p-4 text-[#ffb28e]">
-              Error loading data: {error}
-            </div>
-          ) : loading ? (
-            <div className="p-4 text-[#9aa4b2]">Loading user task data...</div>
-          ) : (
-            <UserTasksCompletionKpi users={users} title={usersCardTitle} />
-          )}
-        </section>
-
-        {/* ── Real Total Hours by User KPI ── */}
-        <section className="mb-10">
-          <RealTotalHoursByUserKpi selectedSprintId={selectedSprintId ?? undefined} />
-        </section>
+              {kpisLoading ? (
+                <div className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : kpis ? (
+                <div className="space-y-4">
+                  <TotalTasksKpi
+                    total={kpis.totalTasks}
+                    backlog={kpis.tasksBacklog}
+                    ready={kpis.tasksReady}
+                    inProgress={kpis.tasksInProgress}
+                    review={kpis.tasksReview}
+                    done={kpis.tasksDone}
+                  />
+                  <TotalHoursKpi
+                    realHours={kpis.realHours}
+                    estimatedHours={kpis.estimatedHours}
+                  />
+                  <AvgTasksKpi
+                    totalTasks={kpis.totalTasks}
+                    totalDevs={kpis.totalDevs}
+                    sprintTasks={kpis.sprintTasks}
+                    sprintDevs={kpis.sprintDevs}
+                  />
+                  <AvgHoursDevKpi
+                    totalHours={kpis.realHours}
+                    totalDevs={kpis.totalDevs}
+                    expectedHoursPerDev={kpis.expectedHoursPerDev}
+                    sprintRealHours={kpis.sprintRealHours}
+                    sprintEstimatedHours={kpis.sprintEstimatedHours}
+                  />
+                </div>
+              ) : (
+                <div className="rounded-lg border border-[#2b3542] bg-[#0d1117] p-4 text-sm text-[#9aa4b2]">
+                  No hay datos de KPIs para este proyecto.
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
       </div>
     </main>
   );
