@@ -8,10 +8,10 @@
  */
 export function getTaskCompletionColor(percentage: number): string {
   if (percentage >= 80) {
-    return "#10b981" // emerald for high completion
+    return "#e76b36" // primary accent for high completion
   } else if (percentage >= 50) {
-    return "#f59e0b" // amber for medium completion
+    return "#f19367" // soft accent for medium completion
   } else {
-    return "#ef4444" // red for low completion
+    return "#6e7d91" // neutral slate for low completion
   }
 }

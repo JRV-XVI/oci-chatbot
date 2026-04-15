@@ -1,6 +1,8 @@
+// src/components/kpis/TotalHoursKpi.tsx
 import { Clock } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
-import { AvailableChartColorsKeys } from "../ui/DonutChart"; // O de donde exportes los tipos
+import { AvailableChartColorsKeys } from "../ui/DonutChart";
+import { ProgressBar } from "../ui/ProgressBar";
 
 interface TotalHoursKpiProps {
   realHours: number;
@@ -9,22 +11,42 @@ interface TotalHoursKpiProps {
 
 export default function TotalHoursKpi({ realHours, estimatedHours }: TotalHoursKpiProps) {
   const percentage = (realHours / estimatedHours) * 100;
-  
-  let healthColor: AvailableChartColorsKeys = "emerald";
-  if (percentage > 85 && percentage <= 100) healthColor = "amber";
-  if (percentage > 100) healthColor = "rose";
+
+  let healthColor: AvailableChartColorsKeys = "orange";
+  if (percentage > 85 && percentage <= 100) healthColor = "orangeSoft";
+  if (percentage > 100) healthColor = "orangeDeep";
+
+  const normalizedPercentage = Number.isFinite(percentage)
+    ? Math.max(0, Math.round(percentage))
+    : 0;
+
+  const badgeType =
+    normalizedPercentage <= 85
+      ? "neutral"
+      : normalizedPercentage <= 100
+      ? "up"
+      : "down";
+
+  const badgeLabel =
+    normalizedPercentage <= 85
+      ? "En progreso"
+      : normalizedPercentage <= 100
+      ? "En objetivo"
+      : `Excedido ${normalizedPercentage - 100}%`;
 
   return (
     <KpiCard
-      title="Horas Realizadas en proyecto"
+      title="Total de Horas"
+      icon={<Clock />}
       value={realHours}
       suffix="hrs"
-      icon={<Clock size={18} />}
+      badge={badgeLabel}
+      badgeType={badgeType}
       progressData={{
         value: realHours,
         target: estimatedHours,
-        label: `Horas estimadas: ${estimatedHours} hrs`,
-        color: healthColor
+        label: `Horas reales · estimadas: ${estimatedHours} hrs`,
+        color: healthColor,
       }}
     />
   );

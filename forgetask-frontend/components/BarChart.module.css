@@ -1,7 +1,7 @@
 .chart {
-  border: 1px solid rgba(251, 146, 60, 0.24);
+  border: 1px solid rgba(43, 53, 66, 0.95);
   border-radius: 0.9rem;
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(13, 17, 23, 0.86);
   padding: 0.85rem;
 }
 
@@ -40,7 +40,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #fbd2bd;
+  color: #9aa4b2;
   font-size: 0.78rem;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .index {
-  color: #ffe9dc;
+  color: #e6edf3;
   font-size: 0.82rem;
   white-space: nowrap;
   overflow: hidden;
@@ -76,6 +76,85 @@
   gap: 0.55rem;
 }
 
+.verticalRows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.verticalRow {
+  border: 1px solid rgba(43, 53, 66, 0.9);
+  background: rgba(17, 22, 31, 0.72);
+  border-radius: 0.75rem;
+  padding: 0.65rem;
+}
+
+.verticalIndex {
+  display: block;
+  color: #e6edf3;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.verticalBars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-height: 150px;
+}
+
+.verticalBarItem {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.verticalBarButton {
+  appearance: none;
+  border: 1px solid rgba(43, 53, 66, 0.95);
+  background: rgba(13, 17, 23, 0.88);
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 116px;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.verticalSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.verticalRect {
+  width: 100%;
+  fill: var(--bar-color, currentColor);
+  transition: y 180ms ease, height 180ms ease;
+}
+
+.verticalValue {
+  color: #f19367;
+  font-size: 0.68rem;
+}
+
+.verticalCategory {
+  width: 100%;
+  text-align: center;
+  color: #9aa4b2;
+  font-size: 0.66rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .barHeader {
   display: flex;
   align-items: center;
@@ -85,7 +164,7 @@
 }
 
 .barCategory {
-  color: #f7d7c6;
+  color: #9aa4b2;
   font-size: 0.74rem;
   max-width: 70%;
   white-space: nowrap;
@@ -95,8 +174,8 @@
 
 .barButton {
   appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(43, 53, 66, 0.9);
+  background: rgba(17, 22, 31, 0.72);
   border-radius: 9999px;
   height: 1rem;
   width: 100%;
@@ -132,57 +211,82 @@
 }
 
 .blue {
-  --bar-color: #4f9cff;
-  color: #4f9cff;
+  --bar-color: #2b3542;
+  color: #2b3542;
 }
 
 .emerald {
-  --bar-color: #22c55e;
-  color: #22c55e;
+  --bar-color: #e76b36;
+  color: #e76b36;
 }
 
 .violet {
-  --bar-color: #a78bfa;
-  color: #a78bfa;
+  --bar-color: #f19367;
+  color: #f19367;
 }
 
 .cyan {
-  --bar-color: #22d3ee;
-  color: #22d3ee;
+  --bar-color: #6e7d91;
+  color: #6e7d91;
 }
 
 .fuchsia {
-  --bar-color: #e879f9;
-  color: #e879f9;
+  --bar-color: #ffb28e;
+  color: #ffb28e;
 }
 
 .pink {
-  --bar-color: #fb7185;
-  color: #fb7185;
+  --bar-color: #c45223;
+  color: #c45223;
 }
 
 .amber {
-  --bar-color: #fbbf24;
-  color: #fbbf24;
+  --bar-color: #f19367;
+  color: #f19367;
 }
 
 .orange {
-  --bar-color: #fb923c;
-  color: #fb923c;
+  --bar-color: #e76b36;
+  color: #e76b36;
 }
 
 .red {
-  --bar-color: #f87171;
-  color: #f87171;
+  --bar-color: #ffb28e;
+  color: #ffb28e;
+}
+
+.orangeSoft {
+  --bar-color: #f19367;
+  color: #f19367;
+}
+
+.orangeDeep {
+  --bar-color: #c45223;
+  color: #c45223;
+}
+
+.slate {
+  --bar-color: #2b3542;
+  color: #2b3542;
+}
+
+.slateLight {
+  --bar-color: #6e7d91;
+  color: #6e7d91;
+}
+
+.slateDim {
+  --bar-color: #1f2937;
+  color: #1f2937;
 }
 
 .barValue {
-  color: #f8cfba;
+  color: #f19367;
   font-size: 0.72rem;
 }
 
 .empty {
-  color: #f8cfba;
+  color: #9aa4b2;
   font-size: 0.84rem;
   opacity: 0.9;
 }

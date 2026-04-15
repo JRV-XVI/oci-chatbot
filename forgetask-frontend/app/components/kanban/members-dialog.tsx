@@ -79,9 +79,9 @@ export function MembersDialog({ open, onOpenChange, tasks }: MembersDialogProps)
   membersStats.sort((a, b) => b.productivity - a.productivity);
 
   const getProductivityColor = (productivity: number) => {
-    if (productivity >= 100) return 'bg-green-500/20 text-green-400 border-green-500/30';
-    if (productivity >= 80) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-    return 'bg-red-500/20 text-red-400 border-red-500/30';
+    if (productivity >= 100) return 'bg-[#e76b36]/15 text-[#e6edf3] border-[#e76b36]/40';
+    if (productivity >= 80) return 'bg-[#f19367]/15 text-[#f19367] border-[#f19367]/35';
+    return 'bg-[#1f2937] text-[#9aa4b2] border-[#2b3542]';
   };
 
   const getProductivityLabel = (productivity: number) => {
