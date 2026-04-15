@@ -16,11 +16,8 @@ class TaskService {
    */
   async getAllTasks(): Promise<Task[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/todolist`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {
@@ -39,11 +36,8 @@ class TaskService {
    */
   async getTaskById(id: string): Promise<Task> {
     try {
-      const response = await fetch(`${API_BASE_URL}/todolist/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {
@@ -62,7 +56,7 @@ class TaskService {
    */
   async createTask(task: Omit<Task, "id">): Promise<Task> {
     try {
-      const response = await fetch(`${API_BASE_URL}/todolist`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +80,7 @@ class TaskService {
    */
   async updateTask(id: string, task: Partial<Task>): Promise<Task> {
     try {
-      const response = await fetch(`${API_BASE_URL}/todolist/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +104,7 @@ class TaskService {
    */
   async deleteTask(id: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/todolist/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -135,11 +129,8 @@ class TaskService {
   async getProjectUsers(projectId?: number): Promise<TaskAssigneeOption[]> {
     try {
       const query = projectId !== undefined ? `?projectId=${projectId}` : "";
-      const response = await fetch(`${API_BASE_URL}/todolist/meta/users${query}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/meta/users${query}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {

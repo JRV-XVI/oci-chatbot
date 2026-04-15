@@ -13,6 +13,7 @@
 import * as React from 'react'
 import { useMemo, useState, useCallback } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useDrop } from 'react-dnd'
 import {
   Circle,
@@ -20,6 +21,7 @@ import {
   CircleDot,
   Eye,
   CheckCircle2,
+  BarChart3,
   FileText,
   AlertTriangle,
   ChevronDown,
@@ -28,12 +30,14 @@ import {
 } from 'lucide-react'
 import { TaskCard, type Task } from './task-card'
 import { AddTaskDialog } from './add-task-dialog'
+import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import type { SprintOption } from '@/app/types/sprint'
 
 interface ColumnProps {
   title: string
@@ -41,6 +45,7 @@ interface ColumnProps {
   tasks: Task[]
   icon: React.ReactNode
   expectedTasks?: number  // Opcional - si es undefined, no hay límite (como Done)
+  sprintOptions: SprintOption[]
   onDrop: (task: Task, newStatus: Task['status']) => void
   onDeleteTask: (id: string) => void
   onTaskClick: (task: Task) => void
@@ -53,6 +58,7 @@ function Column({
   tasks,
   icon,
   expectedTasks,
+  sprintOptions,
   onDrop,
   onDeleteTask,
   onTaskClick,
@@ -97,15 +103,15 @@ function Column({
       ref={drop as unknown as React.LegacyRef<HTMLDivElement>}
       className={`flex flex-col h-full rounded-xl border transition-colors ${
         isOver
-          ? 'border-[#e76b36]/75 bg-[#20120d]/95 shadow-[0_0_18px_rgba(231,107,54,0.26)]'
-          : 'border-[#923811]/55 bg-[#170f0c]/95 shadow-[0_0_10px_rgba(146,56,17,0.24)]'
+          ? 'border-[#e76b36]/70 bg-[#11161f]/95 shadow-[0_0_16px_rgba(231,107,54,0.24)]'
+          : 'border-[#2b3542] bg-[#0d1117]/95 shadow-[0_0_10px_rgba(0,0,0,0.28)]'
       }`}
     >
       {/* Column Header - Altura fija */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#923811]/40">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#2b3542]">
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-semibold text-[#ffe7dc]">{title}</span>
+          <span className="font-semibold text-[#e6edf3]">{title}</span>
           
           {/* CASO 1: Columna sin límite (Done) - Solo mostrar contador simple */}
           {hasNoLimit ? (
@@ -136,7 +142,7 @@ function Column({
                 className={`text-xs px-2 py-0.5 rounded cursor-pointer font-semibold transition-all duration-200 ${
                   isOverloaded
                     ? 'bg-red-500/20 text-red-300 border border-red-500/50'
-                    : 'bg-[#2a130b] text-[#ffb693] border border-[#923811]/60'
+                    : 'bg-[#11161f] text-[#f19367] border border-[#2b3542]'
                 }`}
                 title={isOverloaded ? `Sobre límite: ${tasks.length}/${expectedTasks}` : `Click para editar límite`}
               >
@@ -150,7 +156,7 @@ function Column({
           <button
             type="button"
             onClick={() => setShowOverloadDetails((current) => !current)}
-            className={`cursor-pointer select-none flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-[#e76b36] border border-[#e76b36]/50 bg-[#2d1208]/70 transition-all duration-150 ${
+            className={`cursor-pointer select-none flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-[#e76b36] border border-[#e76b36]/45 bg-[#11161f] transition-all duration-150 ${
               showOverloadDetails
                 ? 'shadow-[0_0_16px_rgba(231,107,54,0.62)] ring-1 ring-[#e76b36]/65'
                 : 'shadow-[0_0_10px_rgba(231,107,54,0.45)] hover:shadow-[0_0_14px_rgba(231,107,54,0.58)]'
@@ -166,15 +172,15 @@ function Column({
       </div>
 
       {showOverloadDetails && isOverloaded && (
-        <div className="mx-3 mt-3 rounded-md border border-[#923811]/70 bg-[#140c09] p-3 text-xs shadow-[0_0_14px_rgba(146,56,17,0.45)]">
+        <div className="mx-3 mt-3 rounded-md border border-[#2b3542] bg-[#0d1117] p-3 text-xs shadow-[0_0_12px_rgba(0,0,0,0.26)]">
           <p className="font-semibold text-[#e76b36] neon-orange">Over limit in {title}</p>
-          <p className="mt-1 text-[#ffccb3]">
-            Current: <span className="text-[#fff1e9]">{tasks.length}</span> · Expected: <span className="text-[#fff1e9]">{expectedTasks}</span>
+          <p className="mt-1 text-[#9aa4b2]">
+            Current: <span className="text-[#e6edf3]">{tasks.length}</span> · Expected: <span className="text-[#e6edf3]">{expectedTasks}</span>
           </p>
           {overloadedTasks.length > 0 && (
             <div className="mt-2 space-y-1 max-h-28 overflow-y-auto">
               {overloadedTasks.map((task) => (
-                <p key={task.id} className="truncate text-[#ffd5c2]">
+                <p key={task.id} className="truncate text-[#e6edf3]">
                   {task.title}
                 </p>
               ))}
@@ -186,7 +192,7 @@ function Column({
       {/* Tasks Container - Altura flexible con scroll individual */}
       <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-[#c99a84] text-sm">
+          <div className="flex items-center justify-center h-32 text-[#9aa4b2] text-sm">
             No tasks in {title.toLowerCase()}
           </div>
         ) : (
@@ -194,6 +200,7 @@ function Column({
             <TaskCard
               key={task.id}
               task={task}
+              sprintOptions={sprintOptions}
               onTaskClick={onTaskClick}
               onDeleteTask={onDeleteTask}
             />
@@ -211,10 +218,15 @@ const MemoizedColumn = React.memo(Column)
  * Funciones WebSocket para enviar cambios al backend
  */
 interface ProjectBoardProps {
+  projectTitle: string
   onSendUpdate: (taskId: string, taskData: Partial<Task>) => void
   onSendCreate: (taskData: Omit<Task, 'id'>) => void
   onSendDelete: (taskId: string) => void
   assigneeOptions: TaskAssigneeOption[]
+  projectId: number | null
+  sprintOptions: SprintOption[]
+  onSprintSaved: (sprint: SprintOption) => void
+  onSprintDeleted: (sprintId: number) => void
 }
 
 /**
@@ -222,11 +234,18 @@ interface ProjectBoardProps {
  * Lee tareas del store global y envía cambios via WebSocket
  */
 export function ProjectBoard({
+  projectTitle,
   onSendUpdate,
   onSendCreate,
   onSendDelete,
   assigneeOptions,
+  projectId,
+  sprintOptions,
+  onSprintSaved,
+  onSprintDeleted,
 }: ProjectBoardProps) {
+  const router = useRouter()
+
   // Obtener tareas del store global (se actualiza automáticamente con eventos WebSocket)
   const tasks = useTaskStore((state) => state.tasks)
 
@@ -254,7 +273,7 @@ export function ProjectBoard({
     // Enviar al backend via WebSocket
     // El backend emitirá evento a todos los clientes
     // No actualizamos state localmente - esperamos respuesta del servidor
-    onSendUpdate(task.id, { status: newStatus })
+    onSendUpdate(task.id, { status: newStatus, sprintId: task.sprintId ?? null })
   }, [onSendUpdate])
 
   /**
@@ -343,6 +362,14 @@ export function ProjectBoard({
     URL.revokeObjectURL(url)
   }
 
+  const handleOpenKpis = useCallback(() => {
+    if (projectId !== null) {
+      router.push(`/kpis?projectId=${projectId}`)
+      return
+    }
+    router.push('/kpis')
+  }, [projectId, router])
+
   // Filtrar tareas por estado
   const backlogTasks = tasks.filter((task) => task.status === 'backlog')
   const readyTasks = tasks.filter((task) => task.status === 'ready')
@@ -361,23 +388,16 @@ export function ProjectBoard({
   return (
     <div className="h-full min-h-0 flex flex-col">
       {/* Header */}
-      <header className="border-b border-[#923811]/45 bg-[#160f0c] px-6 py-4 shadow-[0_0_18px_rgba(146,56,17,0.22)]">
+      <header className="border-b border-[#2b3542] bg-[#0d1117] px-6 py-4 shadow-[0_0_14px_rgba(0,0,0,0.35)]">
         <div className="flex items-center justify-between gap-6 flex-wrap">
           <div className="flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center rounded-xl border border-[#e76b36]/50 bg-[#1b0f0b] p-3 shadow-[0_0_22px_rgba(231,107,54,0.55)]">
+              <div className="flex items-center justify-center rounded-xl border border-[#2b3542] bg-[#11161f] p-3 shadow-[0_0_18px_rgba(0,0,0,0.28)]">
                 <Image src="/CloudForge.svg" alt="CloudForge" width={86} height={86} priority />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#ffe9dd] neon-orange">Project Board</h1>
-                <p className="text-sm text-[#d1a28c] mt-1">
-                  Manage your tasks and track progress · Real-time updates via WebSocket
-                </p>
-              </div>
-              {/* Indicador de conexión WebSocket */}
-              <div className="flex items-center gap-2 ml-4 px-3 py-1 rounded-full bg-[#923811]/20 border border-[#923811]/50 shadow-[0_0_10px_rgba(146,56,17,0.5)]">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs font-medium text-[#ffd5c2] neon-brown">WebSocket Connected</span>
+                <h1 className="text-2xl font-bold text-[#e6edf3]">{projectTitle}</h1>
+                <p className="text-sm text-[#9aa4b2] mt-1">Coordinate tasks, sprints, and delivery flow</p>
               </div>
             </div>
           </div>
@@ -385,8 +405,8 @@ export function ProjectBoard({
           {/* Progreso */}
           <div className="flex-1 max-w-md min-w-[240px]">
             <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-[#d1a28c]">Progress</span>
-              <span className="font-semibold text-[#fff1e9]">
+              <span className="text-[#9aa4b2]">Progress</span>
+              <span className="font-semibold text-[#e6edf3]">
                 {completedEstimatedHours}h / {totalEstimatedHours}h ({progressPercentage}%)
               </span>
             </div>
@@ -395,6 +415,10 @@ export function ProjectBoard({
 
           {/* Botones de acción */}
           <div className="flex items-center gap-3 flex-shrink-0">
+            <Button onClick={handleOpenKpis} variant="outline" className="cursor-pointer">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              KPIs
+            </Button>
             <Button onClick={() => setMembersDialogOpen(true)} variant="outline" className="cursor-pointer">
               <Users className="w-4 h-4 mr-2" />
               Members
@@ -403,7 +427,13 @@ export function ProjectBoard({
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>
-            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} />
+            <AddSprintDialog
+              projectId={projectId}
+              sprintOptions={sprintOptions}
+              onSprintSaved={onSprintSaved}
+              onSprintDeleted={onSprintDeleted}
+            />
+            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} sprintOptions={sprintOptions} />
           </div>
         </div>
       </header>
@@ -418,6 +448,7 @@ export function ProjectBoard({
               status="backlog"
               tasks={backlogTasks}
               icon={<Circle className="w-5 h-5 text-muted-foreground" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -433,6 +464,7 @@ export function ProjectBoard({
               status="ready"
               tasks={readyTasks}
               icon={<Layers className="w-5 h-5 text-secondary" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -447,7 +479,8 @@ export function ProjectBoard({
               title="In Progress"
               status="in-progress"
               tasks={inProgressTasks}
-              icon={<CircleDot className="w-5 h-5 text-blue-400" />}
+              icon={<CircleDot className="w-5 h-5 text-[#f19367]" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -462,7 +495,8 @@ export function ProjectBoard({
               title="Review"
               status="review"
               tasks={reviewTasks}
-              icon={<Eye className="w-5 h-5 text-destructive" />}
+              icon={<Eye className="w-5 h-5 text-[#ffb28e]" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -477,7 +511,8 @@ export function ProjectBoard({
               title="Done"
               status="done"
               tasks={doneTasks}
-              icon={<CheckCircle2 className="w-5 h-5 text-green-400" />}
+              icon={<CheckCircle2 className="w-5 h-5 text-[#e76b36]" />}
+              sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
               onTaskClick={handleTaskClick}
@@ -495,6 +530,7 @@ export function ProjectBoard({
           onOpenChange={setDetailsDialogOpen}
           onUpdateTask={handleUpdateTask}
           assigneeOptions={assigneeOptions}
+          sprintOptions={sprintOptions}
         />
       )}
 

@@ -24,10 +24,12 @@ import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import type { Task } from './task-card'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import type { SprintOption } from '@/app/types/sprint'
 
 interface AddTaskDialogProps {
   onAddTask: (task: Omit<Task, 'id'>) => void
   assigneeOptions: TaskAssigneeOption[]
+  sprintOptions: SprintOption[]
 }
 
 /**
@@ -37,7 +39,7 @@ interface AddTaskDialogProps {
  * - onAddTask: Callback que recibe los datos de la tarea creada
  *   (ProjectBoard pasa una función que ejecuta WebSocket.createTask)
  */
-export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps) {
+export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: AddTaskDialogProps) {
   // Estado del formulario
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -49,9 +51,21 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
   const [estimatedTime, setEstimatedTime] = useState('')
   const [realTime] = useState('0')
   const [assignedTo, setAssignedTo] = useState('')
+  const [sprintId, setSprintId] = useState('')
+
+  const formatSprintLabel = (idSprint: number) => {
+    const sprint = sprintOptions.find((option) => option.idSprint === idSprint)
+    if (!sprint) {
+      return 'Sprint'
+    }
+    const start = sprint.startDate || '-'
+    const end = sprint.endDate || '-'
+    return `${sprint.title} (${start} - ${end})`
+  }
 
   const openDialog = () => {
     setAssignedTo('')
+    setSprintId('')
     setOpen(true)
   }
 
@@ -76,9 +90,17 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
       return
     }
 
+    const resolvedSprintId = sprintId ? Number(sprintId) : null
+    const sprintIdValue = resolvedSprintId === null
+      ? null
+      : Number.isFinite(resolvedSprintId)
+        ? resolvedSprintId
+        : null
+
     // Enviar datos de la nueva tarea al callback (ProjectBoard)
     // ProjectBoard tiene WebSocket.createTask que envía esto al backend
     onAddTask({
+      sprintId: sprintIdValue,
       title,
       description: description || undefined,
       status,
@@ -100,23 +122,24 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
     setEstimatedTime("");
     // realTime stays locked to 0 on create dialog.
     setAssignedTo("");
+    setSprintId("")
     setOpen(false);
   };
 
   return (
     <>
-      <Button className="gap-2 cursor-pointer neon-orange-bg text-white" onClick={openDialog}>
+      <Button className="gap-2 cursor-pointer" onClick={openDialog}>
         <Plus className="w-4 h-4" />
         New Task
       </Button>
       {open && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
-          <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#923811]/70 bg-[#140c09] p-6 shadow-[0_0_28px_rgba(231,107,54,0.28)]">
+          <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#2b3542] bg-[#0d1117] p-6 shadow-[0_0_24px_rgba(0,0,0,0.35)]">
             <form onSubmit={handleSubmit}>
-              <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#923811]/40">
+              <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#2b3542]">
                 <div>
-                  <h2 className="text-xl font-semibold neon-orange">Create New Task</h2>
-                  <p className="text-sm text-[#ffd5c2]/85 mt-1">
+                  <h2 className="text-xl font-semibold text-[#e6edf3]">Create New Task</h2>
+                  <p className="text-sm text-[#9aa4b2] mt-1">
                     Add a new task to your project board. Fill in the details below.
                   </p>
                 </div>
@@ -125,7 +148,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                 </Button>
               </div>
               <div className="grid gap-4 py-5">
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
@@ -135,7 +158,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                     required
                   />
                 </div>
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
@@ -145,7 +168,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid grid-cols-2 gap-4 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <div className="grid gap-2">
                     <Label htmlFor="status">Status</Label>
                     <select
@@ -177,7 +200,25 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                     </select>
                   </div>
                 </div>
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
+                  <Label htmlFor="sprintId">Sprint</Label>
+                  <select
+                    id="sprintId"
+                    value={sprintId}
+                    onChange={(e) => setSprintId(e.target.value)}
+                    title="Sprint"
+                    className="border-input bg-input-background rounded-md border px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer"
+                  >
+                    <option value="">Sin sprint</option>
+                    {sprintOptions.map((sprint) => (
+                      <option key={sprint.idSprint} value={String(sprint.idSprint)}>
+                        {formatSprintLabel(sprint.idSprint)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="startDate">Start Date</Label>
                   <DatePickerInput
                     id="startDate"
@@ -185,7 +226,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                     onChange={setStartDate}
                   />
                 </div>
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="endDate">End Date</Label>
                   <DatePickerInput
                     id="endDate"
@@ -193,8 +234,8 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                     onChange={setEndDate}
                   />
                 </div>
-                <div className="rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3 mt-1">
-                  <h3 className="font-medium text-[#ffe7dc] mb-3">Time Tracking (hours)</h3>
+                <div className="rounded-lg border border-[#2b3542] bg-[#11161f] p-3 mt-1">
+                  <h3 className="font-medium text-[#e6edf3] mb-3">Time Tracking (hours)</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="estimatedTime">Estimated Time</Label>
@@ -223,7 +264,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-2 rounded-lg border border-[#923811]/50 bg-[#1a100d] p-3">
+                <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="assignedTo">Assigned To</Label>
                   <select
                     id="assignedTo"
@@ -250,11 +291,11 @@ export function AddTaskDialog({ onAddTask, assigneeOptions }: AddTaskDialogProps
                   </select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4 border-t border-[#923811]/40">
+              <div className="flex justify-end gap-2 pt-4 border-t border-[#2b3542]">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
                   Cancel
                 </Button>
-                <Button type="submit" className="cursor-pointer neon-orange-bg text-white">Create Task</Button>
+                <Button type="submit" className="cursor-pointer">Create Task</Button>
               </div>
             </form>
           </div>

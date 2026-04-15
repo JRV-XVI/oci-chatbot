@@ -16,12 +16,18 @@ import { ProjectBoard } from './project-board'
 import { useTaskWebSocket, type TaskEventMessage } from '@/app/hooks/useTaskWebSocket'
 import { useTaskStore } from '@/app/store/taskStore'
 import taskService from '@/app/services/taskService'
+import projectService from '@/app/services/projectService'
 import type { TaskAssigneeOption } from '@/app/types/task'
+import sprintService from '@/app/services/sprintService'
+import type { SprintOption } from '@/app/types/sprint'
 
 export function KanbanApp() {
   // Obtener acciones del store global de tareas
-  const { setTasks, updateTask, addTask, removeTask } = useTaskStore()
+  const { tasks, setTasks, updateTask, addTask, removeTask } = useTaskStore()
   const [assigneeOptions, setAssigneeOptions] = useState<TaskAssigneeOption[]>([])
+  const [projectId, setProjectId] = useState<number | null>(null)
+  const [projectTitle, setProjectTitle] = useState<string>('Project Board')
+  const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([])
 
   /**
    * Callback que se ejecuta cuando llega un evento del servidor via WebSocket
@@ -77,32 +83,85 @@ export function KanbanApp() {
    */
   useEffect(() => {
     const loadInitialTasks = async () => {
-      try {
-        console.log('📥 Cargando tareas iniciales desde el backend...')
-        const [tasks, users] = await Promise.all([
-          taskService.getAllTasks(),
-          taskService.getProjectUsers()
-        ])
-        console.log('✅ Tareas cargadas:', tasks.length)
-        setTasks(tasks)
-        setAssigneeOptions(users)
-      } catch (error) {
-        console.error('❌ Error cargando tareas iniciales:', error)
+      const maxAttempts = 6
+      const retryDelayMs = 2000
+
+      const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          console.log(`📥 Cargando tareas iniciales desde el backend (intento ${attempt}/${maxAttempts})...`)
+          const [tasks, projects] = await Promise.all([
+            taskService.getAllTasks(),
+            projectService.listProjects()
+          ])
+          console.log('✅ Tareas cargadas:', tasks.length)
+          setTasks(tasks)
+
+          const resolvedProjectId = projects.length > 0 ? projects[0].idProject : null
+          setProjectId(resolvedProjectId)
+          const resolvedProjectTitle = projects.length > 0 && projects[0].title
+            ? projects[0].title
+            : 'Project Board'
+          setProjectTitle(resolvedProjectTitle)
+
+          if (resolvedProjectId) {
+            const [users, sprints] = await Promise.all([
+              taskService.getProjectUsers(resolvedProjectId),
+              sprintService.listSprints(resolvedProjectId)
+            ])
+            setAssigneeOptions(users)
+            setSprintOptions(sprints)
+          } else {
+            setAssigneeOptions([])
+            setSprintOptions([])
+          }
+
+          return
+        } catch (error) {
+          console.error(`❌ Error cargando tareas iniciales (intento ${attempt}/${maxAttempts}):`, error)
+          if (attempt === maxAttempts) {
+            return
+          }
+          await sleep(retryDelayMs)
+        }
       }
     }
 
     loadInitialTasks()
   }, [setTasks])
 
+  const handleSprintSaved = useCallback((savedSprint: SprintOption) => {
+    setSprintOptions((current) => {
+      const next = current.some((sprint) => sprint.idSprint === savedSprint.idSprint)
+        ? current.map((sprint) => (sprint.idSprint === savedSprint.idSprint ? savedSprint : sprint))
+        : [...current, savedSprint]
+
+      return next.sort((a, b) => a.sprintNumber - b.sprintNumber)
+    })
+  }, [])
+  
+  const handleSprintDeleted = useCallback((sprintId: number) => {
+    setSprintOptions((current) => current.filter((sprint) => sprint.idSprint !== sprintId))
+    setTasks(
+      tasks.map((task) => (task.sprintId === sprintId ? { ...task, sprintId: undefined } : task))
+    )
+  }, [setTasks, tasks])
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-screen app-background">
         {/* ProjectBoard accederá a tareas del store global y tendrá funciones WebSocket vía Context */}
         <ProjectBoard
+          projectTitle={projectTitle}
           onSendUpdate={sendUpdateTask}
           onSendCreate={sendCreateTask}
           onSendDelete={sendDeleteTask}
           assigneeOptions={assigneeOptions}
+          projectId={projectId}
+          sprintOptions={sprintOptions}
+          onSprintSaved={handleSprintSaved}
+          onSprintDeleted={handleSprintDeleted}
         />
       </div>
     </DndProvider>

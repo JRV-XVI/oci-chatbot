@@ -52,7 +52,7 @@ export function DatePickerInput({
         palette: {
           mode: "dark",
           primary: { main: "#e76b36" },
-          background: { default: "#140c09", paper: "#140c09" },
+          background: { default: "#010409", paper: "#0D1117" },
           text: { primary: "#ffd5c2", secondary: "#ffb693" },
         },
       }),
@@ -68,7 +68,7 @@ export function DatePickerInput({
       sx: {
         "& .MuiOutlinedInput-root": {
           color: "var(--color-foreground)",
-          backgroundColor: "#1a1210",
+          backgroundColor: "#0D1117",
           borderRadius: "0.5rem",
           boxShadow: "0 0 0 transparent",
           transition: "box-shadow 150ms ease, border-color 150ms ease",
@@ -137,7 +137,7 @@ export function DatePickerInput({
     popper: {
       sx: {
         "& .MuiPaper-root": {
-          backgroundColor: "#140c09",
+          backgroundColor: "#0D1117",
           color: "#ffd5c2",
           border: "1px solid rgba(146,56,17,0.7)",
           boxShadow: "0 0 16px rgba(231,107,54,0.25)",
@@ -183,14 +183,14 @@ export function DatePickerInput({
     },
     desktopPaper: {
       sx: {
-        backgroundColor: "#140c09",
+        backgroundColor: "#0D1117",
         color: "#ffd5c2",
         border: "1px solid rgba(146,56,17,0.7)",
       },
     },
     mobilePaper: {
       sx: {
-        backgroundColor: "#140c09",
+        backgroundColor: "#0D1117",
         color: "#ffd5c2",
       },
     },
