@@ -8,20 +8,36 @@ import org.springframework.stereotype.Component;
 public class TelegramBotConfig {
     private String name;
     private String token;
+	private boolean enabled;
 
-    public String getToken(){
-		return token;
+	public String getToken() {
+		return token != null ? token.trim() : null;
 	}
 
-    public String getName(){
-		return name;
+	public String getName() {
+		return name != null ? name.trim() : null;
 	}
 
-    public void setToken(String tkn){
-		token = tkn;
+	public void setToken(String token) {
+		this.token = token;
 	}
 
-    public void setName(String n){
-		name = n;
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean hasToken() {
+		String resolvedToken = getToken();
+		return resolvedToken != null
+				&& !resolvedToken.isBlank()
+				&& !(resolvedToken.startsWith("${") && resolvedToken.endsWith("}"));
 	}
 }

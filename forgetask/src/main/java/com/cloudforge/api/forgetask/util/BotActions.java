@@ -1,32 +1,38 @@
 package com.cloudforge.api.forgetask.util;
 
+import com.cloudforge.api.forgetask.controller.SprintController;
+import com.cloudforge.api.forgetask.controller.TaskController;
+import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
+import com.cloudforge.api.forgetask.dto.TaskAssigneeOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.ResponseEntity;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class BotActions {
 
     private static final Logger logger = LoggerFactory.getLogger(BotActions.class);
+    private static final String FIELD_SEPARATOR_REGEX = "\\|";
 
     private String requestText;
     private long chatId;
     private final TelegramClient telegramClient;
-    private final JdbcTemplate jdbcTemplate;
+    private final TaskController taskController;
+    private final SprintController sprintController;
     private boolean exit;
 
-    public BotActions(TelegramClient tc, JdbcTemplate jt) {
+    public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController) {
         telegramClient = tc;
-        jdbcTemplate = jt;
+        this.taskController = taskController;
+        this.sprintController = sprintController;
         exit = false;
     }
 
@@ -47,6 +53,7 @@ public class BotActions {
         BotHelper.sendMessageToTelegram(chatId, BotMessages.HELLO_MYTODO_BOT.getMessage(), telegramClient,
                 ReplyKeyboardMarkup.builder()
                         .keyboardRow(new KeyboardRow(BotLabels.LIST_ALL_ITEMS.getLabel(), BotLabels.ADD_NEW_ITEM.getLabel()))
+                .keyboardRow(new KeyboardRow(BotLabels.TASK_FORMAT_HELP.getLabel()))
                         .keyboardRow(new KeyboardRow(BotLabels.SHOW_MAIN_SCREEN.getLabel(), BotLabels.HIDE_MAIN_SCREEN.getLabel()))
                         .build()
         );
@@ -54,72 +61,74 @@ public class BotActions {
     }
 
     public void fnDone() {
-        if (!(requestText.indexOf(BotLabels.DONE.getLabel()) != -1) || exit) {
+        if (exit) {
             return;
         }
 
-        String done = requestText.substring(0, requestText.indexOf(BotLabels.DASH.getLabel()));
-        Integer id = Integer.valueOf(done);
+        Integer id = extractTaskIdFromAction(requestText, BotLabels.DONE.getLabel());
+        if (id == null) {
+            return;
+        }
 
         try {
-            // Update task status to 'done'
-            jdbcTemplate.update(
-                    "UPDATE TASK_STATE SET STATE = ? WHERE ID_TASK = ?",
-                    "done",
-                    id
-            );
-            BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DONE.getMessage(), telegramClient);
+            if (applyStatusUpdate(id, "done")) {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DONE.getMessage(), telegramClient);
+            } else {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
+            }
 
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage(), e);
-            BotHelper.sendMessageToTelegram(chatId, "Error marking task as done.", telegramClient);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
         }
         exit = true;
     }
 
     public void fnUndo() {
-        if (requestText.indexOf(BotLabels.UNDO.getLabel()) == -1 || exit) {
+        if (exit) {
             return;
         }
 
-        String undo = requestText.substring(0, requestText.indexOf(BotLabels.DASH.getLabel()));
-        Integer id = Integer.valueOf(undo);
+        Integer id = extractTaskIdFromAction(requestText, BotLabels.UNDO.getLabel());
+        if (id == null) {
+            return;
+        }
 
         try {
-            // Update task status back to active state (e.g., 'backlog')
-            jdbcTemplate.update(
-                    "UPDATE TASK_STATE SET STATE = ? WHERE ID_TASK = ?",
-                    "backlog",
-                    id
-            );
-            BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_UNDONE.getMessage(), telegramClient);
+            if (applyStatusUpdate(id, "backlog")) {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_UNDONE.getMessage(), telegramClient);
+            } else {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
+            }
 
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage(), e);
-            BotHelper.sendMessageToTelegram(chatId, "Error undoing task.", telegramClient);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
         }
         exit = true;
     }
 
     public void fnDelete() {
-        if (requestText.indexOf(BotLabels.DELETE.getLabel()) == -1 || exit) {
+        if (exit) {
             return;
         }
 
-        String delete = requestText.substring(0, requestText.indexOf(BotLabels.DASH.getLabel()));
-        Integer id = Integer.valueOf(delete);
+        Integer id = extractTaskIdFromAction(requestText, BotLabels.DELETE.getLabel());
+        if (id == null) {
+            return;
+        }
 
         try {
-            // Delete task and related records
-            jdbcTemplate.update("DELETE FROM TASK_TAG WHERE ID_TASK = ?", id);
-            jdbcTemplate.update("DELETE FROM TASK_STATE WHERE ID_TASK = ?", id);
-            jdbcTemplate.update("DELETE FROM TASK WHERE ID_TASK = ?", id);
-            
-            BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DELETED.getMessage(), telegramClient);
+            ResponseEntity<Boolean> response = taskController.deleteTask(String.valueOf(id));
+            if (response.getStatusCode().is2xxSuccessful() && Boolean.TRUE.equals(response.getBody())) {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DELETED.getMessage(), telegramClient);
+            } else {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
+            }
 
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage(), e);
-            BotHelper.sendMessageToTelegram(chatId, "Error deleting task.", telegramClient);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
         }
         exit = true;
     }
@@ -171,7 +180,7 @@ public class BotActions {
 
             for (TaskDTO task : activeTasks) {
                 KeyboardRow currentRow = new KeyboardRow();
-                currentRow.add(task.getTitle());
+                currentRow.add(formatTaskButtonLabel(task));
                 currentRow.add(task.getId() + BotLabels.DASH.getLabel() + BotLabels.DONE.getLabel());
                 keyboard.add(currentRow);
             }
@@ -183,7 +192,7 @@ public class BotActions {
 
             for (TaskDTO task : doneTasks) {
                 KeyboardRow currentRow = new KeyboardRow();
-                currentRow.add(task.getTitle());
+                currentRow.add(formatTaskButtonLabel(task));
                 currentRow.add(task.getId() + BotLabels.DASH.getLabel() + BotLabels.UNDO.getLabel());
                 currentRow.add(task.getId() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
                 keyboard.add(currentRow);
@@ -196,20 +205,32 @@ public class BotActions {
 
             keyboardMarkup.setKeyboard(keyboard);
 
-            BotHelper.sendMessageToTelegram(chatId, BotLabels.MY_TODO_LIST.getLabel(), telegramClient, keyboardMarkup);
+            BotHelper.sendMessageToTelegram(
+                    chatId,
+                    buildTaskListHeader(activeTasks.size(), doneTasks.size()),
+                    telegramClient,
+                    keyboardMarkup
+            );
 
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage(), e);
-            BotHelper.sendMessageToTelegram(chatId, "Error fetching task list.", telegramClient);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
         }
         exit = true;
     }
 
     public void fnAddItem() {
-        if (!(requestText.contains(BotCommands.ADD_ITEM.getCommand()) ||
-              requestText.contains(BotLabels.ADD_NEW_ITEM.getLabel())) || exit) {
+        if (exit) {
             return;
         }
+
+        if (!(requestText.equals(BotCommands.ADD_ITEM.getCommand()) ||
+              requestText.equals(BotCommands.ADD_TASK.getCommand()) ||
+              requestText.equals(BotLabels.ADD_NEW_ITEM.getLabel()) ||
+              requestText.equals(BotLabels.TASK_FORMAT_HELP.getLabel()))) {
+            return;
+        }
+
         BotHelper.sendMessageToTelegram(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage(), telegramClient);
         exit = true;
     }
@@ -219,62 +240,314 @@ public class BotActions {
             return;
         }
 
+        String payload = extractCreatePayload(requestText);
+        if (payload == null) {
+            return;
+        }
+
+        if (payload.startsWith("/")) {
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.INVALID_TASK_FORMAT.getMessage(), telegramClient);
+            exit = true;
+            return;
+        }
+
         try {
-            // Create new task with just the title from the message
-            Integer nextId = jdbcTemplate.queryForObject("SELECT NVL(MAX(ID_TASK), 0) + 1 FROM TASK", Integer.class);
-            if (nextId == null) {
-                BotHelper.sendMessageToTelegram(chatId, "Error creating new task.", telegramClient);
-                return;
+            TaskDTO taskRequest = buildTaskFromPayload(payload);
+            resolveSprintNumberReference(taskRequest);
+            ResponseEntity<TaskDTO> response = taskController.createTask(taskRequest);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                BotHelper.sendMessageToTelegram(
+                        chatId,
+                        BotMessages.NEW_ITEM_ADDED.getMessage() + "\n" + buildCreatedTaskSummary(response.getBody()),
+                        telegramClient
+                );
+            } else if (response.getStatusCode().is4xxClientError()) {
+                BotHelper.sendMessageToTelegram(chatId, buildCreateTaskClientErrorMessage(taskRequest), telegramClient);
+            } else {
+                BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
             }
 
-            String title = requestText;
-            int defaultProjectId = 1; // Default project ID (adjust if needed)
-            int defaultUserId = 1;    // Default user ID (adjust if needed)
-
-            // Insert new task
-            jdbcTemplate.update(
-                    "INSERT INTO TASK (ID_TASK, ID_USER, ID_PROJECT, TITLE, START_TIME) VALUES (?, ?, ?, ?, ?)",
-                    nextId,
-                    defaultUserId,
-                    defaultProjectId,
-                    title,
-                    new Timestamp(System.currentTimeMillis())
+        } catch (IllegalArgumentException e) {
+            BotHelper.sendMessageToTelegram(
+                    chatId,
+                    BotMessages.INVALID_TASK_FORMAT.getMessage() + "\n" + e.getMessage(),
+                    telegramClient
             );
-
-            // Insert task state (default: backlog)
-            jdbcTemplate.update(
-                    "INSERT INTO TASK_STATE (ID_TASK, STATE) VALUES (?, ?)",
-                    nextId,
-                    "backlog"
-            );
-
-            BotHelper.sendMessageToTelegram(chatId, BotMessages.NEW_ITEM_ADDED.getMessage(), telegramClient, null);
-
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage(), e);
-            BotHelper.sendMessageToTelegram(chatId, "Error adding new task.", telegramClient);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
         }
+
+        exit = true;
+    }
+
+    private boolean applyStatusUpdate(int taskId, String status) {
+        TaskDTO request = new TaskDTO();
+        request.setStatus(status);
+
+        ResponseEntity<TaskDTO> response = taskController.updateTask(String.valueOf(taskId), request);
+        return response.getStatusCode().is2xxSuccessful() && response.getBody() != null;
     }
 
     // Helper methods
     private List<TaskDTO> getAllTasks() {
-        String sql = """
-            SELECT t.ID_TASK,
-                   t.TITLE,
-                   t.DESCRIPTION,
-                   ts.STATE
-            FROM TASK t
-            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
-            ORDER BY t.ID_TASK
-            """;
+        ResponseEntity<List<TaskDTO>> response = taskController.getAllTasks();
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            return List.of();
+        }
+        return response.getBody();
+    }
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            TaskDTO task = new TaskDTO();
-            task.setId(String.valueOf(rs.getInt("ID_TASK")));
-            task.setTitle(rs.getString("TITLE"));
-            task.setDescription(rs.getString("DESCRIPTION"));
-            task.setStatus(rs.getString("STATE") != null ? rs.getString("STATE") : "backlog");
-            return task;
-        });
+    private Integer extractTaskIdFromAction(String commandText, String actionLabel) {
+        if (commandText == null || commandText.isBlank()) {
+            return null;
+        }
+
+        String suffix = BotLabels.DASH.getLabel() + actionLabel;
+        if (!commandText.endsWith(suffix)) {
+            return null;
+        }
+
+        String idToken = commandText.substring(0, commandText.length() - suffix.length()).trim();
+        if (idToken.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(idToken);
+        } catch (NumberFormatException ex) {
+            logger.warn("Invalid task action id token: {}", idToken);
+            return null;
+        }
+    }
+
+    private String extractCreatePayload(String rawText) {
+        if (rawText == null || rawText.isBlank()) {
+            return null;
+        }
+
+        String trimmed = rawText.trim();
+        if (trimmed.equals(BotLabels.ADD_NEW_ITEM.getLabel()) ||
+            trimmed.equals(BotCommands.ADD_ITEM.getCommand()) ||
+            trimmed.equals(BotCommands.ADD_TASK.getCommand())) {
+            return null;
+        }
+
+        if (trimmed.startsWith(BotCommands.ADD_ITEM.getCommand() + " ")) {
+            return trimmed.substring(BotCommands.ADD_ITEM.getCommand().length()).trim();
+        }
+
+        if (trimmed.startsWith(BotCommands.ADD_TASK.getCommand() + " ")) {
+            return trimmed.substring(BotCommands.ADD_TASK.getCommand().length()).trim();
+        }
+
+        return trimmed;
+    }
+
+    private TaskDTO buildTaskFromPayload(String payload) {
+        String cleanedPayload = payload != null ? payload.trim() : "";
+        if (cleanedPayload.isBlank()) {
+            throw new IllegalArgumentException("Task title is required.");
+        }
+
+        String[] parts = cleanedPayload.split(FIELD_SEPARATOR_REGEX);
+        String title = parts[0].trim();
+
+        if (title.isBlank() || (parts.length == 1 && title.contains("="))) {
+            throw new IllegalArgumentException("Task title is required before attributes.");
+        }
+
+        TaskDTO task = new TaskDTO();
+        task.setTitle(title);
+
+        for (int index = 1; index < parts.length; index++) {
+            String field = parts[index].trim();
+            if (field.isBlank()) {
+                continue;
+            }
+
+            int separatorIndex = field.indexOf('=');
+            if (separatorIndex <= 0 || separatorIndex >= field.length() - 1) {
+                throw new IllegalArgumentException("Invalid attribute: " + field);
+            }
+
+            String key = field.substring(0, separatorIndex).trim().toLowerCase(Locale.ROOT);
+            String value = field.substring(separatorIndex + 1).trim();
+
+            switch (key) {
+                case "description", "desc" -> task.setDescription(value);
+                case "status" -> task.setStatus(normalizeStatus(value));
+                case "priority", "prio" -> task.setPriority(normalizePriority(value));
+                case "start", "startdate", "start_date" -> task.setStartDate(parseDateField(value, key));
+                case "end", "enddate", "end_date" -> task.setEndDate(parseDateField(value, key));
+                case "sprint" -> task.setSprintId(parseIntegerField(value, key));
+                case "est", "estimated", "estimatedtime", "estimated_time" -> task.setEstimatedTime(parseDoubleField(value, key));
+                case "real", "realtime", "real_time" -> task.setRealTime(parseDoubleField(value, key));
+                case "assignee", "assignedto", "assigned_to", "username", "user" -> task.setAssignedTo(List.of(value));
+                default -> throw new IllegalArgumentException("Unknown attribute: " + key);
+            }
+        }
+
+        return task;
+    }
+
+    private void resolveSprintNumberReference(TaskDTO task) {
+        if (task == null || task.getSprintId() == null || sprintController == null) {
+            return;
+        }
+
+        Integer requestedSprintNumber = task.getSprintId();
+        List<SprintOptionDTO> availableSprints = sprintController.listSprints(null);
+        if (availableSprints == null || availableSprints.isEmpty()) {
+            throw new IllegalArgumentException("No sprints available. Create a sprint first.");
+        }
+
+        List<SprintOptionDTO> bySprintNumber = availableSprints.stream()
+                .filter(sprint -> sprint.getSprintNumber() == requestedSprintNumber)
+                .toList();
+
+        if (bySprintNumber.size() == 1) {
+            task.setSprintId(bySprintNumber.get(0).getIdSprint());
+            return;
+        }
+
+        String validSprintNumbers = availableSprints.stream()
+                .map(sprint -> String.valueOf(sprint.getSprintNumber()))
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+        throw new IllegalArgumentException("Invalid sprint number: " + requestedSprintNumber + ". Valid sprint numbers: " + validSprintNumbers);
+    }
+
+    private String buildCreateTaskClientErrorMessage(TaskDTO taskRequest) {
+        StringBuilder message = new StringBuilder(BotMessages.TASK_OPERATION_FAILED.getMessage());
+
+        if (taskRequest != null && taskRequest.getSprintId() != null && sprintController != null) {
+            List<SprintOptionDTO> availableSprints = sprintController.listSprints(null);
+            if (availableSprints != null && !availableSprints.isEmpty()) {
+                String sprintHints = availableSprints.stream()
+                        .map(sprint -> String.valueOf(sprint.getSprintNumber()))
+                        .distinct()
+                        .collect(Collectors.joining(", "));
+                message.append("\nValid sprint numbers: ").append(sprintHints);
+            }
+        }
+
+        ResponseEntity<List<TaskAssigneeOptionDTO>> usersResponse = taskController.getProjectUsers(null);
+        if (usersResponse.getStatusCode().is2xxSuccessful() && usersResponse.getBody() != null && !usersResponse.getBody().isEmpty()) {
+            String userHints = usersResponse.getBody().stream()
+                    .map(TaskAssigneeOptionDTO::getUsername)
+                    .filter(username -> username != null && !username.isBlank())
+                    .collect(Collectors.joining(", "));
+            if (!userHints.isBlank()) {
+                message.append("\nValid assignee usernames: ").append(userHints);
+            }
+        }
+
+        return truncate(message.toString(), 700);
+    }
+
+    private String normalizeStatus(String statusRaw) {
+        String normalized = statusRaw.trim().toLowerCase(Locale.ROOT).replace('_', '-');
+        return switch (normalized) {
+            case "backlog", "ready", "in-progress", "review", "done" -> normalized;
+            case "inprogress" -> "in-progress";
+            default -> throw new IllegalArgumentException("Invalid status: " + statusRaw);
+        };
+    }
+
+    private String normalizePriority(String priorityRaw) {
+        String normalized = priorityRaw.trim().toLowerCase(Locale.ROOT);
+        return switch (normalized) {
+            case "low", "medium", "high" -> normalized;
+            default -> throw new IllegalArgumentException("Invalid priority: " + priorityRaw);
+        };
+    }
+
+    private Integer parseIntegerField(String rawValue, String fieldName) {
+        try {
+            return Integer.parseInt(rawValue.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Invalid integer for " + fieldName + ": " + rawValue);
+        }
+    }
+
+    private Double parseDoubleField(String rawValue, String fieldName) {
+        try {
+            return Double.parseDouble(rawValue.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Invalid number for " + fieldName + ": " + rawValue);
+        }
+    }
+
+    private String parseDateField(String rawValue, String fieldName) {
+        String trimmed = rawValue.trim();
+        if (!trimmed.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+            throw new IllegalArgumentException("Invalid date for " + fieldName + ". Use YYYY-MM-DD");
+        }
+        return trimmed;
+    }
+
+    private String formatTaskButtonLabel(TaskDTO task) {
+        String title = safeValue(task.getTitle(), "Untitled");
+        String status = safeValue(task.getStatus(), "backlog");
+        String priority = safeValue(task.getPriority(), "medium");
+        String sprint = task.getSprintId() != null ? "S" + task.getSprintId() : "S-";
+        String assignee = safeValue(task.getAssignedUsername(), firstAssignee(task.getAssignedTo()));
+        if (assignee == null || assignee.isBlank()) {
+            assignee = "unassigned";
+        }
+
+        String label = "#" + task.getId() + " " + title + " [" + status + "|" + priority + "|" + sprint + "|" + assignee + "]";
+        return truncate(label, 58);
+    }
+
+    private String buildTaskListHeader(int activeCount, int doneCount) {
+        return BotLabels.MY_TODO_LIST.getLabel() + "\n" +
+                "Active: " + activeCount + " | Done: " + doneCount + "\n" +
+                "Use /addtask title | priority=medium | sprint=2 | start=YYYY-MM-DD | end=YYYY-MM-DD | est=4 | real=0 | assignee=username";
+    }
+
+    private String buildCreatedTaskSummary(TaskDTO task) {
+        String taskId = safeValue(task.getId(), "-");
+        String title = safeValue(task.getTitle(), "Untitled");
+        String status = safeValue(task.getStatus(), "backlog");
+        String priority = safeValue(task.getPriority(), "medium");
+        String sprint = task.getSprintId() != null ? String.valueOf(task.getSprintId()) : "none";
+        String startDate = safeValue(task.getStartDate(), "-");
+        String endDate = safeValue(task.getEndDate(), "-");
+        String est = String.valueOf(task.getEstimatedTime());
+        String real = String.valueOf(task.getRealTime());
+
+        return "#" + taskId + " " + title + "\n" +
+                "status=" + status + ", priority=" + priority + ", sprint=" + sprint + "\n" +
+                "start=" + startDate + ", end=" + endDate + ", est=" + est + ", real=" + real;
+    }
+
+    private String firstAssignee(List<String> assignedTo) {
+        if (assignedTo == null || assignedTo.isEmpty()) {
+            return null;
+        }
+        for (String entry : assignedTo) {
+            if (entry != null && !entry.isBlank()) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    private String safeValue(String value, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value;
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, Math.max(0, maxLength - 3)) + "...";
     }
 }

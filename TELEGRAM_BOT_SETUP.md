@@ -24,11 +24,13 @@ Edita el archivo `.env` en la raíz del proyecto:
 
 ```bash
 # Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGhiJKlmNoPqrSTUvWxYz...
-TELEGRAM_BOT_NAME=forgetask_bot
+TELEGRAM_BOT_ENABLED=true
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_BOT_NAME=
 ```
 
 Reemplaza:
+- `TELEGRAM_BOT_ENABLED=true` para activar el bot (por defecto es `false`)
 - `TELEGRAM_BOT_TOKEN` con el token que recibiste de BotFather
 - `TELEGRAM_BOT_NAME` con el username del bot (sin la @)
 
@@ -162,6 +164,7 @@ DELETE FROM TASK WHERE ID_TASK = ?
 1. **Verifica el token**: 
    ```bash
    # En el archivo .env
+   TELEGRAM_BOT_ENABLED=true
    TELEGRAM_BOT_TOKEN=123456789:ABCdef...
    ```
 
@@ -177,6 +180,7 @@ DELETE FROM TASK WHERE ID_TASK = ?
 
 ### Error "Telegram bot token is not set"
 
+- Asegúrate de activar el bot con `TELEGRAM_BOT_ENABLED=true`
 - Asegúrate de que `.env` contiene `TELEGRAM_BOT_TOKEN`
 - Redeploy el backend: `docker compose -f docker-compose.dev.yml restart backend`
 

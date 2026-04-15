@@ -37,14 +37,19 @@ public class BotHelper {
 
 		try {
 			// prepare message
-			SendMessage messageToTelegram = 
+			SendMessage.SendMessageBuilder messageBuilder =
 					SendMessage
 					.builder()
 					.chatId(chatId)
-					.text(text)
-					.replyMarkup(rk)
-					.build()
-				;
+					.text(text);
+
+			if (rk != null) {
+				messageBuilder.replyMarkup(rk);
+			} else {
+				messageBuilder.replyMarkup(new ReplyKeyboardRemove(true));
+			}
+
+			SendMessage messageToTelegram = messageBuilder.build();
 
 			// send message
 			bot.execute(messageToTelegram);
