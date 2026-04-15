@@ -7,7 +7,7 @@ import kpiService, {
   type RealHoursTaskDetail,
 } from "@/app/services/kpiService";
 import { BarChart, type BarChartValueChange } from "@/components/BarChart";
-import { ProgressCircle } from "@/components/ProgressCircle";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import styles from "./RealTotalHoursByUserKpi.module.css";
 
 interface UserHoursPoint {
@@ -19,7 +19,6 @@ interface UserHoursPoint {
 
 type CircleVariant = "default" | "warning" | "success" | "error";
 
-const CIRCLE_VARIANTS: CircleVariant[] = ["default", "warning", "success", "error"];
 const CHART_COLORS = ["orange", "orangeSoft", "orangeDeep", "slateLight", "slate", "slateDim"];
 
 function formatHours(value: number): string {
@@ -76,6 +75,16 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId }: RealTotalH
 
   const userHoursData = useMemo(() => mapApiRows(userHoursRows), [userHoursRows]);
   const visibleUsers = useMemo(() => userHoursData, [userHoursData]);
+
+  const pieChartData = useMemo(() => {
+    const colors = ["#f97316", "#fb923c", "#fdba74", "#64748b", "#475569", "#334155"];
+    return visibleUsers.map((user, index) => ({
+      name: user.user,
+      value: user.realTotalHours,
+      doneTasks: user.doneTasks,
+      color: colors[index % colors.length],
+    }));
+  }, [visibleUsers]);
 
   const fetchKpiData = useCallback(async (sprintId?: number): Promise<void> => {
     const safeSprintId = sprintId !== undefined && Number.isFinite(sprintId) ? sprintId : undefined;
@@ -232,6 +241,9 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId }: RealTotalH
       <section className="mx-auto max-w-6xl space-y-6">
 
         <section className="rounded-2xl border border-[#2b3542] bg-[#0d1117]/75 p-4 md:p-6">
+          <h2 className="text-xl font-semibold text-[#e6edf3] mb-4">
+            Distribución de horas reales por usuario en el sprint
+          </h2>
           {isLoading ? (
             <p className="text-sm text-[#9aa4b2]">Cargando datos KPI...</p>
           ) : errorMessage ? (
@@ -250,38 +262,46 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId }: RealTotalH
               No hay tareas con estado done en el sprint seleccionado.
             </p>
           ) : (
-            <div className={styles.circleGrid}>
-              {visibleUsers.map((item, index) => {
-                const isSelected = selectedUser === item.user;
-                const variant = CIRCLE_VARIANTS[index % CIRCLE_VARIANTS.length];
-
-                return (
-                  <button
-                    key={item.user}
-                    type="button"
-                    onClick={() => handleUserCardClick(item.user)}
-                    className={`${styles.circleCard} ${isSelected ? styles.circleCardActive : ""}`}
+            <div className="w-full h-96">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(1)}%`}
+                    outerRadius={120}
+                    innerRadius={60}
+                    fill="#8884d8"
+                    dataKey="value"
+                    onClick={(data: any) => handleUserCardClick(data.name)}
+                    style={{ cursor: 'pointer' }}
                   >
-                    <ProgressCircle
-                      variant={variant}
-                      value={item.sharePercentage}
-                      radius={46}
-                    />
-
-                    <span className={styles.userName} title={item.user}>
-                      {item.user}
-                    </span>
-
-                    <span className={styles.hours}>
-                      {formatHours(item.realTotalHours)}
-                    </span>
-
-                    <span className={styles.share}>
-                      {item.doneTasks} tareas done
-                    </span>
-                  </button>
-                );
-              })}
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: any, name: any) => [
+                      value !== undefined ? `${formatHours(Number(value))} (${pieChartData.find((d: any) => d.name === name)?.doneTasks} tareas)` : 'N/A',
+                      name
+                    ]}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    wrapperStyle={{
+                      paddingTop: '20px',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      gap: '16px'
+                    }}
+                    formatter={(value: any) => <span style={{ color: '#e6edf3', fontSize: '14px' }}>{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           )}
         </section>
