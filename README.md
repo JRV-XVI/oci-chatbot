@@ -28,6 +28,10 @@ Crea un archivo `.env` en la raíz del proyecto (nunca lo commitees al repo):
 # .env
 DB_USER=tu_usuario_atp
 DB_PASSWORD=tu_password_atp
+TELEGRAM_BOT_ENABLED=false
+# Si lo activas, define también estas dos variables:
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_BOT_NAME=
 ```
 
 Puedes usar `.env.example` como referencia:

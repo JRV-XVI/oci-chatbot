@@ -64,23 +64,19 @@ export default function AvgTasksKpi({
 
   return (
     <KpiCard
-      title="Avg. Tareas / Dev"
+      title="Promedio de tareas por dev"
       icon={<Users />}
       value={avg}
       suffix="tareas"
-      badge={healthLabel}
-      badgeType={badgeType}
       bottomContent={
         <div className="flex flex-col gap-4 w-full">
 
-          {/* ✅ CAMBIO: Toggle Project/Sprint — botones más grandes, mejor touch target */}
           {hasSprintData && (
             <div className="flex rounded-lg border border-border overflow-hidden self-start w-full">
               {(["project", "sprint"] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
-                  // ✅ CAMBIO: py-1 px-2 → py-2.5 px-4, text-xs → text-sm, mejor contraste activo
                   className={[
                     "flex-1 py-2.5 px-4 text-sm font-medium transition-colors",
                     mode === m
@@ -94,40 +90,35 @@ export default function AvgTasksKpi({
             </div>
           )}
 
-          {/* ✅ CAMBIO: contexto del promedio más visible */}
           <p className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{activeDevs}</span>{" "}
             devs {activeScopeLabel}
           </p>
 
           {/* ── CategoryBar con marcador ── */}
-          <div className="flex flex-col gap-2">
-            {/* ✅ CAMBIO: leyenda de zonas más legible */}
+          {/* <div className="flex flex-col gap-2">
             <div className="flex justify-between text-xs text-muted-foreground px-0.5">
               <span>Saludable</span>
               <span>Riesgo</span>
               <span>Crítico</span>
             </div>
 
-            {/* ✅ CAMBIO: CategoryBar con más altura vía wrapper */}
             <div className="relative">
               <CategoryBar
                 values={[greenPct, yellowPct, redPct]}
                 colors={["emerald", "amber", "rose"]}
-                // ✅ CAMBIO: marker mueve el marcador a la posición del avg
                 marker={{ value: Math.min((avg / currentDangerMax) * 100, 100) }}
                 className="py"
               />
             </div>
 
-            {/* ✅ CAMBIO: escala de referencia bajo la barra */}
             <div className="flex justify-between text-xs text-muted-foreground tabular-nums px-0.5">
               <span>0</span>
               <span>{currentHealthyMax}</span>
               <span>{currentWarningMax}</span>
               <span>{currentDangerMax}+</span>
             </div>
-          </div>
+          </div> */}
         </div>
       }
     />

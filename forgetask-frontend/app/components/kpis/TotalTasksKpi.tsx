@@ -2,7 +2,6 @@
 
 import React from "react";
 import { CheckSquare } from "lucide-react";
-import { TooltipProps } from "recharts";
 import KpiCard from "../ui/kpiCard";
 import { DonutChart, AvailableChartColorsKeys } from "../ui/DonutChart";
 
@@ -26,14 +25,6 @@ interface TotalTasksKpiProps {
   done: number;
 }
 
-const LEGEND_META = [
-  { key: "Done",        dot: "bg-orange-500"     },
-  { key: "In Progress", dot: "bg-orange-300"     },
-  { key: "Review",      dot: "bg-slate-400"      },
-  { key: "Ready",       dot: "bg-slate-500"      },
-  { key: "Backlog",     dot: "bg-slate-600"      },
-] as const;
-
 export default function TotalTasksKpi({
   total,
   backlog,
@@ -52,7 +43,32 @@ export default function TotalTasksKpi({
     { name: "Backlog",     value: backlog     },
   ];
 
-  const DONUT_COLORS: AvailableChartColorsKeys[] = ["orange", "orangeSoft", "slateLight", "slate", "slateDim"];
+  const donutColors: AvailableChartColorsKeys[] = [
+    "orange",
+    "orangeSoft",
+    "slateLight",
+    "slate",
+    "slateDim",
+  ];
+
+  // Mapa estatico necesario para que Tailwind no purgue las clases de color
+  const dotColorMap: Record<string, string> = {
+    emerald: "bg-emerald-500",
+    blue: "bg-blue-500",
+    violet: "bg-violet-500",
+    amber: "bg-amber-500",
+    indigo: "bg-indigo-500",
+    rose: "bg-rose-500",
+    cyan: "bg-cyan-500",
+    orange: "bg-[#e76b36]",
+    orangeSoft: "bg-[#f19367]",
+    orangeDeep: "bg-[#c45223]",
+    slate: "bg-[#2b3542]",
+    slateLight: "bg-[#6e7d91]",
+    slateDim: "bg-[#1f2937]",
+  };
+
+  const donutTotal = donutData.reduce((sum, d) => sum + d.value, 0);
 
   const activePayload = tooltipData?.payload?.[0];
   const centerLabel = activePayload ? activePayload.category : "Total";
@@ -60,7 +76,7 @@ export default function TotalTasksKpi({
 
   return (
     <KpiCard
-      title="Total de Tareas"
+      title="Tareas totales en el proyecto"
       icon={<CheckSquare />}
       badgeType="up"
       bottomContent={
@@ -72,18 +88,20 @@ export default function TotalTasksKpi({
               data={donutData}
               category="name"
               value="value"
-              colors={DONUT_COLORS}
-              className="h-56 w-full"
-              tooltipCallback={(props: TooltipProps) => {
+              colors={[...donutColors]}
+              className="mx-auto h-28"
+              showLabel={false}
+              showTooltip={false}
+              tooltipCallback={(props) => {
                 if (props.active) {
                   setTooltipData((prev) => {
-                    const tooltipState: DonutTooltipState = {
-                      active: props.active,
-                      payload: (props as any).payload as DonutPayloadItem[],
-                    };
-                    if (prev?.payload[0]?.category === tooltipState.payload[0]?.category)
+                    if (
+                      prev?.payload[0]?.category ===
+                      props.payload?.[0]?.category
+                    ) {
                       return prev;
-                    return tooltipState;
+                    }
+                    return props as unknown as DonutTooltipState;
                   });
                 } else {
                   setTooltipData(null);
@@ -102,6 +120,36 @@ export default function TotalTasksKpi({
               <span className="text-xs text-muted-foreground">tareas</span>
             </div>
           </div>
+
+          {/* ── Leyenda debajo del chart ── */}
+          <ul className="mt-3 w-full space-y-1.5">
+            {donutData.map((item, i) => {
+              const pct =
+                donutTotal > 0 ? Math.round((item.value / donutTotal) * 100) : 0;
+
+              return (
+                <li
+                  key={item.name}
+                  className="flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${dotColorMap[donutColors[i]] ?? "bg-slate-400"}`}
+                    />
+                    <span className="text-muted-foreground">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground tabular-nums">
+                      {item.value}
+                    </span>
+                    <span className="w-9 text-right text-muted-foreground tabular-nums">
+                      {pct}%
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
 
           <p className="text-sm text-muted-foreground border-t border-border w-full pt-3 text-center">
             Total: <span className="font-semibold text-foreground">{total}</span> tareas
