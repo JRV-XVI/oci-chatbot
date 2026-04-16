@@ -1,7 +1,12 @@
 import React from "react";
 import { Card } from "./Card";
 import { NumberTicker } from "./NumberTicker";
-import { DonutChart, type AvailableChartColorsKeys } from "./DonutChart";
+import {
+  AvailableChartColors,
+  DonutChart,
+  getColorClassName,
+  type AvailableChartColorsKeys,
+} from "./DonutChart";
 import { ProgressBar } from "./ProgressBar";
 
 interface KpiCardProps {
@@ -50,6 +55,9 @@ export default function KpiCard({
 
   const hasTitle = typeof title === "string" && title.trim().length > 0;
   const hasValue = typeof value === "number";
+  const hasDonutData = Array.isArray(donutData) && donutData.length > 0;
+  const donutPalette =
+    donutColors && donutColors.length > 0 ? donutColors : AvailableChartColors;
 
   return (
     // ✅ CAMBIO: padding aumentado de p-4 → p-6, gap de gap-2 → gap-5
@@ -81,12 +89,10 @@ export default function KpiCard({
         {hasValue && (
           <div className="flex flex-col gap-1">
             <div className="flex items-end gap-2 flex-wrap">
-              {/* ✅ CAMBIO: text-2xl → text-5xl, tracking-tight para legibilidad */}
               <NumberTicker
                 value={value}
                 className="text-5xl font-bold tracking-tight tabular-nums leading-none"
               />
-              {/* ✅ CAMBIO: text-xs → text-xl, color muted y alineado al baseline */}
               {suffix && (
                 <span className="text-xl text-muted-foreground font-medium mb-1 leading-none">
                   {suffix}
@@ -94,7 +100,6 @@ export default function KpiCard({
               )}
             </div>
 
-            {/* ✅ CAMBIO: badge más grande, separado del número, con fondo de color */}
             {badge && !progressData && (
               <span
                 className={`inline-flex items-center gap-1 self-start text-sm font-semibold px-2.5 py-1 rounded-full mt-1 ${badgeColor}`}
@@ -106,15 +111,46 @@ export default function KpiCard({
           </div>
         )}
 
-        {/* ✅ CAMBIO: Donut más alto h-28 → h-52 */}
-        {donutData && (
-          <DonutChart
-            data={donutData}
-            category="value"
-            index="name"
-            colors={donutColors}
-            className="h-52 mt-1"
-          />
+        {hasDonutData && (
+          <div className="flex flex-col gap-3">
+            <DonutChart
+              data={donutData}
+              category="name"
+              value="value"
+              colors={donutColors}
+              className="h-52 mt-1"
+            />
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {donutData.map((item, itemIndex) => {
+                const colorKey =
+                  donutPalette[itemIndex % donutPalette.length] ??
+                  AvailableChartColors[0];
+
+                return (
+                  <div
+                    key={`${item.name}-${itemIndex}`}
+                    className="flex items-center justify-between gap-2 text-sm"
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${getColorClassName(
+                          colorKey,
+                          "bg",
+                        )}`}
+                      />
+                      <span className="truncate text-muted-foreground">
+                        {item.name}
+                      </span>
+                    </span>
+                    <span className="font-semibold tabular-nums text-foreground">
+                      {item.value}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* ── ProgressBar section ── */}

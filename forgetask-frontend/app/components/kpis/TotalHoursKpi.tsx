@@ -36,7 +36,7 @@ export default function TotalHoursKpi({ realHours, estimatedHours }: TotalHoursK
 
   return (
     <KpiCard
-      title="Total de Horas"
+      title="Horas totales del proyecto"
       icon={<Clock />}
       value={realHours}
       suffix="hrs"
