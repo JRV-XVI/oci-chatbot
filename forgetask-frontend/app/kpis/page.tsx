@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { ProjectHeader } from "@/app/components/kanban/project-header";
 import TotalTasksKpi from "../components/kpis/TotalTasksKpi";
 import TotalHoursKpi from "../components/kpis/TotalHoursKpi";
 import AvgTasksKpi from "../components/kpis/AvgTasksKpi";
@@ -27,8 +29,10 @@ interface User {
 
 export default function KPIsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [projectId, setProjectId] = useState<number | null>(null);
+  const [projectTitle, setProjectTitle] = useState<string>("Project KPIs");
   const [sprints, setSprints] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<number | null>(null);
   const [sprintsLoading, setSprintsLoading] = useState(true);
@@ -59,6 +63,11 @@ export default function KPIsPage() {
         const fallbackProjectId = projects.length > 0 ? projects[0].idProject : 1;
         const resolvedProjectId = validProjectIdFromQuery ?? fallbackProjectId;
         setProjectId(resolvedProjectId);
+
+        // Set project title from the resolved project
+        const resolvedProject = projects.find((p) => p.idProject === resolvedProjectId);
+        const projectTitle = resolvedProject?.title || "Project KPIs";
+        setProjectTitle(projectTitle);
 
         const kpisData = await kpiService.getProjectKpisSummary(resolvedProjectId);
         setKpis(kpisData);
@@ -134,8 +143,37 @@ export default function KPIsPage() {
     void fetchUsersBySprint();
   }, [projectId, selectedSprintId]);
 
+  const handleBackToKanban = useCallback(() => {
+    router.push("/");
+  }, [router]);
+
   return (
-    <main className="h-full overflow-y-auto app-background px-6 py-6">
+    <div className="h-full flex flex-col min-h-0">
+      <ProjectHeader
+        projectTitle={projectTitle}
+        buttonsConfig={{
+          addSprint: {
+            show: true,
+            projectId,
+            sprintOptions: sprints,
+            onSprintSaved: () => {},
+            onSprintDeleted: () => {},
+          },
+          custom: [
+            {
+              label: "Kanban Board",
+              icon: ArrowLeft,
+              onClick: handleBackToKanban,
+              variant: "outline",
+            },
+          ],
+        }}
+        sectionsConfig={{
+          progress: { show: false },
+        }}
+      />
+
+      <main className="flex-1 min-h-0 overflow-y-auto app-background px-6 py-6">
       <div className="mx-auto max-w-8xl">
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-5 xl:items-start">
           <section className="space-y-8 xl:col-span-4">
@@ -238,6 +276,7 @@ export default function KPIsPage() {
           </aside>
         </div>
       </div>
-    </main>
+      </main>
+    </div>
   );
 }
