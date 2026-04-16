@@ -48,14 +48,14 @@ if [ -z "$DOCKER_REGISTRY" ]; then
     exit 1
 fi
 
-if [ -z "$TODO_PDB_NAME" ]; then
-    export TODO_PDB_NAME=$(state_get MTDR_DB_NAME)
-    echo -e "${greenColour}[deploy.sh][+]${endColour} TODO_PDB_NAME set."
-fi
-if [ -z "$TODO_PDB_NAME" ]; then
-    echo -e "${redColour}[deploy.sh][x]${endColour} TODO_PDB_NAME env variable needs to be set!"
-    exit 1
-fi
+#if [ -z "$TODO_PDB_NAME" ]; then
+#    export TODO_PDB_NAME=$(state_get MTDR_DB_NAME)
+#    echo -e "${greenColour}[deploy.sh][+]${endColour} TODO_PDB_NAME set."
+#fi
+#if [ -z "$TODO_PDB_NAME" ]; then
+#    echo -e "${redColour}[deploy.sh][x]${endColour} TODO_PDB_NAME env variable needs to be set!"
+#    exit 1
+#fi
 
 if [ -z "$OCI_REGION" ]; then
     echo -e "${yellowColour}[deploy.sh][!]${endColour} OCI_REGION not set. Will get it with state_get"
@@ -97,9 +97,9 @@ deploy_manifest() {
         "$TEMPLATE" > "$OUTPUT"
 
     # Solo el backend necesita el nombre de la PDB de Oracle
-    if [ "$SERVICE_TYPE" = "backend" ]; then
-        sed -i "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" "$OUTPUT"
-    fi
+#    if [ "$SERVICE_TYPE" = "backend" ]; then
+#        sed -i "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" "$OUTPUT"
+#    fi
 
     echo -e "${greenColour}[deploy.sh][+]${endColour} Manifest generated: ${OUTPUT}"
 

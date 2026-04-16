@@ -28,34 +28,55 @@ spec:
     spec:
       containers:
         - name: forgetask
-          image: %DOCKER_REGISTRY%/forgetask:%IMAGE_VERSION%
+          image: "%DOCKER_REGISTRY%/forgetask:%IMAGE_VERSION%"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
             - name: TNS_ADMIN
               value: "/app/wallet"
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:oracle:thin:@%TODO_PDB_NAME%_tp"
-            - name: SPRING_DATASOURCE_USERNAME
+
+            - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: dbuser
-                  key: db_username
-            - name: SPRING_DATASOURCE_PASSWORD
+                  name: forgetask-app-secrets
+                  key: DB_USER
+
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dbuser
-                  key: dbpassword
+                  name: forgetask-app-secrets
+                  key: DB_PASSWORD
+
+            - name: TELEGRAM_BOT_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_ENABLED
+
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_TOKEN
+
+            - name: TELEGRAM_BOT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_NAME
+
           volumeMounts:
             - name: wallet-volume
               mountPath: /app/wallet
               readOnly: true
+
       restartPolicy: Always
       volumes:
         - name: wallet-volume
           secret:
             secretName: db-wallet-secret
+
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
