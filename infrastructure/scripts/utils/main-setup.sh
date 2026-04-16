@@ -83,8 +83,7 @@ done
 
 #Get Run Name from directory name
 while ! state_done RUN_NAME; do
-  cd $MTDRWORKSHOP_LOCATION
-  cd ../..
+  cd "${MTDRWORKSHOP_LOCATION}/../../.."
   # Validate that a folder was creared
   if test "$PWD" == ~; then
     echo -e "${redColour}[main-setup.sh][x]${endColour} ERROR: The workshop is not installed in a separate folder."
@@ -100,7 +99,7 @@ while ! state_done RUN_NAME; do
     echo -e "${redColour}[main-setup.sh][x]${endColour} containing only letters or numbers, starting with a letter.  Please restart the workshop with a valid directory name."
     exit
   fi
-  cd $MTDRWORKSHOP_LOCATION
+  cd "$MTDRWORKSHOP_LOCATION"
 done
 
 # Get the tenancy OCID
@@ -362,7 +361,7 @@ fi
 
 # Create DB wallet secret from repository wallet directory
 while ! state_done DB_WALLET_SECRET; do
-  WALLET_DIR="${MTDRWORKSHOP_LOCATION}/forgetask/wallet"
+  WALLET_DIR="${MTDRWORKSHOP_LOCATION}/../../forgetask/wallet"
 
   if [ ! -d "$WALLET_DIR" ]; then
     echo -e "${redColour}[main-setup.sh][x]${endColour} Wallet not found at $WALLET_DIR. Make sure forgetask/wallet/ exists in the repo."
