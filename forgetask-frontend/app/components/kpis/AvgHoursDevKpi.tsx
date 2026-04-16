@@ -51,7 +51,7 @@ export default function AvgHoursDevKpi({
 
   return (
     <KpiCard
-      title="Avg. Horas / Dev"
+      title="Promedio de horas por dev"
       icon={<Clock4 />}
       value={avg}
       suffix="hrs"
@@ -79,7 +79,7 @@ export default function AvgHoursDevKpi({
 
 
           {/* ── CategoryBar con marcador ── */}
-          <div className="flex flex-col gap-2">
+          {/* <div className="flex flex-col gap-2">
             <div className="flex justify-between text-xs text-muted-foreground px-0.5">
               <span>Normal (≤100%)</span>
               <span>Extra (≤120%)</span>
@@ -87,7 +87,7 @@ export default function AvgHoursDevKpi({
             </div>
 
             <CategoryBar
-              values={[...BAR_VALUES]}
+              valuSes={[...BAR_VALUES]}
               colors={["emerald", "amber", "rose"]}
               marker={{ value: markerPosition }}
               className="py"
@@ -99,7 +99,7 @@ export default function AvgHoursDevKpi({
               <span>86%</span>
               <span>100%+</span>
             </div>
-          </div>
+          </div> */}
 
           <p className="text-sm text-muted-foreground border-t border-border pt-3">
             <span className="font-semibold text-foreground">{totalDevs}</span> devs ·{" "}
