@@ -22,24 +22,9 @@
  */
 
 import { create } from 'zustand'
+import type { Task } from '@/app/types/task'
 
 // Interfaz de Task que debe coincidir con TaskDTO del backend
-interface Task {
-  id: string
-  sprintId?: number
-  title: string
-  description?: string
-  status: 'backlog' | 'ready' | 'in-progress' | 'review' | 'done'
-  priority?: 'low' | 'medium' | 'high'
-  startDate?: string
-  endDate?: string
-  estimatedTime?: number
-  realTime?: number
-  assignedTo?: string[]
-  assignedUsername?: string
-  assignedRole?: string
-}
-
 /**
  * Interfaz del Store que define qué datos y funciones proporciona
  */

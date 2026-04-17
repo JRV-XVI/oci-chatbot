@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ProjectHeader } from "@/app/components/kanban/project-header";
@@ -29,7 +29,7 @@ interface SprintTasksByUser {
   users: SprintUserPerformance[];
 }
 
-export default function KPIsPage() {
+function KpisContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [tasksBySprint, setTasksBySprint] = useState<SprintTasksByUser[]>([]);
@@ -230,11 +230,25 @@ export default function KPIsPage() {
 
             {/* ── Real Total Hours by User KPI ── */}
             <section className="kpi-section-enter">
-              <RealTotalHoursByUserKpi sprintOptions={sprints} />
+              <RealTotalHoursByUserKpi sprintOptions={sprints} taskSprintData={tasksBySprint} />
             </section>
           </section>
         </div>
       </main>
     </div>
+  );
+}
+
+export default function KPIsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-full flex items-center justify-center p-6 text-sm text-muted-foreground">
+          Loading KPI page...
+        </div>
+      }
+    >
+      <KpisContent />
+    </Suspense>
   );
 }

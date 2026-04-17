@@ -375,10 +375,10 @@ export function ProjectBoard({
 
   // Calcular métricas - memoizado
   const totalEstimatedHours = useMemo(() => tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [tasks])
-  const completedEstimatedHours = useMemo(() => doneTasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [doneTasks])
+  const completedRealHours = useMemo(() => doneTasks.reduce((sum, task) => sum + (task.realTime || 0), 0), [doneTasks])
   const progressPercentage = useMemo(() =>
-    totalEstimatedHours > 0 ? Math.round((completedEstimatedHours / totalEstimatedHours) * 100) : 0,
-    [totalEstimatedHours, completedEstimatedHours]
+    totalEstimatedHours > 0 ? Math.round((completedRealHours / totalEstimatedHours) * 100) : 0,
+    [totalEstimatedHours, completedRealHours]
   )
 
   return (
@@ -386,7 +386,7 @@ export function ProjectBoard({
       {/* Header */}
       <ProjectHeader
         projectTitle={projectTitle}
-        completedHours={completedEstimatedHours}
+        completedHours={completedRealHours}
         totalHours={totalEstimatedHours}
         progressPercentage={progressPercentage}
         buttonsConfig={{

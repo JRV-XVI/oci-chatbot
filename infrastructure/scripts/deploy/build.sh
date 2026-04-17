@@ -53,13 +53,13 @@ if [  $? -eq 0 ]; then
     docker rmi ${IMAGE_BACKEND} #local
 fi
 
-echo -e "${yellowColour}[build.sh][+]${endColour} Building frontend image..."
-docker build -t ${IMAGE_FRONTEND} ${REPO_ROOT}/forgetask-frontend
+#echo -e "${yellowColour}[build.sh][+]${endColour} Building frontend image..."
+#docker build -t ${IMAGE_FRONTEND} ${REPO_ROOT}/forgetask-frontend
 
-docker push ${IMAGE_FRONTEND}
-if [  $? -eq 0 ]; then
-    docker rmi ${IMAGE_FRONTEND}
-fi
+#docker push ${IMAGE_FRONTEND}
+#if [  $? -eq 0 ]; then
+#    docker rmi ${IMAGE_FRONTEND}
+#fi
 
 echo -e "${greenColour}[build.sh][+]${endColour} Images built and pushed successfully to ${DOCKER_REGISTRY}."
 # TODO(devops@local): versionar IMAGE_VERSION desde CI/CD (tag git o build id)

@@ -27,6 +27,7 @@ public class BotActions {
     private final TelegramClient telegramClient;
     private final TaskController taskController;
     private final SprintController sprintController;
+    private ConversationManager conversationManager;
     private boolean exit;
 
     public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController) {
@@ -44,6 +45,10 @@ public class BotActions {
         chatId = chId;
     }
 
+    public void setConversationManager(ConversationManager conversationManager) {
+        this.conversationManager = conversationManager;
+    }
+
     public void fnStart() {
         if (!(requestText.equals(BotCommands.START_COMMAND.getCommand()) || 
               requestText.equals(BotLabels.SHOW_MAIN_SCREEN.getLabel())) || exit) {
@@ -52,9 +57,7 @@ public class BotActions {
 
         BotHelper.sendMessageToTelegram(chatId, BotMessages.HELLO_MYTODO_BOT.getMessage(), telegramClient,
                 ReplyKeyboardMarkup.builder()
-                        .keyboardRow(new KeyboardRow(BotLabels.LIST_ALL_ITEMS.getLabel(), BotLabels.ADD_NEW_ITEM.getLabel()))
-                .keyboardRow(new KeyboardRow(BotLabels.TASK_FORMAT_HELP.getLabel()))
-                        .keyboardRow(new KeyboardRow(BotLabels.SHOW_MAIN_SCREEN.getLabel(), BotLabels.HIDE_MAIN_SCREEN.getLabel()))
+                        .keyboardRow(new KeyboardRow(BotLabels.ADD_NEW_ITEM.getLabel()))
                         .build()
         );
         exit = true;
@@ -231,7 +234,16 @@ public class BotActions {
             return;
         }
 
-        BotHelper.sendMessageToTelegram(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage(), telegramClient);
+        // Iniciar flujo conversacional
+        if (conversationManager != null) {
+            conversationManager.startTaskCreation(chatId);
+            BotHelper.sendMessageToTelegram(chatId,
+                    "What is the title of the task?",
+                    telegramClient);
+        } else {
+            // Fallback al mensaje antiguo si no hay conversation manager
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage(), telegramClient);
+        }
         exit = true;
     }
 
