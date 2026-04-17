@@ -36,11 +36,11 @@ export default function TotalTasksKpi({
   const [tooltipData, setTooltipData] = React.useState<DonutTooltipState | null>(null);
 
   const donutData = [
-    { name: "Done",        value: done        },
-    { name: "In Progress", value: inProgress  },
-    { name: "Review",      value: review      },
-    { name: "Ready",       value: ready       },
-    { name: "Backlog",     value: backlog     },
+    { name: "Completed", value: done },
+    { name: "In progress", value: inProgress },
+    { name: "In review", value: review },
+    { name: "Ready", value: ready },
+    { name: "Backlog", value: backlog },
   ];
 
   const donutColors: AvailableChartColorsKeys[] = [
@@ -60,12 +60,12 @@ export default function TotalTasksKpi({
     indigo: "bg-indigo-500",
     rose: "bg-rose-500",
     cyan: "bg-cyan-500",
-    orange: "bg-[#e76b36]",
-    orangeSoft: "bg-[#f19367]",
-    orangeDeep: "bg-[#c45223]",
-    slate: "bg-[#2b3542]",
-    slateLight: "bg-[#6e7d91]",
-    slateDim: "bg-[#1f2937]",
+    orange: "bg-[var(--kpi-chart-1)]",
+    orangeSoft: "bg-[var(--kpi-chart-3)]",
+    orangeDeep: "bg-[var(--kpi-chart-4)]",
+    slate: "bg-[var(--kpi-chart-6)]",
+    slateLight: "bg-[var(--kpi-chart-2)]",
+    slateDim: "bg-[var(--kpi-chart-5)]",
   };
 
   const donutTotal = donutData.reduce((sum, d) => sum + d.value, 0);
@@ -76,83 +76,79 @@ export default function TotalTasksKpi({
 
   return (
     <KpiCard
-      title="Tareas totales en el proyecto"
+      title="Task distribution by status"
       icon={<CheckSquare />}
       badgeType="up"
       bottomContent={
-        <div className="flex flex-col items-center gap-5 w-full">
+        <div className="w-full">
+          <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[0.9fr_1.1fr]">
+            <div className="relative flex justify-center">
+              <DonutChart
+                data={donutData}
+                category="name"
+                value="value"
+                colors={[...donutColors]}
+                className="mx-auto h-32"
+                showLabel={false}
+                showTooltip={false}
+                tooltipCallback={(props) => {
+                  if (props.active) {
+                    setTooltipData((prev) => {
+                      if (
+                        prev?.payload[0]?.category ===
+                        props.payload?.[0]?.category
+                      ) {
+                        return prev;
+                      }
+                      return props as unknown as DonutTooltipState;
+                    });
+                  } else {
+                    setTooltipData(null);
+                  }
+                  return null;
+                }}
+              />
 
-          {/* Donut + label central absoluto */}
-          <div className="relative w-full flex justify-center">
-            <DonutChart
-              data={donutData}
-              category="name"
-              value="value"
-              colors={[...donutColors]}
-              className="mx-auto h-28"
-              showLabel={false}
-              showTooltip={false}
-              tooltipCallback={(props) => {
-                if (props.active) {
-                  setTooltipData((prev) => {
-                    if (
-                      prev?.payload[0]?.category ===
-                      props.payload?.[0]?.category
-                    ) {
-                      return prev;
-                    }
-                    return props as unknown as DonutTooltipState;
-                  });
-                } else {
-                  setTooltipData(null);
-                }
-                return null;
-              }}
-            />
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-sm font-medium text-muted-foreground leading-tight">
-                {centerLabel}
-              </span>
-              <span className="text-4xl font-bold tabular-nums leading-tight">
-                {centerValue}
-              </span>
-              <span className="text-xs text-muted-foreground">tareas</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-xs font-medium text-muted-foreground leading-tight">
+                  {centerLabel}
+                </span>
+                <span className="text-3xl font-bold tabular-nums leading-tight">
+                  {centerValue}
+                </span>
+                <span className="text-[11px] text-muted-foreground">tasks</span>
+              </div>
             </div>
+
+            <ul className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+              {donutData.map((item, i) => {
+                const pct =
+                  donutTotal > 0 ? Math.round((item.value / donutTotal) * 100) : 0;
+
+                return (
+                  <li key={item.name} className="rounded-md border border-border/60 bg-background/30 px-3 py-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${dotColorMap[donutColors[i]] ?? "bg-slate-400"}`}
+                      />
+                      <span className="truncate">{item.name}</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-3">
+                      <span className="text-base font-semibold tabular-nums text-foreground">
+                        {item.value}
+                      </span>
+                      <span className="text-sm tabular-nums text-muted-foreground">
+                        {pct}%
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
-          {/* ── Leyenda debajo del chart ── */}
-          <ul className="mt-3 w-full space-y-1.5">
-            {donutData.map((item, i) => {
-              const pct =
-                donutTotal > 0 ? Math.round((item.value / donutTotal) * 100) : 0;
-
-              return (
-                <li
-                  key={item.name}
-                  className="flex items-center justify-between text-xs"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`h-2 w-2 shrink-0 rounded-full ${dotColorMap[donutColors[i]] ?? "bg-slate-400"}`}
-                    />
-                    <span className="text-muted-foreground">{item.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground tabular-nums">
-                      {item.value}
-                    </span>
-                    <span className="w-9 text-right text-muted-foreground tabular-nums">
-                      {pct}%
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          <p className="text-sm text-muted-foreground border-t border-border w-full pt-3 text-center">
-            Total: <span className="font-semibold text-foreground">{total}</span> tareas
+          <p className="mt-3 border-t border-border pt-2 text-sm text-muted-foreground">
+            Total: <span className="font-semibold text-foreground">{total}</span> tasks
           </p>
         </div>
       }

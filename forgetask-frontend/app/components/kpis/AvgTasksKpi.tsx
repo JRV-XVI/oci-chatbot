@@ -4,16 +4,12 @@
 import React from "react";
 import { Users } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
-import { CategoryBar } from "../ui/CategoryBar";
 
 interface AvgTasksKpiProps {
   totalTasks: number;
   totalDevs: number;
   sprintTasks?: number;
   sprintDevs?: number;
-  healthyMax?: number;
-  warningMax?: number;
-  dangerMax?: number;
 }
 
 export default function AvgTasksKpi({
@@ -21,53 +17,25 @@ export default function AvgTasksKpi({
   totalDevs,
   sprintTasks,
   sprintDevs,
-  healthyMax = 10,
-  warningMax = 18,
-  dangerMax = 28,
 }: AvgTasksKpiProps) {
   const [mode, setMode] = React.useState<"project" | "sprint">("project");
 
   const activeTasks = mode === "project" ? totalTasks : (sprintTasks ?? 0);
   const activeDevs  = mode === "project" ? totalDevs  : (sprintDevs ?? totalDevs);
   const hasSprintData = sprintTasks !== undefined;
-  const activeScopeLabel = mode === "project" ? "en el proyecto" : "en sprint actual";
-
-  // Umbrales dinámicos por modo
-  const currentHealthyMax = mode === "project" ? healthyMax * 4 : healthyMax;
-  const currentWarningMax = mode === "project" ? warningMax * 4 : warningMax;
-  const currentDangerMax  = mode === "project" ? dangerMax  * 4 : dangerMax;
+  const activeScopeLabel = mode === "project" ? "in project scope" : "in current sprint";
 
   // Cálculo del promedio
   const avg = activeDevs > 0
     ? Math.round((activeTasks / activeDevs) * 10) / 10
     : 0;
 
-  // Lógica de salud
-  let healthLabel: string;
-  let badgeType: "up" | "down" | "neutral";
-
-  if (avg <= currentHealthyMax) {
-    healthLabel = "Carga saludable";
-    badgeType = "up";
-  } else if (avg <= currentWarningMax) {
-    healthLabel = "Riesgo de sobrecarga";
-    badgeType = "neutral";
-  } else {
-    healthLabel = "Equipo sobrecargado";
-    badgeType = "down";
-  }
-
-  // Zonas de la CategoryBar (porcentajes que suman 100)
-  const greenPct  = Math.round((currentHealthyMax / currentDangerMax) * 100);
-  const yellowPct = Math.round(((currentWarningMax - currentHealthyMax) / currentDangerMax) * 100);
-  const redPct    = 100 - greenPct - yellowPct;
-
   return (
     <KpiCard
-      title="Promedio de tareas por dev"
+      title="Average tasks per developer"
       icon={<Users />}
       value={avg}
-      suffix="tareas"
+      suffix="tasks"
       bottomContent={
         <div className="flex flex-col gap-4 w-full">
 
@@ -84,7 +52,7 @@ export default function AvgTasksKpi({
                       : "text-muted-foreground hover:bg-muted",
                   ].join(" ")}
                 >
-                  {m === "project" ? "Proyecto" : "Sprint"}
+                  {m === "project" ? "Project" : "Sprint"}
                 </button>
               ))}
             </div>
@@ -107,8 +75,13 @@ export default function AvgTasksKpi({
               <CategoryBar
                 values={[greenPct, yellowPct, redPct]}
                 colors={["emerald", "amber", "rose"]}
-                marker={{ value: Math.min((avg / currentDangerMax) * 100, 100) }}
-                className="py"
+                marker={{
+                  value: markerValue,
+                  tooltip: `Carga actual: ${avg} tareas/dev`,
+                  showAnimation: true,
+                }}
+                className="py-1"
+                showLabels={false}
               />
             </div>
 
@@ -118,6 +91,10 @@ export default function AvgTasksKpi({
               <span>{currentWarningMax}</span>
               <span>{currentDangerMax}+</span>
             </div>
+
+            <p className="kpi-explainer-text">
+              Valor actual: <span className="font-semibold text-foreground">{avg}</span> tareas por dev.
+            </p>
           </div> */}
         </div>
       }

@@ -1,20 +1,23 @@
 import UserTasksCompletionCard from "../ui/UserTasksCompletionCard"
+import type { SprintUserPerformance } from "@/app/services/metricsService"
 
-interface User {
-  id: string
-  name: string
-  completedTasks: number
-  totalTasks: number
+interface SprintTasksByUser {
+  sprintId: number
+  sprintNumber: number
+  sprintTitle: string
+  startDate?: string
+  endDate?: string
+  users: SprintUserPerformance[]
 }
 
 interface UserTasksCompletionKpiProps {
-  users: User[]
+  sprintData: SprintTasksByUser[]
   title?: string
 }
 
 export default function UserTasksCompletionKpi({
-  users,
-  title = "Tareas completadas por usuario",
+  sprintData,
+  title = "Tasks completed by user",
 }: UserTasksCompletionKpiProps) {
-  return <UserTasksCompletionCard users={users} title={title} />
+  return <UserTasksCompletionCard sprintData={sprintData} title={title} />
 }
