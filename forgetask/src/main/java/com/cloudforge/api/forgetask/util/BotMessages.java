@@ -3,7 +3,7 @@ package com.cloudforge.api.forgetask.util;
 public enum BotMessages {
 	
 	HELLO_MYTODO_BOT(
-	"Hello! I'm ForgeTask Bot!\nCreate tasks with plain text or use /addtask title | priority=high | sprint=2 | start=2026-04-14 | end=2026-04-20 | est=6 | real=2 | assignee=username"),
+	"Welcome to ForgeTask Bot! Create tasks easily through the conversational interface."),
 	BOT_REGISTERED_STARTED("Bot registered and started successfully!"),
 	ITEM_DONE("Task marked as done. Use /todolist to refresh the task board."), 
 	ITEM_UNDONE("Task moved back to backlog. Use /todolist to refresh the task board."), 
@@ -12,7 +12,8 @@ public enum BotMessages {
 	NEW_ITEM_ADDED("Task created successfully."),
 	INVALID_TASK_FORMAT("Invalid task format. Example:\n/addtask API docs | priority=high | sprint=2 | start=2026-04-14 | end=2026-04-20 | est=6 | assignee=jane"),
 	TASK_OPERATION_FAILED("Task operation failed. Please verify task id and attributes."),
-	BYE("Bye! Select /start to resume!");
+	BYE("Bye! Select /start to resume!"),
+	CREATION_CANCELLED("Task creation cancelled. Use /start to return to main menu.");
 
 	private String message;
 
