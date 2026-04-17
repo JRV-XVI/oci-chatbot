@@ -8,6 +8,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci
+RUN npm install sharp
 
 # Stage 2: Build
 FROM node:20-alpine AS build
@@ -35,8 +36,6 @@ RUN mkdir .next && chown nextjs:nodejs .next
 # Runtime assets.
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static     ./.next/static
-
-RUN npm install sharp
 
 USER nextjs
 
