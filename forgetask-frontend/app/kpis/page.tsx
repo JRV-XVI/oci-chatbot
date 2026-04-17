@@ -230,7 +230,7 @@ export default function KPIsPage() {
 
             {/* ── Real Total Hours by User KPI ── */}
             <section className="kpi-section-enter">
-              <RealTotalHoursByUserKpi sprintOptions={sprints} />
+              <RealTotalHoursByUserKpi sprintOptions={sprints} taskSprintData={tasksBySprint} />
             </section>
           </section>
         </div>
