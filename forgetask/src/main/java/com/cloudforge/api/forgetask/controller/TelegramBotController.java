@@ -2,6 +2,10 @@ package com.cloudforge.api.forgetask.controller;
 
 import com.cloudforge.api.forgetask.config.TelegramBotConfig;
 import com.cloudforge.api.forgetask.util.BotActions;
+import com.cloudforge.api.forgetask.util.ConversationManager;
+import com.cloudforge.api.forgetask.util.ConversationState;
+import com.cloudforge.api.forgetask.util.ConversationalTaskCreator;
+import com.cloudforge.api.forgetask.util.TaskCreationStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,12 +27,16 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 	private final SprintController sprintController;
 	private final TelegramClient telegramClient;
 	private final TelegramBotConfig telegramBotConfig;
+	private final ConversationManager conversationManager;
 
-	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController, SprintController sprintController, TelegramClient telegramClient) {
+	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController, 
+	                             SprintController sprintController, TelegramClient telegramClient,
+	                             ConversationManager conversationManager) {
 		this.telegramBotConfig = telegramBotConfig;
 		this.taskController = taskController;
 		this.sprintController = sprintController;
 		this.telegramClient = telegramClient;
+		this.conversationManager = conversationManager;
 	}
 
 	@Override
@@ -54,9 +62,22 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 
 		long chatId = update.getMessage().getChatId();
 
+		// Obtener o crear el estado de conversación del usuario
+		ConversationState conversationState = conversationManager.getOrCreateConversation(chatId);
+
+		// Si el usuario está en mitad de crear una tarea, usar flujo conversacional
+		if (conversationState.getCurrentStep() != TaskCreationStep.NONE) {
+			ConversationalTaskCreator creator = new ConversationalTaskCreator(
+					telegramClient, taskController, sprintController, conversationState);
+			creator.processMessage(messageTextFromTelegram.trim());
+			return;
+		}
+
+		// Flujo normal de comandos
 		BotActions actions = new BotActions(telegramClient, taskController, sprintController);
 		actions.setRequestText(messageTextFromTelegram.trim());
 		actions.setChatId(chatId);
+		actions.setConversationManager(conversationManager);
 
 		// Execute bot action chain
 		actions.fnStart();

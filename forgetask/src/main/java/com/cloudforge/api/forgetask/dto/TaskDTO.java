@@ -10,6 +10,8 @@ import java.util.List;
 public class TaskDTO {
     private String id;
     private Integer sprintId;
+    private Integer sprintNumber;
+    private String sprintTitle;
     private String title;
     private String description;
     private String status; // "backlog", "ready", "in-progress", "review", "done"
@@ -58,6 +60,22 @@ public class TaskDTO {
 
     public void setSprintId(Integer sprintId) {
         this.sprintId = sprintId;
+    }
+
+    public Integer getSprintNumber() {
+        return sprintNumber;
+    }
+
+    public void setSprintNumber(Integer sprintNumber) {
+        this.sprintNumber = sprintNumber;
+    }
+
+    public String getSprintTitle() {
+        return sprintTitle;
+    }
+
+    public void setSprintTitle(String sprintTitle) {
+        this.sprintTitle = sprintTitle;
     }
 
     public String getTitle() {
