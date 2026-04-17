@@ -4,7 +4,7 @@
 # ==============================================================================
 
 # Obtiene el namespace de Object Storage del compartment objetivo.
-data "oci_objectstorage_namespace" "namespace" {
+data "oci_objectstorage_namespace" "test_namespace" {
   #Required
   compartment_id = var.ociCompartmentOcid
 }
