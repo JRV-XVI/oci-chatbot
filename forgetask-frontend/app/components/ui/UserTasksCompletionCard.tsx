@@ -59,6 +59,24 @@ function toTimestampOrNaN(date?: string): number {
   return Number(new Date(date))
 }
 
+function buildSprintLabel(sprintNumber: number, sprintTitle?: string): string {
+  const fallback = `Sprint ${sprintNumber}`
+  const trimmedTitle = sprintTitle?.trim() ?? ""
+
+  if (trimmedTitle.length === 0) {
+    return fallback
+  }
+
+  const repeatedPrefix = new RegExp(`^sprint\\s*${sprintNumber}\\s*[-:|·]?\\s*`, "i")
+  const cleanedTitle = trimmedTitle.replace(repeatedPrefix, "").trim()
+
+  if (cleanedTitle.length === 0) {
+    return fallback
+  }
+
+  return `${fallback} · ${cleanedTitle}`
+}
+
 function compareSprintsByDates(
   a: Pick<SprintTasksByUser, "startDate" | "endDate" | "sprintNumber" | "sprintId">,
   b: Pick<SprintTasksByUser, "startDate" | "endDate" | "sprintNumber" | "sprintId">,
@@ -156,13 +174,13 @@ export default function UserTasksCompletionCard({
       .slice()
       .sort(compareSprintsByDates)
       .map((sprint) => {
-        const sprintLabel = `Sprint ${sprint.sprintNumber}`
+        const sprintLabel = buildSprintLabel(sprint.sprintNumber, sprint.sprintTitle)
         const sprintStartDate = normalizeSprintDate(sprint.startDate)
         const sprintEndDate = normalizeSprintDate(sprint.endDate)
         const row: Record<string, number | string> = {
           sprintLabel,
           sprintAxisLabel: `${sprintStartDate}||${sprintLabel}||${sprintEndDate}`,
-          sprintFullLabel: `Sprint ${sprint.sprintNumber}: ${sprint.sprintTitle}`,
+          sprintFullLabel: sprintLabel,
           sprintStartDate,
           sprintEndDate,
         }
@@ -178,8 +196,9 @@ export default function UserTasksCompletionCard({
       })
   }, [topUsers, visibleSprintData])
 
-  const enableHorizontalScroll = chartData.length > 4
-  const chartWidth = enableHorizontalScroll ? `calc(100% * ${chartData.length} / 4)` : "100%"
+  const visibleSprintSlots = 3
+  const enableHorizontalScroll = chartData.length > visibleSprintSlots
+  const chartWidth = enableHorizontalScroll ? `calc(100% * ${chartData.length} / ${visibleSprintSlots})` : "100%"
 
   return (
     <Card className="px-5 py-4">
@@ -221,19 +240,20 @@ export default function UserTasksCompletionCard({
                         borderRadius: "10px",
                         color: "#e2e8f0",
                       }}
-                      formatter={(value: number | string, name: string | number) => [
-                        Number.isFinite(Number(value)) ? Number(value) : 0,
-                        String(name),
-                      ]}
-                      labelFormatter={(label: string, payload) => {
+                      formatter={(value, name) => {
+                        const numeric = Number(value ?? 0)
+                        return [Number.isFinite(numeric) ? numeric : 0, String(name ?? "")]
+                      }}
+                      labelFormatter={(label, payload) => {
                         const source = payload?.[0]?.payload as {
                           sprintLabel?: string
+                          sprintFullLabel?: string
                         } | undefined
-                        if (!source?.sprintLabel) {
+                        if (!source?.sprintLabel && !source?.sprintFullLabel) {
                           return label
                         }
 
-                        return source.sprintLabel
+                        return source.sprintFullLabel ?? source.sprintLabel
                       }}
                     />
                     <Legend
@@ -254,7 +274,7 @@ export default function UserTasksCompletionCard({
                           position="top"
                           fill="#dbeafe"
                           fontSize={10}
-                          formatter={(value: number | string) => {
+                          formatter={(value) => {
                             const numeric = Number(value)
                             return Number.isFinite(numeric) ? numeric : ""
                           }}

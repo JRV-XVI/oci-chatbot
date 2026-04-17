@@ -21,6 +21,12 @@ import { getUserSeriesColor } from "@/app/components/chart/userSeriesColor";
 interface RealTotalHoursByUserKpiProps {
   selectedSprintId?: number;
   sprintOptions?: SprintOption[];
+  taskSprintData?: Array<{
+    sprintId: number;
+    users: Array<{
+      doneCount?: number | null;
+    }>;
+  }>;
 }
 
 type SprintAxisTickProps = {
@@ -58,6 +64,24 @@ function toTimestampOrNaN(date?: string): number {
   return Number(new Date(date));
 }
 
+function buildSprintLabel(sprintNumber: number, sprintTitle?: string): string {
+  const fallback = `Sprint ${sprintNumber}`;
+  const trimmedTitle = sprintTitle?.trim() ?? "";
+
+  if (trimmedTitle.length === 0) {
+    return fallback;
+  }
+
+  const repeatedPrefix = new RegExp(`^sprint\\s*${sprintNumber}\\s*[-:|·]?\\s*`, "i");
+  const cleanedTitle = trimmedTitle.replace(repeatedPrefix, "").trim();
+
+  if (cleanedTitle.length === 0) {
+    return fallback;
+  }
+
+  return `${fallback} · ${cleanedTitle}`;
+}
+
 function SprintAxisTick({ x = 0, y = 0, payload, width = 320, visibleTicksCount = 1 }: SprintAxisTickProps) {
   const rawValue = String(payload?.value ?? "");
   const [startDate = "-", sprintLabel = rawValue, endDate = "-"] = rawValue.split("||");
@@ -79,7 +103,11 @@ function SprintAxisTick({ x = 0, y = 0, payload, width = 320, visibleTicksCount 
   );
 }
 
-export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOptions = [] }: RealTotalHoursByUserKpiProps) {
+export default function RealTotalHoursByUserKpi({
+  selectedSprintId,
+  sprintOptions = [],
+  taskSprintData = [],
+}: RealTotalHoursByUserKpiProps) {
   const [sprintUserRows, setSprintUserRows] = useState<RealHoursBySprintUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -113,28 +141,70 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
     return sprintUserRows.filter((row) => Number(row.sprintId ?? 0) === selectedSprintId);
   }, [selectedSprintId, sprintUserRows]);
 
+  const taskTotalsBySprint = useMemo(() => {
+    const totals = new Map<number, number>();
+
+    taskSprintData.forEach((sprint) => {
+      const sprintId = Number(sprint.sprintId ?? 0);
+      if (!Number.isFinite(sprintId) || sprintId < 0) {
+        return;
+      }
+
+      const totalDoneTasks = sprint.users.reduce((sum, row) => {
+        const done = Number(row.doneCount ?? 0);
+        return sum + (Number.isFinite(done) && done > 0 ? done : 0);
+      }, 0);
+
+      totals.set(sprintId, totalDoneTasks);
+    });
+
+    return totals;
+  }, [taskSprintData]);
+
   const topUsers = useMemo(() => {
-    const totals = new Map<string, number>();
+    const taskTotals = new Map<string, number>();
+    const hourTotals = new Map<string, number>();
 
     filteredRows.forEach((row) => {
       const user = normalizeUserLabel(row.username);
+      const tasksRaw = Number(row.doneTasks ?? 0);
+      const safeTasks = Number.isFinite(tasksRaw) && tasksRaw > 0 ? tasksRaw : 0;
       const hoursRaw = Number(row.realTotalHours ?? 0);
       const safeHours = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 0;
-      totals.set(user, (totals.get(user) ?? 0) + safeHours);
+
+      if (safeTasks > 0) {
+        taskTotals.set(user, (taskTotals.get(user) ?? 0) + safeTasks);
+      }
+
+      hourTotals.set(user, (hourTotals.get(user) ?? 0) + safeHours);
     });
 
-    return Array.from(totals.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    return Array.from(hourTotals.keys())
+      .sort((a, b) => {
+        const tasksDiff = (taskTotals.get(b) ?? 0) - (taskTotals.get(a) ?? 0);
+        if (tasksDiff !== 0) {
+          return tasksDiff;
+        }
+
+        const hoursDiff = (hourTotals.get(b) ?? 0) - (hourTotals.get(a) ?? 0);
+        if (hoursDiff !== 0) {
+          return hoursDiff;
+        }
+
+        return a.localeCompare(b);
+      })
       .slice(0, 5)
-      .map(([name]) => name);
+      .map((name) => name);
   }, [filteredRows]);
 
   const chartData = useMemo(() => {
-    const sprintDatesById = new Map<number, { startDate: string; endDate: string }>();
+    const sprintMetaById = new Map<number, { sprintNumber: number; title: string; startDate: string; endDate: string }>();
     sprintOptions.forEach((sprint) => {
-      sprintDatesById.set(
+      sprintMetaById.set(
         sprint.idSprint,
         {
+          sprintNumber: sprint.sprintNumber,
+          title: sprint.title,
           startDate: normalizeSprintDate(sprint.startDate),
           endDate: normalizeSprintDate(sprint.endDate),
         }
@@ -151,13 +221,41 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
       totalTasks: number;
     }>();
 
+    // Seed sprints from task KPI data so chart 2 follows task-based sprint visibility.
+    taskSprintData.forEach((taskSprint) => {
+      const sprintId = Number(taskSprint.sprintId ?? 0);
+      if (!Number.isFinite(sprintId) || sprintId < 0) {
+        return;
+      }
+
+      const taskTotal = taskTotalsBySprint.get(sprintId) ?? 0;
+      if (taskTotal <= 0 || grouped.has(sprintId)) {
+        return;
+      }
+
+      const sprintMeta = sprintMetaById.get(sprintId);
+      const sprintNumberRaw = Number(sprintMeta?.sprintNumber ?? sprintId);
+      const sprintNumber = Number.isFinite(sprintNumberRaw) && sprintNumberRaw >= 0 ? sprintNumberRaw : sprintId;
+
+      grouped.set(sprintId, {
+        sprintId,
+        sprintNumber,
+        sprintTitle: sprintMeta?.title || `Sprint ${sprintNumber}`,
+        sprintStartDate: sprintMeta?.startDate ?? "-",
+        sprintEndDate: sprintMeta?.endDate ?? "-",
+        valuesByUser: new Map<string, number>(),
+        totalTasks: 0,
+      });
+    });
+
     filteredRows.forEach((row) => {
       const sprintId = Number(row.sprintId ?? 0);
       if (!Number.isFinite(sprintId) || sprintId < 0) {
         return;
       }
 
-      const sprintNumberRaw = Number(row.sprintNumber ?? sprintId);
+      const sprintMeta = sprintMetaById.get(sprintId);
+      const sprintNumberRaw = Number(sprintMeta?.sprintNumber ?? row.sprintNumber ?? sprintId);
       const sprintNumber = Number.isFinite(sprintNumberRaw) && sprintNumberRaw >= 0 ? sprintNumberRaw : sprintId;
       const user = normalizeUserLabel(row.username);
       const hoursRaw = Number(row.realTotalHours ?? 0);
@@ -166,13 +264,12 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
       const safeTasks = Number.isFinite(tasksRaw) && tasksRaw > 0 ? tasksRaw : 0;
 
       if (!grouped.has(sprintId)) {
-        const sprintDates = sprintDatesById.get(sprintId);
         grouped.set(sprintId, {
           sprintId,
           sprintNumber,
-          sprintTitle: row.sprintTitle || `Sprint ${sprintNumber}`,
-          sprintStartDate: sprintDates?.startDate ?? "-",
-          sprintEndDate: sprintDates?.endDate ?? "-",
+          sprintTitle: sprintMeta?.title || row.sprintTitle || `Sprint ${sprintNumber}`,
+          sprintStartDate: sprintMeta?.startDate ?? "-",
+          sprintEndDate: sprintMeta?.endDate ?? "-",
           valuesByUser: new Map<string, number>(),
           totalTasks: 0,
         });
@@ -184,6 +281,7 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
     });
 
     return Array.from(grouped.values())
+      .filter((sprint) => (taskTotalsBySprint.get(sprint.sprintId) ?? sprint.totalTasks) > 0)
       .sort((a, b) => {
         const startA = toTimestampOrNaN(a.sprintStartDate);
         const startB = toTimestampOrNaN(b.sprintStartDate);
@@ -218,11 +316,11 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
         return a.sprintNumber - b.sprintNumber || a.sprintId - b.sprintId;
       })
       .map((sprint) => {
-        const sprintLabel = `Sprint ${sprint.sprintNumber}`;
+        const sprintLabel = buildSprintLabel(sprint.sprintNumber, sprint.sprintTitle);
         const row: Record<string, number | string> = {
           sprintLabel,
           sprintAxisLabel: `${sprint.sprintStartDate}||${sprintLabel}||${sprint.sprintEndDate}`,
-          sprintFullLabel: `Sprint ${sprint.sprintNumber}: ${sprint.sprintTitle}`,
+          sprintFullLabel: sprintLabel,
           sprintStartDate: sprint.sprintStartDate,
           sprintEndDate: sprint.sprintEndDate,
           totalTasks: sprint.totalTasks,
@@ -234,10 +332,11 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
 
         return row;
       });
-  }, [filteredRows, sprintOptions, topUsers]);
+  }, [filteredRows, sprintOptions, taskSprintData, taskTotalsBySprint, topUsers]);
 
-  const enableHorizontalScroll = chartData.length > 4;
-  const chartWidth = enableHorizontalScroll ? `calc(100% * ${chartData.length} / 4)` : "100%";
+  const visibleSprintSlots = 3;
+  const enableHorizontalScroll = chartData.length > visibleSprintSlots;
+  const chartWidth = enableHorizontalScroll ? `calc(100% * ${chartData.length} / ${visibleSprintSlots})` : "100%";
 
   return (
     <Card className="px-5 py-4">
@@ -296,19 +395,20 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
                         borderRadius: "10px",
                         color: "#e2e8f0",
                       }}
-                      formatter={(value: number | string, name: string | number) => {
-                        const numeric = Number(value);
-                        return [formatHours(Number.isFinite(numeric) ? numeric : 0), String(name)];
+                      formatter={(value, name) => {
+                        const numeric = Number(value ?? 0);
+                        return [formatHours(Number.isFinite(numeric) ? numeric : 0), String(name ?? "")];
                       }}
-                      labelFormatter={(label: string, payload) => {
+                      labelFormatter={(label, payload) => {
                         const source = payload?.[0]?.payload as {
                           sprintLabel?: string;
+                          sprintFullLabel?: string;
                         } | undefined;
-                        if (!source?.sprintLabel) {
+                        if (!source?.sprintLabel && !source?.sprintFullLabel) {
                           return label;
                         }
 
-                        return source.sprintLabel;
+                        return source.sprintFullLabel ?? source.sprintLabel;
                       }}
                     />
                     <Legend
@@ -329,7 +429,7 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
                           position="top"
                           fill="#dbeafe"
                           fontSize={10}
-                          formatter={(value: number | string) => {
+                          formatter={(value) => {
                             const numeric = Number(value);
                             if (!Number.isFinite(numeric)) {
                               return "";
