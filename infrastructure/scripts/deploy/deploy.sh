@@ -27,7 +27,7 @@ purpleColour="\e[0;35m\033[1m"
 grayColour="\e[0;37m\033[1m"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-REPO_ROOT=${MTDRWORKSHOP_LOCATION}
+REPO_ROOT="$(cd "${MTDRWORKSHOP_LOCATION}/../.." && pwd)"
 TEMPLATES_DIR=${REPO_ROOT}/infrastructure/kubernetes/templates
 GENERATED_DIR=${REPO_ROOT}/infrastructure/kubernetes/generated
 
@@ -104,7 +104,7 @@ deploy_manifest() {
     echo -e "${greenColour}[deploy.sh][+]${endColour} Manifest generated: ${OUTPUT}"
 
     # Aplica el manifiesto — con o sin sidecar Istio
-    if [ -z "$1_ISTIO" ] && [ "$1" != "istio" ]; then
+    if [ "$DEPLOY_MODE" != "istio" ]; then
         kubectl apply -f "$OUTPUT" -n mtdrworkshop
     else
         kubectl apply -f <(istioctl kube-inject -f "$OUTPUT") -n mtdrworkshop
