@@ -45,10 +45,10 @@ export default function KpiCard({
 }: KpiCardProps) {
   const badgeColor =
     badgeType === "up"
-      ? "text-emerald-500 bg-emerald-500/10"
+      ? "kpi-badge-up"
       : badgeType === "down"
-      ? "text-rose-500 bg-rose-500/10"
-      : "text-muted-foreground bg-muted";
+      ? "kpi-badge-down"
+      : "kpi-badge-neutral";
 
   const badgeArrow =
     badgeType === "up" ? "↑" : badgeType === "down" ? "↓" : "→";

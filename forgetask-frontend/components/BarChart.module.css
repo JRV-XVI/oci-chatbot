@@ -1,5 +1,5 @@
 .chart {
-  border: 1px solid rgba(43, 53, 66, 0.95);
+  border: 1px solid var(--border);
   border-radius: 0.9rem;
   background: rgba(13, 17, 23, 0.86);
   padding: 0.85rem;
@@ -40,7 +40,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #9aa4b2;
+  color: var(--muted-foreground);
   font-size: 0.78rem;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .index {
-  color: #e6edf3;
+  color: var(--foreground);
   font-size: 0.82rem;
   white-space: nowrap;
   overflow: hidden;
@@ -83,7 +83,7 @@
 }
 
 .verticalRow {
-  border: 1px solid rgba(43, 53, 66, 0.9);
+  border: 1px solid var(--border);
   background: rgba(17, 22, 31, 0.72);
   border-radius: 0.75rem;
   padding: 0.65rem;
@@ -91,7 +91,7 @@
 
 .verticalIndex {
   display: block;
-  color: #e6edf3;
+  color: var(--foreground);
   font-size: 0.8rem;
   font-weight: 600;
   margin-bottom: 0.45rem;
@@ -116,7 +116,7 @@
 
 .verticalBarButton {
   appearance: none;
-  border: 1px solid rgba(43, 53, 66, 0.95);
+  border: 1px solid var(--border);
   background: rgba(13, 17, 23, 0.88);
   border-radius: 0.5rem;
   width: 100%;
@@ -141,14 +141,14 @@
 }
 
 .verticalValue {
-  color: #f19367;
+  color: var(--kpi-chart-2);
   font-size: 0.68rem;
 }
 
 .verticalCategory {
   width: 100%;
   text-align: center;
-  color: #9aa4b2;
+  color: var(--muted-foreground);
   font-size: 0.66rem;
   white-space: nowrap;
   overflow: hidden;
@@ -164,7 +164,7 @@
 }
 
 .barCategory {
-  color: #9aa4b2;
+  color: var(--muted-foreground);
   font-size: 0.74rem;
   max-width: 70%;
   white-space: nowrap;
@@ -174,7 +174,7 @@
 
 .barButton {
   appearance: none;
-  border: 1px solid rgba(43, 53, 66, 0.9);
+  border: 1px solid var(--border);
   background: rgba(17, 22, 31, 0.72);
   border-radius: 9999px;
   height: 1rem;
@@ -211,82 +211,82 @@
 }
 
 .blue {
-  --bar-color: #2b3542;
-  color: #2b3542;
+  --bar-color: var(--kpi-chart-6);
+  color: var(--kpi-chart-6);
 }
 
 .emerald {
-  --bar-color: #e76b36;
-  color: #e76b36;
+  --bar-color: var(--kpi-chart-1);
+  color: var(--kpi-chart-1);
 }
 
 .violet {
-  --bar-color: #f19367;
-  color: #f19367;
+  --bar-color: var(--kpi-chart-2);
+  color: var(--kpi-chart-2);
 }
 
 .cyan {
-  --bar-color: #6e7d91;
-  color: #6e7d91;
+  --bar-color: var(--kpi-chart-3);
+  color: var(--kpi-chart-3);
 }
 
 .fuchsia {
-  --bar-color: #ffb28e;
-  color: #ffb28e;
+  --bar-color: var(--kpi-chart-4);
+  color: var(--kpi-chart-4);
 }
 
 .pink {
-  --bar-color: #c45223;
-  color: #c45223;
+  --bar-color: var(--kpi-chart-5);
+  color: var(--kpi-chart-5);
 }
 
 .amber {
-  --bar-color: #f19367;
-  color: #f19367;
+  --bar-color: var(--kpi-chart-2);
+  color: var(--kpi-chart-2);
 }
 
 .orange {
-  --bar-color: #e76b36;
-  color: #e76b36;
+  --bar-color: var(--kpi-chart-1);
+  color: var(--kpi-chart-1);
 }
 
 .red {
-  --bar-color: #ffb28e;
-  color: #ffb28e;
+  --bar-color: var(--kpi-chart-4);
+  color: var(--kpi-chart-4);
 }
 
 .orangeSoft {
-  --bar-color: #f19367;
-  color: #f19367;
+  --bar-color: var(--kpi-chart-2);
+  color: var(--kpi-chart-2);
 }
 
 .orangeDeep {
-  --bar-color: #c45223;
-  color: #c45223;
+  --bar-color: var(--kpi-chart-4);
+  color: var(--kpi-chart-4);
 }
 
 .slate {
-  --bar-color: #2b3542;
-  color: #2b3542;
+  --bar-color: var(--kpi-chart-6);
+  color: var(--kpi-chart-6);
 }
 
 .slateLight {
-  --bar-color: #6e7d91;
-  color: #6e7d91;
+  --bar-color: var(--kpi-chart-3);
+  color: var(--kpi-chart-3);
 }
 
 .slateDim {
-  --bar-color: #1f2937;
-  color: #1f2937;
+  --bar-color: var(--kpi-chart-5);
+  color: var(--kpi-chart-5);
 }
 
 .barValue {
-  color: #f19367;
+  color: var(--kpi-chart-2);
   font-size: 0.72rem;
 }
 
 .empty {
-  color: #9aa4b2;
+  color: var(--muted-foreground);
   font-size: 0.84rem;
   opacity: 0.9;
 }

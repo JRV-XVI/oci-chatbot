@@ -8,10 +8,10 @@
  */
 export function getTaskCompletionColor(percentage: number): string {
   if (percentage >= 80) {
-    return "#e76b36" // primary accent for high completion
+    return "var(--kpi-chart-1)" // high completion
   } else if (percentage >= 50) {
-    return "#f19367" // soft accent for medium completion
+    return "var(--kpi-chart-3)" // medium completion
   } else {
-    return "#6e7d91" // neutral slate for low completion
+    return "var(--kpi-chart-6)" // low completion
   }
 }

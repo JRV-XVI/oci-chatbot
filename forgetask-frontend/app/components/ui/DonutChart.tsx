@@ -22,12 +22,12 @@ const chartColorMap = {
   indigo: { bg: "bg-indigo-500", fill: "fill-indigo-500" },
   cyan: { bg: "bg-cyan-500", fill: "fill-cyan-500" },
   violet: { bg: "bg-violet-500", fill: "fill-violet-500" },
-  orange: { bg: "bg-[#e76b36]", fill: "fill-[#e76b36]" },
-  orangeSoft: { bg: "bg-[#f19367]", fill: "fill-[#f19367]" },
-  orangeDeep: { bg: "bg-[#c45223]", fill: "fill-[#c45223]" },
-  slate: { bg: "bg-[#2b3542]", fill: "fill-[#2b3542]" },
-  slateLight: { bg: "bg-[#6e7d91]", fill: "fill-[#6e7d91]" },
-  slateDim: { bg: "bg-[#1f2937]", fill: "fill-[#1f2937]" },
+  orange: { bg: "bg-[var(--kpi-chart-1)]", fill: "fill-[var(--kpi-chart-1)]" },
+  orangeSoft: { bg: "bg-[var(--kpi-chart-3)]", fill: "fill-[var(--kpi-chart-3)]" },
+  orangeDeep: { bg: "bg-[var(--kpi-chart-4)]", fill: "fill-[var(--kpi-chart-4)]" },
+  slate: { bg: "bg-[var(--kpi-chart-6)]", fill: "fill-[var(--kpi-chart-6)]" },
+  slateLight: { bg: "bg-[var(--kpi-chart-2)]", fill: "fill-[var(--kpi-chart-2)]" },
+  slateDim: { bg: "bg-[var(--kpi-chart-5)]", fill: "fill-[var(--kpi-chart-5)]" },
 } as const
 
 type ColorClassType = "bg" | "fill"

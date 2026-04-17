@@ -51,12 +51,12 @@ interface ProgressBarProps
 }
 
 const progressBackgroundColorMap: Partial<Record<AvailableChartColorsKeys, string>> = {
-  orange: "bg-[#e76b36]/20",
-  orangeSoft: "bg-[#f19367]/20",
-  orangeDeep: "bg-[#c45223]/20",
-  slate: "bg-[#2b3542]/40",
-  slateLight: "bg-[#6e7d91]/30",
-  slateDim: "bg-[#1f2937]/45",
+  orange: "bg-[var(--kpi-chart-1)]/20",
+  orangeSoft: "bg-[var(--kpi-chart-2)]/20",
+  orangeDeep: "bg-[var(--kpi-chart-4)]/20",
+  slate: "bg-[var(--kpi-chart-6)]/32",
+  slateLight: "bg-[var(--kpi-chart-3)]/24",
+  slateDim: "bg-[var(--kpi-chart-5)]/28",
 }
 
 const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
@@ -73,7 +73,8 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
     }: ProgressBarProps,
     forwardedRef,
   ) => {
-    const safeValue = Math.min(max, Math.max(value, 0))
+    const safeMax = Number.isFinite(max) && max > 0 ? max : 100
+    const safeValue = Math.min(safeMax, Math.max(value, 0))
     const { background, bar } = progressBarVariants({ variant })
     const backgroundColorClass = color ? progressBackgroundColorMap[color] : undefined
     const barColorClass = color ? getColorClassName(color, "bg") : undefined
@@ -83,8 +84,8 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
         className={cn("flex w-full items-center", className)}
         role="progressbar"
         aria-label="Progress bar"
-        aria-valuenow={value}
-        aria-valuemax={max}
+        aria-valuenow={safeValue}
+        aria-valuemax={safeMax}
         tremor-id="tremor-raw"
         {...props}
       >
@@ -102,7 +103,7 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
                 "transform-gpu transition-all duration-300 ease-in-out",
             )}
             style={{
-              width: max ? `${(safeValue / max) * 100}%` : `${safeValue}%`,
+              width: `${(safeValue / safeMax) * 100}%`,
             }}
           />
         </div>

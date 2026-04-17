@@ -3,6 +3,14 @@ import type { SprintCreateRequest, SprintOption } from "@/app/types/sprint";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 class SprintService {
+  private buildSprintWriteError(action: "create" | "update", response: Response): Error {
+    if (response.status === 409) {
+      return new Error("Sprint dates overlap with an existing sprint. Choose a different date range.");
+    }
+
+    return new Error(`Failed to ${action} sprint: ${response.status} ${response.statusText}`);
+  }
+
   async listSprints(projectId?: number): Promise<SprintOption[]> {
     const query = projectId !== undefined ? `?projectId=${projectId}` : "";
     const response = await fetch(`${API_BASE_URL}/api/sprints${query}`, {
@@ -26,7 +34,7 @@ class SprintService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to create sprint: ${response.statusText}`);
+      throw this.buildSprintWriteError("create", response);
     }
 
     return await response.json();
@@ -42,7 +50,7 @@ class SprintService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update sprint: ${response.statusText}`);
+      throw this.buildSprintWriteError("update", response);
     }
 
     return await response.json();
