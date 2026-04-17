@@ -29,8 +29,8 @@ public class SprintController {
                    s.ID_PROJECT,
                    COALESCE(
                        CASE
-                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#\\s*[0-9]+', 'i')
-                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#\\s*([0-9]+)', 1, 1, NULL, 1))
+                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
                            ELSE NULL
                        END,
                        ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
@@ -50,8 +50,8 @@ public class SprintController {
                        s.ID_PROJECT,
                        COALESCE(
                            CASE
-                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#\\s*[0-9]+', 'i')
-                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#\\s*([0-9]+)', 1, 1, NULL, 1))
+                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
                                ELSE NULL
                            END,
                            ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
@@ -118,7 +118,7 @@ public class SprintController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        if (request.sprintNumber == null || request.sprintNumber <= 0) {
+        if (request.sprintNumber == null || request.sprintNumber < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
@@ -187,7 +187,7 @@ public class SprintController {
 
         String resolvedTitle = existing.get("TITLE") != null ? existing.get("TITLE").toString() : null;
         if (request.sprintNumber != null) {
-            if (request.sprintNumber <= 0) {
+            if (request.sprintNumber < 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
             resolvedTitle = "Sprint #" + request.sprintNumber;
