@@ -51,9 +51,26 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
   }))
 
   const priorityColors = {
-    low: 'bg-[#1f2937]/80 text-[#9aa4b2] border-[#2b3542]',
-    medium: 'bg-[#e76b36]/15 text-[#f19367] border-[#e76b36]/35',
-    high: 'bg-[#c45223]/18 text-[#ffb28e] border-[#c45223]/40',
+    low: 'task-tag task-tag-priority-low',
+    medium: 'task-tag task-tag-priority-medium',
+    high: 'task-tag task-tag-priority-high',
+  }
+
+  const sprintTagVariants = [
+    'task-tag-sprint-1',
+    'task-tag-sprint-2',
+    'task-tag-sprint-3',
+    'task-tag-sprint-4',
+    'task-tag-sprint-5',
+    'task-tag-sprint-6',
+  ] as const
+
+  const resolveSprintTagClass = (sprintId?: number | null) => {
+    if (sprintId === null || sprintId === undefined || !Number.isFinite(sprintId)) {
+      return sprintTagVariants[0]
+    }
+
+    return sprintTagVariants[Math.abs(sprintId) % sprintTagVariants.length]
   }
 
   /**
@@ -83,9 +100,15 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
   const hasAnyDate = Boolean(task.startDate || task.endDate)
   const dateRangeLabel = `${task.startDate ? formatTaskDate(task.startDate) : '-'} - ${task.endDate ? formatTaskDate(task.endDate) : '-'}`
 
-  const sprint = task.sprintId ? sprintOptions.find((option) => option.idSprint === task.sprintId) : undefined
-  const sprintLabel = sprint?.title
-  const sprintRangeTitle = sprint ? `${sprint.title} (${sprint.startDate || '-'} - ${sprint.endDate || '-'})` : undefined
+  const hasSprintId =
+    task.sprintId !== undefined && task.sprintId !== null && Number.isFinite(task.sprintId)
+  const sprint = hasSprintId
+    ? sprintOptions.find((option) => option.idSprint === task.sprintId)
+    : undefined
+  const sprintLabel = sprint?.title ?? (hasSprintId ? `Sprint ${task.sprintId}` : undefined)
+  const sprintRangeTitle = sprint
+    ? `${sprint.title} (${sprint.startDate || '-'} - ${sprint.endDate || '-'})`
+    : sprintLabel
 
   return (
     <div
@@ -114,11 +137,15 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
           )}
 
           {/* Sprint */}
-          {task.sprintId !== undefined && task.sprintId !== null && sprintLabel && (
-            <div className="flex items-center gap-1 text-xs text-[#9aa4b2]" title={sprintRangeTitle}>
+          {hasSprintId && sprintLabel && (
+            <Badge
+              variant="outline"
+              className={`task-tag ${resolveSprintTagClass(task.sprintId)}`}
+              title={sprintRangeTitle}
+            >
               <Layers className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{sprintLabel}</span>
-            </div>
+              <span className="truncate max-w-[170px]">{sprintLabel}</span>
+            </Badge>
           )}
 
           {/* Date Range */}

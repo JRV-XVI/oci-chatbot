@@ -12,7 +12,6 @@
 
 import * as React from 'react'
 import { useMemo, useState, useCallback } from 'react'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useDrop } from 'react-dnd'
 import {
@@ -21,20 +20,17 @@ import {
   CircleDot,
   Eye,
   CheckCircle2,
-  BarChart3,
-  FileText,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
-  Users,
 } from 'lucide-react'
 import { TaskCard, type Task } from './task-card'
 import { AddTaskDialog } from './add-task-dialog'
 import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
+import { ProjectHeader } from './project-header'
 import { Button } from '../ui/button'
-import { Progress } from '../ui/progress'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
 import type { SprintOption } from '@/app/types/sprint'
@@ -388,55 +384,39 @@ export function ProjectBoard({
   return (
     <div className="h-full min-h-0 flex flex-col">
       {/* Header */}
-      <header className="border-b border-[#2b3542] bg-[#0d1117] px-6 py-4 shadow-[0_0_14px_rgba(0,0,0,0.35)]">
-        <div className="flex items-center justify-between gap-6 flex-wrap">
-          <div className="flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center rounded-xl border border-[#2b3542] bg-[#11161f] p-3 shadow-[0_0_18px_rgba(0,0,0,0.28)]">
-                <Image src="/CloudForge.svg" alt="CloudForge" width={86} height={86} priority />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-[#e6edf3]">{projectTitle}</h1>
-                <p className="text-sm text-[#9aa4b2] mt-1">Coordinate tasks, sprints, and delivery flow</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Progreso */}
-          <div className="flex-1 max-w-md min-w-[240px]">
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-[#9aa4b2]">Progress</span>
-              <span className="font-semibold text-[#e6edf3]">
-                {completedEstimatedHours}h / {totalEstimatedHours}h ({progressPercentage}%)
-              </span>
-            </div>
-            <Progress value={progressPercentage} className="h-1.5" />
-          </div>
-
-          {/* Botones de acción */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <Button onClick={handleOpenKpis} variant="outline" className="cursor-pointer">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              KPIs
-            </Button>
-            <Button onClick={() => setMembersDialogOpen(true)} variant="outline" className="cursor-pointer">
-              <Users className="w-4 h-4 mr-2" />
-              Members
-            </Button>
-            <Button onClick={handleGenerateReport} variant="outline" className="cursor-pointer">
-              <FileText className="w-4 h-4 mr-2" />
-              Generate Report
-            </Button>
-            <AddSprintDialog
-              projectId={projectId}
-              sprintOptions={sprintOptions}
-              onSprintSaved={onSprintSaved}
-              onSprintDeleted={onSprintDeleted}
-            />
-            <AddTaskDialog onAddTask={handleAddTask} assigneeOptions={assigneeOptions} sprintOptions={sprintOptions} />
-          </div>
-        </div>
-      </header>
+      <ProjectHeader
+        projectTitle={projectTitle}
+        completedHours={completedEstimatedHours}
+        totalHours={totalEstimatedHours}
+        progressPercentage={progressPercentage}
+        buttonsConfig={{
+          kpis: {
+            show: true,
+            onClick: handleOpenKpis,
+          },
+          members: {
+            show: true,
+            onClick: () => setMembersDialogOpen(true),
+          },
+          generateReport: {
+            show: true,
+            onClick: handleGenerateReport,
+          },
+          addSprint: {
+            show: true,
+            projectId,
+            sprintOptions,
+            onSprintSaved,
+            onSprintDeleted,
+          },
+          addTask: {
+            show: true,
+            onAddTask: handleAddTask,
+            assigneeOptions,
+            sprintOptions,
+          },
+        }}
+      />
 
       {/* Columns Container */}
       <div className="flex-1 min-h-0 overflow-x-auto p-6 app-background">

@@ -26,19 +26,32 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  const parseSprintNumberFromTitle = (value?: string) => {
-    if (!value) {
-      return ''
-    }
-    const match = value.match(/sprint\s*#\s*(\d+)/i)
-    return match ? match[1] : ''
-  }
+  const [errorMessage, setErrorMessage] = useState('')
 
   const formatSprintLabel = (sprint: SprintOption) => {
     const start = sprint.startDate || '-'
     const end = sprint.endDate || '-'
     return `${sprint.title} (${start} - ${end})`
+  }
+
+  const findOverlappingSprint = (nextStartDate: string, nextEndDate: string): SprintOption | undefined => {
+    if (!nextStartDate || !nextEndDate) {
+      return undefined
+    }
+
+    const currentSprintId = selectedSprintId ? Number(selectedSprintId) : null
+
+    return sprintOptions.find((sprint) => {
+      if (currentSprintId !== null && sprint.idSprint === currentSprintId) {
+        return false
+      }
+
+      if (!sprint.startDate || !sprint.endDate) {
+        return false
+      }
+
+      return nextStartDate <= sprint.endDate && nextEndDate >= sprint.startDate
+    })
   }
 
   const openDialog = () => {
@@ -47,6 +60,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
     setGoal('')
     setStartDate('')
     setEndDate('')
+    setErrorMessage('')
     setOpen(true)
   }
 
@@ -82,12 +96,27 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMessage('')
+
     if (!projectId) {
       return
     }
 
     const parsedSprintNumber = sprintNumber.trim() === '' ? NaN : Number(sprintNumber)
-    if (!Number.isFinite(parsedSprintNumber) || parsedSprintNumber <= 0) {
+    if (!Number.isFinite(parsedSprintNumber) || parsedSprintNumber < 0) {
+      setErrorMessage('Sprint number must be greater than or equal to 0.')
+      return
+    }
+
+    if (startDate && endDate && startDate > endDate) {
+      setErrorMessage('Start date cannot be after end date.')
+      return
+    }
+
+    const overlappingSprint = findOverlappingSprint(startDate, endDate)
+    if (overlappingSprint) {
+      const overlapRange = `${overlappingSprint.startDate || '-'} - ${overlappingSprint.endDate || '-'}`
+      setErrorMessage(`Date range overlaps with ${overlappingSprint.title} (${overlapRange}).`)
       return
     }
 
@@ -109,6 +138,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
       setOpen(false)
     } catch (error) {
       console.error('Error saving sprint:', error)
+      setErrorMessage(error instanceof Error ? error.message : 'Could not save sprint.')
     } finally {
       setSubmitting(false)
     }
@@ -151,6 +181,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                     onChange={(e) => {
                       const value = e.target.value
                       setSelectedSprintId(value)
+                      setErrorMessage('')
 
                       if (!value) {
                         setSprintNumber('')
@@ -162,7 +193,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
                       const sprint = sprintOptions.find((option) => String(option.idSprint) === value)
                       if (sprint) {
-                        setSprintNumber(parseSprintNumberFromTitle(sprint.title))
+                        setSprintNumber(String(sprint.sprintNumber))
                         setGoal(sprint.goal || '')
                         setStartDate(sprint.startDate || '')
                         setEndDate(sprint.endDate || '')
@@ -206,16 +237,33 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
                 <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-start">Start Date</Label>
-                  <DatePickerInput id="sprint-start" value={startDate} onChange={setStartDate} />
+                  <DatePickerInput
+                    id="sprint-start"
+                    value={startDate}
+                    onChange={(value) => {
+                      setStartDate(value)
+                      setErrorMessage('')
+                    }}
+                  />
                 </div>
 
                 <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
                   <Label htmlFor="sprint-end">End Date</Label>
-                  <DatePickerInput id="sprint-end" value={endDate} onChange={setEndDate} />
+                  <DatePickerInput
+                    id="sprint-end"
+                    value={endDate}
+                    onChange={(value) => {
+                      setEndDate(value)
+                      setErrorMessage('')
+                    }}
+                  />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t border-[#2b3542]">
+                {errorMessage && (
+                  <p className="mr-auto self-center text-sm text-red-400">{errorMessage}</p>
+                )}
                 {isEditMode && (
                   <Button
                     type="button"

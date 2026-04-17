@@ -29,8 +29,8 @@ public class SprintController {
                    s.ID_PROJECT,
                    COALESCE(
                        CASE
-                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#\\s*[0-9]+', 'i')
-                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#\\s*([0-9]+)', 1, 1, NULL, 1))
+                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
                            ELSE NULL
                        END,
                        ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
@@ -50,8 +50,8 @@ public class SprintController {
                        s.ID_PROJECT,
                        COALESCE(
                            CASE
-                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#\\s*[0-9]+', 'i')
-                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#\\s*([0-9]+)', 1, 1, NULL, 1))
+                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
                                ELSE NULL
                            END,
                            ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
@@ -64,6 +64,27 @@ public class SprintController {
                 WHERE s.ID_SPRINT = ?
             )
             """;
+
+        private static final String COUNT_OVERLAPPING_SPRINTS_SQL = """
+                        SELECT COUNT(1)
+                        FROM SPRINT s
+                        WHERE s.ID_PROJECT = ?
+                            AND s.START_DATE IS NOT NULL
+                            AND s.END_DATE IS NOT NULL
+                            AND s.START_DATE <= ?
+                            AND s.END_DATE >= ?
+                        """;
+
+        private static final String COUNT_OVERLAPPING_SPRINTS_EXCLUDING_CURRENT_SQL = """
+                        SELECT COUNT(1)
+                        FROM SPRINT s
+                        WHERE s.ID_PROJECT = ?
+                            AND s.ID_SPRINT <> ?
+                            AND s.START_DATE IS NOT NULL
+                            AND s.END_DATE IS NOT NULL
+                            AND s.START_DATE <= ?
+                            AND s.END_DATE >= ?
+                        """;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -97,7 +118,7 @@ public class SprintController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        if (request.sprintNumber == null || request.sprintNumber <= 0) {
+        if (request.sprintNumber == null || request.sprintNumber < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
@@ -107,6 +128,10 @@ public class SprintController {
         Timestamp endDate = parseDateOrNull(request.endDate);
         if (!isValidDateRange(startDate, endDate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        if (hasOverlappingSprintDates(resolvedProjectId, startDate, endDate, null)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         Integer nextId = jdbcTemplate.queryForObject("SELECT NVL(MAX(ID_SPRINT), 0) + 1 FROM SPRINT", Integer.class);
@@ -162,7 +187,7 @@ public class SprintController {
 
         String resolvedTitle = existing.get("TITLE") != null ? existing.get("TITLE").toString() : null;
         if (request.sprintNumber != null) {
-            if (request.sprintNumber <= 0) {
+            if (request.sprintNumber < 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
             resolvedTitle = "Sprint #" + request.sprintNumber;
@@ -195,6 +220,10 @@ public class SprintController {
 
         if (!isValidDateRange(resolvedStart, resolvedEnd)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        if (hasOverlappingSprintDates(existingProjectId, resolvedStart, resolvedEnd, sprintId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         jdbcTemplate.update(
@@ -279,6 +308,34 @@ public class SprintController {
             return true;
         }
         return start.before(end) || start.equals(end);
+    }
+
+    private boolean hasOverlappingSprintDates(int projectId, Timestamp start, Timestamp end, Integer excludeSprintId) {
+        if (start == null || end == null) {
+            return false;
+        }
+
+        Integer count;
+        if (excludeSprintId == null) {
+            count = jdbcTemplate.queryForObject(
+                    COUNT_OVERLAPPING_SPRINTS_SQL,
+                    Integer.class,
+                    projectId,
+                    end,
+                    start
+            );
+        } else {
+            count = jdbcTemplate.queryForObject(
+                    COUNT_OVERLAPPING_SPRINTS_EXCLUDING_CURRENT_SQL,
+                    Integer.class,
+                    projectId,
+                    excludeSprintId,
+                    end,
+                    start
+            );
+        }
+
+        return count != null && count > 0;
     }
 
     private String normalizeTextOrNull(String value) {

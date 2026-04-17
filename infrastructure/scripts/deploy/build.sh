@@ -28,6 +28,7 @@ set -e
 export IMAGE_NAME_BACKEND=forgetask
 export IMAGE_NAME_FRONTEND=forgetask-frontend
 export IMAGE_VERSION=0.1
+REPO_ROOT="$(cd "${MTDRWORKSHOP_LOCATION}/../.." && pwd)"
 
 # Valida y/o recupera el registry desde el sistema de hitos.
 if [ -z "$DOCKER_REGISTRY" ]; then
@@ -43,7 +44,7 @@ export IMAGE_BACKEND=${DOCKER_REGISTRY}/${IMAGE_NAME_BACKEND}:${IMAGE_VERSION}
 export IMAGE_FRONTEND=${DOCKER_REGISTRY}/${IMAGE_NAME_FRONTEND}:${IMAGE_VERSION}
 
 echo -e "${yellowColour}[build.sh][+]${endColour} Building backend image..."
-docker build -t ${IMAGE_BACKEND} ${MTDRWORKSHOP_LOCATION}/forgetask
+docker build -t ${IMAGE_BACKEND} ${REPO_ROOT}/forgetask
 
 # Publica la imagen en OCIR.
 docker push ${IMAGE_BACKEND}
@@ -53,7 +54,7 @@ if [  $? -eq 0 ]; then
 fi
 
 echo -e "${yellowColour}[build.sh][+]${endColour} Building frontend image..."
-docker build -t ${IMAGE_FRONTEND} ${MTDRWORKSHOP_LOCATION}/forgetask-frontend
+docker build -t ${IMAGE_FRONTEND} ${REPO_ROOT}/forgetask-frontend
 
 docker push ${IMAGE_FRONTEND}
 if [  $? -eq 0 ]; then

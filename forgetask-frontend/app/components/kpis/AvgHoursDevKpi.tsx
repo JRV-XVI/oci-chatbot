@@ -4,7 +4,6 @@
 import React from "react";
 import { Clock4 } from "lucide-react";
 import KpiCard from "../ui/kpiCard";
-import { CategoryBar } from "../ui/CategoryBar";
 
 interface AvgHoursDevKpiProps {
   totalHours: number;
@@ -40,18 +39,9 @@ export default function AvgHoursDevKpi({
     ? Math.round((activeHours / totalDevs) * 10) / 10
     : 0;
 
-  // Porcentaje respecto al esperado
-  const percentage = activeExpected > 0
-    ? Math.round((avg / activeExpected) * 100)
-    : 0;
-
-  const maxVisual    = 140;
-  const BAR_VALUES   = [71, 15, 14] as const;
-  const markerPosition = Math.min((percentage / maxVisual) * 100, 100);
-
   return (
     <KpiCard
-      title="Promedio de horas por dev"
+      title="Average hours per developer"
       icon={<Clock4 />}
       value={avg}
       suffix="hrs"
@@ -71,13 +61,11 @@ export default function AvgHoursDevKpi({
                       : "text-muted-foreground hover:bg-muted",
                   ].join(" ")}
                 >
-                  {m === "project" ? "Proyecto" : "Sprint"}
+                  {m === "project" ? "Project" : "Sprint"}
                 </button>
               ))}
             </div>
           )}
-
-
           {/* ── CategoryBar con marcador ── */}
           {/* <div className="flex flex-col gap-2">
             <div className="flex justify-between text-xs text-muted-foreground px-0.5">
@@ -87,23 +75,36 @@ export default function AvgHoursDevKpi({
             </div>
 
             <CategoryBar
-              valuSes={[...BAR_VALUES]}
+              values={[...BAR_VALUES]}
               colors={["emerald", "amber", "rose"]}
-              marker={{ value: markerPosition }}
-              className="py"
+              marker={{
+                value: markerPosition,
+                tooltip: `${percentage}% del objetivo por dev`,
+                showAnimation: true,
+              }}
+              className="py-1"
+              showLabels={false}
             />
 
             <div className="flex justify-between text-xs text-muted-foreground tabular-nums px-0.5">
               <span>0%</span>
-              <span>71%</span>
-              <span>86%</span>
-              <span>100%+</span>
+              <span>100%</span>
+              <span>120%</span>
+              <span>140%+</span>
             </div>
+
+            <p className="kpi-explainer-text">
+              Estado actual: <span className="font-semibold text-foreground">{percentage}%</span> del objetivo por dev.
+            </p>
           </div> */}
+
+          <p className="text-sm text-muted-foreground">
+            Target per dev: <span className="font-semibold text-foreground">{activeExpected}</span> hrs
+          </p>
 
           <p className="text-sm text-muted-foreground border-t border-border pt-3">
             <span className="font-semibold text-foreground">{totalDevs}</span> devs ·{" "}
-            <span className="font-semibold text-foreground">{activeHours}</span> hrs totales
+            <span className="font-semibold text-foreground">{activeHours}</span> total hrs
           </p>
         </div>
       }

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { ProjectHeader } from "@/app/components/kanban/project-header";
 import TotalTasksKpi from "../components/kpis/TotalTasksKpi";
 import TotalHoursKpi from "../components/kpis/TotalHoursKpi";
 import AvgTasksKpi from "../components/kpis/AvgTasksKpi";
@@ -18,30 +20,29 @@ import metricsService, {
 
 import kpiService, { ProjectKpisSummary } from "../services/kpiService";
 
-interface User {
-  id: string;
-  name: string;
-  completedTasks: number;
-  totalTasks: number;
+interface SprintTasksByUser {
+  sprintId: number;
+  sprintNumber: number;
+  sprintTitle: string;
+  startDate?: string;
+  endDate?: string;
+  users: SprintUserPerformance[];
 }
 
 export default function KPIsPage() {
   const searchParams = useSearchParams();
-  const [users, setUsers] = useState<User[]>([]);
+  const router = useRouter();
+  const [tasksBySprint, setTasksBySprint] = useState<SprintTasksByUser[]>([]);
   const [projectId, setProjectId] = useState<number | null>(null);
+  const [projectTitle, setProjectTitle] = useState<string>("Project KPIs");
   const [sprints, setSprints] = useState<SprintOption[]>([]);
-  const [selectedSprintId, setSelectedSprintId] = useState<number | null>(null);
   const [sprintsLoading, setSprintsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [kpis, setKpis] = useState<ProjectKpisSummary | null>(null);
   const [kpisLoading, setKpisLoading] = useState(true);
 
-  const getSprintLabel = (sprint: SprintOption): string => `Sprint ${sprint.sprintNumber}: ${sprint.title}`;
-  const selectedSprint = sprints.find((sprint) => sprint.idSprint === selectedSprintId);
-  const usersCardTitle = selectedSprint
-    ? `Tareas completadas por usuario · Sprint ${selectedSprint.sprintNumber}`
-    : "Tareas completadas por usuario";
+  const usersCardTitle = "Tasks completed by user · All sprints";
 
   useEffect(() => {
     const initializeKpiPage = async () => {
@@ -60,25 +61,17 @@ export default function KPIsPage() {
         const resolvedProjectId = validProjectIdFromQuery ?? fallbackProjectId;
         setProjectId(resolvedProjectId);
 
+        // Set project title from the resolved project
+        const resolvedProject = projects.find((p) => p.idProject === resolvedProjectId);
+        const projectTitle = resolvedProject?.title || "Project KPIs";
+        setProjectTitle(projectTitle);
+
         const kpisData = await kpiService.getProjectKpisSummary(resolvedProjectId);
         setKpis(kpisData);
 
         const projectSprints = await sprintService.listSprints(resolvedProjectId);
         const sortedSprints = [...projectSprints].sort((a, b) => a.sprintNumber - b.sprintNumber);
         setSprints(sortedSprints);
-
-        const sprintIdParam = searchParams.get("sprintId");
-        const parsedSprintId = sprintIdParam !== null ? Number(sprintIdParam) : NaN;
-        const validSprintIdFromQuery = Number.isFinite(parsedSprintId)
-          ? parsedSprintId
-          : undefined;
-
-        const sprintIdFromQueryExists =
-          validSprintIdFromQuery !== undefined &&
-          sortedSprints.some((sprint) => sprint.idSprint === validSprintIdFromQuery);
-
-        const fallbackSprintId = sortedSprints.length > 0 ? sortedSprints[0].idSprint : null;
-        setSelectedSprintId(sprintIdFromQueryExists ? validSprintIdFromQuery! : fallbackSprintId);
 
         setError(null);
       } catch (err) {
@@ -96,30 +89,33 @@ export default function KPIsPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    const fetchUsersBySprint = async () => {
-      if (projectId === null) {
+    const fetchUsersAcrossSprints = async () => {
+      if (projectId === null || sprintsLoading) {
         return;
       }
 
-      if (selectedSprintId === null) {
-        setUsers([]);
+      if (sprints.length === 0) {
+        setTasksBySprint([]);
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const data: SprintUserPerformance[] =
-          await metricsService.getTasksDoneByUserInSprint(selectedSprintId);
+        const sprintMetrics = await Promise.all(
+          sprints.map((sprint) => metricsService.getTasksDoneByUserInSprint(sprint.idSprint))
+        );
 
-        const transformedUsers: User[] = data.map((userPerf) => ({
-          id: userPerf.idUser.toString(),
-          name: userPerf.displayName,
-          completedTasks: userPerf.doneCount,
-          totalTasks: userPerf.totalCount,
+        const structuredSprintData: SprintTasksByUser[] = sprints.map((sprint, index) => ({
+          sprintId: sprint.idSprint,
+          sprintNumber: sprint.sprintNumber,
+          sprintTitle: sprint.title,
+          startDate: sprint.startDate,
+          endDate: sprint.endDate,
+          users: sprintMetrics[index] ?? [],
         }));
 
-        setUsers(transformedUsers);
+        setTasksBySprint(structuredSprintData);
         setError(null);
       } catch (err) {
         const errorMessage =
@@ -131,78 +127,57 @@ export default function KPIsPage() {
       }
     };
 
-    void fetchUsersBySprint();
-  }, [projectId, selectedSprintId]);
+    void fetchUsersAcrossSprints();
+  }, [projectId, sprints, sprintsLoading]);
+
+  const handleBackToKanban = useCallback(() => {
+    router.push("/");
+  }, [router]);
 
   return (
-    <main className="h-full overflow-y-auto app-background px-6 py-6">
-      <div className="mx-auto max-w-8xl">
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-5 xl:items-start">
-          <section className="space-y-8 xl:col-span-4">
-            <section className="rounded-xl border border-[#2b3542] bg-[#0d1117] p-4">
-              <label className="block space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9aa4b2]">
-                  Sprint para KPIs de usuario
-                </span>
-                <select
-                  value={selectedSprintId ?? ""}
-                  onChange={(event) => {
-                    const nextSprintId = Number(event.target.value);
-                    setSelectedSprintId(Number.isFinite(nextSprintId) ? nextSprintId : null);
-                  }}
-                  className="w-full rounded-lg border border-[#30363d] bg-[#0d1117] px-3 py-2 text-sm text-[#e6edf3] focus-visible:outline-none"
-                  disabled={sprintsLoading || sprints.length === 0}
-                >
-                  {sprintsLoading ? (
-                    <option value="">Cargando sprints...</option>
-                  ) : null}
-                  {!sprintsLoading && sprints.length === 0 ? (
-                    <option value="">Sin sprints disponibles</option>
-                  ) : null}
-                  {sprints.map((sprint) => (
-                    <option key={sprint.idSprint} value={String(sprint.idSprint)}>
-                      {getSprintLabel(sprint)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </section>
+    <div className="h-full flex flex-col min-h-0">
+      <ProjectHeader
+        projectTitle={projectTitle}
+        buttonsConfig={{
+          addSprint: {
+            show: true,
+            projectId,
+            sprintOptions: sprints,
+            onSprintSaved: () => {},
+            onSprintDeleted: () => {},
+          },
+          custom: [
+            {
+              label: "Kanban Board",
+              icon: ArrowLeft,
+              onClick: handleBackToKanban,
+              variant: "outline",
+            },
+          ],
+        }}
+        sectionsConfig={{
+          progress: { show: false },
+        }}
+      />
 
-            {/* ── User Tasks Completion KPI ── */}
-            <section>
-              {error ? (
-                <div className="rounded-lg border border-[#c45223]/45 bg-[#e76b36]/10 p-4 text-[#ffb28e]">
-                  Error loading data: {error}
-                </div>
-              ) : loading ? (
-                <div className="p-4 text-[#9aa4b2]">Loading user task data...</div>
-              ) : (
-                <UserTasksCompletionKpi users={users} title={usersCardTitle} />
-              )}
-            </section>
-
-            {/* ── Real Total Hours by User KPI ── */}
-            <section>
-              <RealTotalHoursByUserKpi selectedSprintId={selectedSprintId ?? undefined} />
-            </section>
-          </section>
-
-          <aside className="xl:col-span-1">
-            <section className="rounded-2xl border border-[#2b3542] bg-gradient-to-b from-[#111825] via-[#0f1722] to-[#0d1117] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.28)] md:p-5 xl:sticky xl:top-6">
-              <div className="mb-4 flex items-end justify-between gap-3">
-                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9aa4b2]">
-                  Indicadores clave
+      <main className="flex-1 min-h-0 overflow-y-auto app-background px-4 py-5 md:px-6 md:py-6">
+        <div className="mx-auto w-full max-w-[1680px] space-y-6">
+          <section className="kpi-section-enter">
+            <div className="w-full rounded-2xl border border-border bg-card/60 p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] md:p-6">
+              <div className="mb-4 text-center">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Key indicators
                 </h2>
               </div>
 
               {kpisLoading ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
                   ))}
                 </div>
               ) : kpis ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <TotalTasksKpi
                     total={kpis.totalTasks}
                     backlog={kpis.tasksBacklog}
@@ -230,14 +205,36 @@ export default function KPIsPage() {
                   />
                 </div>
               ) : (
-                <div className="rounded-lg border border-[#2b3542] bg-[#0d1117] p-4 text-sm text-[#9aa4b2]">
-                  No hay datos de KPIs para este proyecto.
+                <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+                  No KPI data available for this project.
                 </div>
               )}
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            {/* ── User Tasks Completion KPI ── */}
+            <section className="kpi-section-enter">
+              {error ? (
+                <div className="kpi-error-box rounded-lg border p-4">
+                  Error loading data: {error}
+                </div>
+              ) : loading ? (
+                <div className="kpi-panel rounded-lg border border-border p-4 text-muted-foreground">
+                  Loading user task data...
+                </div>
+              ) : (
+                <UserTasksCompletionKpi sprintData={tasksBySprint} title={usersCardTitle} />
+              )}
             </section>
-          </aside>
+
+            {/* ── Real Total Hours by User KPI ── */}
+            <section className="kpi-section-enter">
+              <RealTotalHoursByUserKpi sprintOptions={sprints} />
+            </section>
+          </section>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
