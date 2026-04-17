@@ -153,12 +153,12 @@ export default function RealTotalHoursByUserKpi({ selectedSprintId, sprintOption
 
     filteredRows.forEach((row) => {
       const sprintId = Number(row.sprintId ?? 0);
-      if (!Number.isFinite(sprintId) || sprintId <= 0) {
+      if (!Number.isFinite(sprintId) || sprintId < 0) {
         return;
       }
 
       const sprintNumberRaw = Number(row.sprintNumber ?? sprintId);
-      const sprintNumber = Number.isFinite(sprintNumberRaw) && sprintNumberRaw > 0 ? sprintNumberRaw : sprintId;
+      const sprintNumber = Number.isFinite(sprintNumberRaw) && sprintNumberRaw >= 0 ? sprintNumberRaw : sprintId;
       const user = normalizeUserLabel(row.username);
       const hoursRaw = Number(row.realTotalHours ?? 0);
       const safeHours = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 0;

@@ -66,7 +66,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
   ] as const
 
   const resolveSprintTagClass = (sprintId?: number | null) => {
-    if (!sprintId || !Number.isFinite(sprintId)) {
+    if (sprintId === null || sprintId === undefined || !Number.isFinite(sprintId)) {
       return sprintTagVariants[0]
     }
 
@@ -100,9 +100,15 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
   const hasAnyDate = Boolean(task.startDate || task.endDate)
   const dateRangeLabel = `${task.startDate ? formatTaskDate(task.startDate) : '-'} - ${task.endDate ? formatTaskDate(task.endDate) : '-'}`
 
-  const sprint = task.sprintId ? sprintOptions.find((option) => option.idSprint === task.sprintId) : undefined
-  const sprintLabel = sprint?.title
-  const sprintRangeTitle = sprint ? `${sprint.title} (${sprint.startDate || '-'} - ${sprint.endDate || '-'})` : undefined
+  const hasSprintId =
+    task.sprintId !== undefined && task.sprintId !== null && Number.isFinite(task.sprintId)
+  const sprint = hasSprintId
+    ? sprintOptions.find((option) => option.idSprint === task.sprintId)
+    : undefined
+  const sprintLabel = sprint?.title ?? (hasSprintId ? `Sprint ${task.sprintId}` : undefined)
+  const sprintRangeTitle = sprint
+    ? `${sprint.title} (${sprint.startDate || '-'} - ${sprint.endDate || '-'})`
+    : sprintLabel
 
   return (
     <div
@@ -131,7 +137,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
           )}
 
           {/* Sprint */}
-          {task.sprintId !== undefined && task.sprintId !== null && sprintLabel && (
+          {hasSprintId && sprintLabel && (
             <Badge
               variant="outline"
               className={`task-tag ${resolveSprintTagClass(task.sprintId)}`}

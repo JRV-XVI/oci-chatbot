@@ -28,14 +28,6 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const parseSprintNumberFromTitle = (value?: string) => {
-    if (!value) {
-      return ''
-    }
-    const match = value.match(/sprint\s*#\s*(\d+)/i)
-    return match ? match[1] : ''
-  }
-
   const formatSprintLabel = (sprint: SprintOption) => {
     const start = sprint.startDate || '-'
     const end = sprint.endDate || '-'
@@ -111,8 +103,8 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
     }
 
     const parsedSprintNumber = sprintNumber.trim() === '' ? NaN : Number(sprintNumber)
-    if (!Number.isFinite(parsedSprintNumber) || parsedSprintNumber <= 0) {
-      setErrorMessage('Sprint number must be greater than 0.')
+    if (!Number.isFinite(parsedSprintNumber) || parsedSprintNumber < 0) {
+      setErrorMessage('Sprint number must be greater than or equal to 0.')
       return
     }
 
@@ -201,7 +193,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
                       const sprint = sprintOptions.find((option) => String(option.idSprint) === value)
                       if (sprint) {
-                        setSprintNumber(parseSprintNumberFromTitle(sprint.title))
+                        setSprintNumber(String(sprint.sprintNumber))
                         setGoal(sprint.goal || '')
                         setStartDate(sprint.startDate || '')
                         setEndDate(sprint.endDate || '')
