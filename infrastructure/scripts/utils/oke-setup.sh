@@ -81,10 +81,26 @@ while ! state_done OKE_NAMESPACE; do
   fi
 done
 
-# Wait for TO DO User (avoid concurrent kubectl)
-while ! state_done TODO_USER; do
-  echo -e "${yellowColour}[oke-setup.sh][+]${endColour} `date`: Waiting for TODO_USER"
-  sleep 2
+while ! state_done OCIR_SECRET; do
+  if kubectl create secret docker-registry ocir-secret \
+    --docker-server="$(state_get REGION).ocir.io" \
+    --docker-username="$(state_get NAMESPACE)/$(state_get USER_NAME)" \
+    --docker-password="$(state_get DOCKER_REGISTRY_TOKEN)" \
+    --docker-email="user@example.com" \
+    -n mtdrworkshop 2>/dev/null || \
+     kubectl get secret ocir-secret -n mtdrworkshop &>/dev/null; then
+    state_set_done OCIR_SECRET
+    echo -e "${greenColour}[oke-setup.sh][+]${endColour} ocir-secret created."
+  else
+    echo -e "${redColour}[oke-setup.sh][x]${endColour} Error creating ocir-secret. Retrying..."
+    sleep 5
+  fi
 done
+
+# Wait for TO DO User (avoid concurrent kubectl)
+#while ! state_done TODO_USER; do
+#  echo -e "${yellowColour}[oke-setup.sh][+]${endColour} `date`: Waiting for TODO_USER"
+#  sleep 2
+#done
 
 state_set_done OKE_SETUP
