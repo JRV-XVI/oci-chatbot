@@ -11,7 +11,7 @@ data "oci_objectstorage_namespace" "namespace" {
 
 # Crea el bucket principal con nombre derivado del run y la clave unica.
 resource "oci_objectstorage_bucket" "dbbucket" {
-  namespace      = data.oci_objectstorage_namespace.namespace.namespace
+  namespace      = data.oci_objectstorage_namespace.test_namespace.namespace
   compartment_id = var.ociCompartmentOcid
   name           = "${var.runName}-${var.mtdrKey}"
 }
