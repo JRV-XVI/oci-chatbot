@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       app: forgetask
-  replicas: 2
+  replicas: 1 # Ajustar en otro sprint 2 o 3 para alta disponibilidad
   template:
     metadata:
       labels:
