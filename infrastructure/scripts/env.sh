@@ -100,7 +100,7 @@ if test -d ~/mtdrworkshop-state; then
 else
   export MTDRWORKSHOP_STATE_HOME=$MTDRWORKSHOP_LOCATION
 fi
-echo "${greenColour}[+]${endColour} MTDRWORKSOP_STATE_HOME: $MTDRWORKSHOP_STATE_HOME"
+echo -e "${greenColour}[+]${endColour} MTDRWORKSOP_STATE_HOME: $MTDRWORKSHOP_STATE_HOME"
 
 # Crea carpeta de logs para setup/destroy y procesos en background.
 export MTDRWORKSHOP_LOG=$MTDRWORKSHOP_STATE_HOME/log
