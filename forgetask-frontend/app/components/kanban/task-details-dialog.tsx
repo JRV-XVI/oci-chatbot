@@ -181,7 +181,7 @@ export function TaskDetailsDialog({
   if (!task || !open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4" data-testid="dialog-task-details">
       <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#2b3542] bg-[#0d1117] p-6 shadow-[0_0_24px_rgba(0,0,0,0.35)]">
         <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#2b3542]">
           <div>
@@ -200,6 +200,7 @@ export function TaskDetailsDialog({
               <Label htmlFor="edit-title">Title *</Label>
               <Input
                 id="edit-title"
+                data-testid="input-edit-task-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter task title"
@@ -210,6 +211,7 @@ export function TaskDetailsDialog({
               <Label htmlFor="edit-description">Description</Label>
               <Textarea
                 id="edit-description"
+                data-testid="input-edit-task-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter task description"
@@ -221,6 +223,7 @@ export function TaskDetailsDialog({
                 <Label htmlFor="edit-status">Status</Label>
                 <select
                   id="edit-status"
+                  data-testid="select-edit-task-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as Task["status"])}
                   title="Task status"
@@ -237,6 +240,7 @@ export function TaskDetailsDialog({
                 <Label htmlFor="edit-priority">Priority</Label>
                 <select
                   id="edit-priority"
+                  data-testid="select-edit-task-priority"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Task["priority"])}
                   title="Task priority"
@@ -252,6 +256,7 @@ export function TaskDetailsDialog({
               <Label htmlFor="edit-startDate">Start Date</Label>
               <DatePickerInput
                 id="edit-startDate"
+                testId="input-edit-task-start-date"
                 value={startDate}
                 onChange={setStartDate}
               />
@@ -260,6 +265,7 @@ export function TaskDetailsDialog({
               <Label htmlFor="edit-endDate">End Date</Label>
               <DatePickerInput
                 id="edit-endDate"
+                testId="input-edit-task-end-date"
                 value={endDate}
                 onChange={setEndDate}
               />
@@ -277,6 +283,7 @@ export function TaskDetailsDialog({
                   <Label htmlFor="edit-estimatedTime">Estimated Time</Label>
                   <Input
                     id="edit-estimatedTime"
+                    data-testid="input-edit-task-estimated-time"
                     type="number"
                     step="0.5"
                     min="0"
@@ -289,6 +296,7 @@ export function TaskDetailsDialog({
                   <Label htmlFor="edit-realTime">Real Time</Label>
                   <Input
                     id="edit-realTime"
+                    data-testid="input-edit-task-real-time"
                     type="number"
                     step="0.5"
                     min="0"
@@ -303,6 +311,7 @@ export function TaskDetailsDialog({
               <Label htmlFor="edit-assignedTo">Assigned To</Label>
               <select
                 id="edit-assignedTo"
+                data-testid="select-edit-task-assigned-to"
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
                 title="Assigned user"
@@ -326,6 +335,7 @@ export function TaskDetailsDialog({
               <Label htmlFor="edit-sprint">Sprint</Label>
               <select
                 id="edit-sprint"
+                data-testid="select-edit-task-sprint"
                 value={sprintId}
                 onChange={(e) => setSprintId(e.target.value)}
                 title="Sprint"
@@ -347,6 +357,7 @@ export function TaskDetailsDialog({
             <Button 
               type="submit" 
               disabled={!!dateError}
+              data-testid="btn-save-task"
               className={`cursor-pointer text-white ${
                 dateError ? 'opacity-50 cursor-not-allowed bg-gray-600' : 'neon-orange-bg'
               }`}

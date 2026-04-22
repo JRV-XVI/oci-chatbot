@@ -147,3 +147,77 @@ docker stop forgetask-frontend || true
 ---
 
 ## Estructura relevante
+
+- `forgetask/`: backend Spring Boot
+- `forgetask-frontend/`: frontend Next.js
+- `tests/selenium/`: suite E2E Selenium (Sprint 2 Quality)
+
+---
+
+## Pruebas E2E con Selenium (Sprint 2)
+
+### Casos incluidos
+
+- `tests/selenium/test_01_create_task_websocket.py`: crear tarea y validar sincronizacion en segunda sesion.
+- `tests/selenium/test_02_edit_task_status.py`: editar tarea y validar movimiento de columna.
+- `tests/selenium/test_03_create_sprint.py`: crear sprint y validar regla de solapamiento de fechas.
+- `tests/selenium/test_04_kpis_navigation.py`: navegar a KPIs y volver al Kanban.
+
+### Instalar dependencias de testing
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-test.txt
+```
+
+### Ejecutar suite completa
+
+```bash
+pytest
+```
+
+### Ejecutar un caso especifico
+
+```bash
+pytest tests/selenium/test_01_create_task_websocket.py
+```
+
+### Variables de entorno opcionales
+
+- `E2E_BASE_URL` (default: `http://localhost:3000`)
+- `E2E_API_BASE_URL` (default derivado del host de `E2E_BASE_URL` + `:8080`)
+- `E2E_BROWSER` (default: `edge`)
+- `E2E_HEADLESS` (`true` o `false`, default: `false`)
+- `E2E_TIMEOUT_SECONDS` (default: `20`)
+
+En fallos, se generan evidencias en `tests/selenium/artifacts/` (captura + HTML).
+Las tareas y sprints creados por los tests se limpian automaticamente al finalizar cada caso.
+
+### Dockerfile dedicado solo para pruebas
+
+Se incluye `Dockerfile.tests` para ejecutar la suite E2E sin usar los Dockerfiles de backend o frontend.
+
+1. Levanta Selenium Edge:
+
+```bash
+docker run --rm -d --name selenium-edge -p 4444:4444 --shm-size=2g selenium/standalone-edge:latest
+```
+
+2. Construye imagen de pruebas:
+
+```bash
+docker build -f Dockerfile.tests -t oci-chatbot-e2e-tests .
+```
+
+3. Ejecuta pruebas en contenedor:
+
+```bash
+docker run --rm -e E2E_BASE_URL=http://host.docker.internal:3000 -e E2E_API_BASE_URL=http://host.docker.internal:8080 -e E2E_SELENIUM_REMOTE_URL=http://host.docker.internal:4444/wd/hub -v "${PWD}/tests/selenium/artifacts:/app/tests/selenium/artifacts" oci-chatbot-e2e-tests
+```
+
+4. Deten Selenium:
+
+```bash
+docker stop selenium-edge
+```

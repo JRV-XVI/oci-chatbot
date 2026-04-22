@@ -1,6 +1,7 @@
 import type { SprintCreateRequest, SprintOption } from "@/app/types/sprint";
+import { getApiBaseUrl } from "@/app/services/apiBaseUrl";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = getApiBaseUrl();
 
 class SprintService {
   private buildSprintWriteError(action: "create" | "update", response: Response): Error {

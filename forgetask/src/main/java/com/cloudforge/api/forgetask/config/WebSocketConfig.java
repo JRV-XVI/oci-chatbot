@@ -58,12 +58,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
             .addEndpoint("/ws/tasks")
-            // Permitir conexiones desde frontend en localhost (puerto 3000)
-            .setAllowedOrigins(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
+            // Permitir conexiones desde frontend local y browser remoto en Docker
+            .setAllowedOriginPatterns(
                 "http://localhost:*",
-                "http://127.0.0.1:*"
+                "http://127.0.0.1:*",
+                "http://host.docker.internal:*"
             )
             // SockJS es un fallback que proporciona WebSocket emulado si el navegador no lo soporta
             .withSockJS();

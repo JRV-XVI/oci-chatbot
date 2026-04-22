@@ -150,6 +150,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
         className="gap-2 cursor-pointer"
         variant="outline"
         onClick={openDialog}
+        data-testid="btn-check-sprint"
         disabled={!projectId}
         title={!projectId ? 'Project not resolved yet' : 'Create a new sprint'}
       >
@@ -157,7 +158,10 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
         Check Sprint
       </Button>
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4"
+          data-testid="dialog-add-sprint"
+        >
           <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#2b3542] bg-[#0d1117] p-6 shadow-[0_0_24px_rgba(0,0,0,0.35)]">
             <form onSubmit={handleSubmit}>
               <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#2b3542]">
@@ -177,6 +181,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   <Label htmlFor="sprint-select">Sprint (optional)</Label>
                   <select
                     id="sprint-select"
+                    data-testid="select-existing-sprint"
                     value={selectedSprintId}
                     onChange={(e) => {
                       const value = e.target.value
@@ -216,6 +221,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   <Label htmlFor="sprint-number">Sprint Number *</Label>
                   <Input
                     id="sprint-number"
+                    data-testid="input-sprint-number"
                     value={sprintNumber}
                     onChange={(e) => setSprintNumber(e.target.value)}
                     placeholder="1"
@@ -228,6 +234,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   <Label htmlFor="sprint-goal">Goal</Label>
                   <Textarea
                     id="sprint-goal"
+                    data-testid="input-sprint-goal"
                     value={goal}
                     onChange={(e) => setGoal(e.target.value)}
                     placeholder="Sprint goal"
@@ -239,6 +246,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   <Label htmlFor="sprint-start">Start Date</Label>
                   <DatePickerInput
                     id="sprint-start"
+                    testId="input-sprint-start-date"
                     value={startDate}
                     onChange={(value) => {
                       setStartDate(value)
@@ -251,6 +259,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                   <Label htmlFor="sprint-end">End Date</Label>
                   <DatePickerInput
                     id="sprint-end"
+                    testId="input-sprint-end-date"
                     value={endDate}
                     onChange={(value) => {
                       setEndDate(value)
@@ -262,7 +271,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
               <div className="flex justify-end gap-2 pt-4 border-t border-[#2b3542]">
                 {errorMessage && (
-                  <p className="mr-auto self-center text-sm text-red-400">{errorMessage}</p>
+                  <p className="mr-auto self-center text-sm text-red-400" data-testid="text-sprint-error">{errorMessage}</p>
                 )}
                 {isEditMode && (
                   <Button
@@ -281,6 +290,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                 <Button
                   type="submit"
                   className="cursor-pointer"
+                  data-testid="btn-submit-sprint"
                   disabled={!projectId || submitting}
                 >
                   {submitting ? 'Saving...' : isEditMode ? 'Save Changes' : 'Create Sprint'}
