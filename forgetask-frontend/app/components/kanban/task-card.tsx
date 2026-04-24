@@ -115,19 +115,22 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
       ref={(node) => {
         drag(node)
       }}
+      data-testid={`task-card-${task.id}`}
+      data-task-id={task.id}
+      data-task-title={task.title}
       className={`bg-[#0d1117] rounded-lg border border-[#2b3542] p-3 group hover:border-[#e76b36]/55 hover:shadow-[0_0_12px_rgba(231,107,54,0.18)] transition-all cursor-pointer ${
         isDragging ? 'opacity-50' : 'opacity-100'
       }`}
     >
       <div className="flex items-start gap-2">
         {/* Drag Handle Icon */}
-        <div className="cursor-move">
+        <div className="cursor-move" data-testid={`drag-handle-${task.id}`}>
           <GripVertical className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
         </div>
 
         {/* Task Content */}
         <div className="flex-1 min-w-0 space-y-2" onClick={handleCardClick}>
-          <h3 className="font-medium text-[#e6edf3]">{task.title}</h3>
+          <h3 className="font-medium text-[#e6edf3]" data-testid={`task-title-${task.id}`}>{task.title}</h3>
 
           {/* Priority Badge */}
           {task.priority && (

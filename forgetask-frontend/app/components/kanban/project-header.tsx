@@ -50,6 +50,7 @@ export interface ProjectHeaderButtonsConfig {
     icon?: LucideIcon
     onClick: () => void
     variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost'
+    testId?: string
   }>
 }
 
@@ -220,6 +221,7 @@ export function ProjectHeader({
             <Button
               onClick={buttonsConfig.kpis.onClick}
               variant="outline"
+              data-testid="btn-kpis"
               className="cursor-pointer"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
@@ -278,6 +280,7 @@ export function ProjectHeader({
                 key={index}
                 onClick={customButton.onClick}
                 variant={customButton.variant || 'outline'}
+                data-testid={customButton.testId}
                 className="cursor-pointer"
               >
                 {CustomIcon && <CustomIcon className="w-4 h-4 mr-2" />}

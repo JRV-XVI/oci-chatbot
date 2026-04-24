@@ -152,6 +152,7 @@ function KpisContent() {
               icon: ArrowLeft,
               onClick: handleBackToKanban,
               variant: "outline",
+              testId: "btn-back-to-kanban",
             },
           ],
         }}

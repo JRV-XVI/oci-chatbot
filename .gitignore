@@ -64,3 +64,12 @@ frontend/yarn-error.log*
 
 # IDEs and editors
 .vscode/
+
+# Python / Selenium tests
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+tests/selenium/artifacts/*
+!tests/selenium/artifacts/.gitkeep

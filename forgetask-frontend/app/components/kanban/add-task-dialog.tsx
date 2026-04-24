@@ -128,12 +128,15 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
 
   return (
     <>
-      <Button className="gap-2 cursor-pointer" onClick={openDialog}>
+      <Button className="gap-2 cursor-pointer" onClick={openDialog} data-testid="btn-new-task">
         <Plus className="w-4 h-4" />
         New Task
       </Button>
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-[2px] p-4"
+          data-testid="dialog-add-task"
+        >
           <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-xl border border-[#2b3542] bg-[#0d1117] p-6 shadow-[0_0_24px_rgba(0,0,0,0.35)]">
             <form onSubmit={handleSubmit}>
               <div className="flex items-start justify-between gap-4 pb-4 border-b border-[#2b3542]">
@@ -152,6 +155,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
+                    data-testid="input-task-title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter task title"
@@ -162,6 +166,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
+                    data-testid="input-task-description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Enter task description"
@@ -173,6 +178,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                     <Label htmlFor="status">Status</Label>
                     <select
                       id="status"
+                      data-testid="select-task-status"
                       value={status}
                       onChange={(e) => setStatus(e.target.value as Task["status"])}
                       title="Task status"
@@ -189,6 +195,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                     <Label htmlFor="priority">Priority</Label>
                     <select
                       id="priority"
+                      data-testid="select-task-priority"
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as Task["priority"])}
                       title="Task priority"
@@ -205,6 +212,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   <Label htmlFor="sprintId">Sprint</Label>
                   <select
                     id="sprintId"
+                    data-testid="select-task-sprint"
                     value={sprintId}
                     onChange={(e) => setSprintId(e.target.value)}
                     title="Sprint"
@@ -222,6 +230,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   <Label htmlFor="startDate">Start Date</Label>
                   <DatePickerInput
                     id="startDate"
+                    testId="input-task-start-date"
                     value={startDate}
                     onChange={setStartDate}
                   />
@@ -230,6 +239,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   <Label htmlFor="endDate">End Date</Label>
                   <DatePickerInput
                     id="endDate"
+                    testId="input-task-end-date"
                     value={endDate}
                     onChange={setEndDate}
                   />
@@ -241,6 +251,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                       <Label htmlFor="estimatedTime">Estimated Time</Label>
                       <Input
                         id="estimatedTime"
+                        data-testid="input-task-estimated-time"
                         type="number"
                         step="0.5"
                         min="0"
@@ -268,6 +279,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   <Label htmlFor="assignedTo">Assigned To</Label>
                   <select
                     id="assignedTo"
+                    data-testid="select-task-assigned-to"
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
                     title="Assigned user"
@@ -295,7 +307,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                 <Button type="button" variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
                   Cancel
                 </Button>
-                <Button type="submit" className="cursor-pointer">Create Task</Button>
+                <Button type="submit" className="cursor-pointer" data-testid="btn-submit-task">Create Task</Button>
               </div>
             </form>
           </div>
