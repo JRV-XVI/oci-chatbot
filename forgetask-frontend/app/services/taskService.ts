@@ -5,9 +5,10 @@
  */
 import type { Task } from "@/app/types/task";
 import type { TaskAssigneeOption } from "@/app/types/task";
+import { getApiBaseUrl } from "@/app/services/apiBaseUrl";
 export type { Task };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = getApiBaseUrl();
 
 class TaskService {
   /**

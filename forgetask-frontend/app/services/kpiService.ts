@@ -4,6 +4,7 @@
  * This service will call the KPI endpoints for performance metrics
  */
 import type { Task } from "@/app/types/task";
+import { getApiBaseUrl } from "@/app/services/apiBaseUrl";
 
 export interface KPIMetrics {
   totalTasks: number;
@@ -89,7 +90,7 @@ export interface ProjectKpisSummary {
   sprintEstimatedHours?: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = getApiBaseUrl();
 
 class KPIService {
   /**

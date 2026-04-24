@@ -97,6 +97,7 @@ function Column({
   return (
     <div
       ref={drop as unknown as React.LegacyRef<HTMLDivElement>}
+      data-testid={`kanban-column-${status}`}
       className={`flex flex-col h-full rounded-xl border transition-colors ${
         isOver
           ? 'border-[#e76b36]/70 bg-[#11161f]/95 shadow-[0_0_16px_rgba(231,107,54,0.24)]'
@@ -186,7 +187,7 @@ function Column({
       )}
 
       {/* Tasks Container - Altura flexible con scroll individual */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3" data-testid={`kanban-column-${status}-tasks`}>
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-[#9aa4b2] text-sm">
             No tasks in {title.toLowerCase()}
@@ -359,12 +360,8 @@ export function ProjectBoard({
   }
 
   const handleOpenKpis = useCallback(() => {
-    if (projectId !== null) {
-      router.push(`/kpis?projectId=${projectId}`)
-      return
-    }
     router.push('/kpis')
-  }, [projectId, router])
+  }, [router])
 
   // Filtrar tareas por estado
   const backlogTasks = tasks.filter((task) => task.status === 'backlog')

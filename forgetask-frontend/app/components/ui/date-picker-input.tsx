@@ -16,6 +16,7 @@ interface DatePickerInputProps {
   disabled?: boolean;
   label?: string;
   className?: string;
+  testId?: string;
 }
 
 export function DatePickerInput({
@@ -25,6 +26,7 @@ export function DatePickerInput({
   disabled,
   label,
   className,
+  testId,
 }: DatePickerInputProps) {
   const parsedValue = React.useMemo(() => {
     if (!value) {
@@ -62,6 +64,7 @@ export function DatePickerInput({
   const pickerSlotProps = {
     textField: {
       id,
+      inputProps: testId ? { "data-testid": testId } : undefined,
       size: "small",
       fullWidth: true,
       placeholder: "yyyy-mm-dd",
@@ -206,6 +209,7 @@ export function DatePickerInput({
               value={parsedValue}
               onChange={handleChange}
               format="YYYY-MM-DD"
+              enableAccessibleFieldDOMStructure
               disabled={disabled}
               slotProps={pickerSlotProps}
             />

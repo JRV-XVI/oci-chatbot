@@ -24,6 +24,7 @@ import { useEffect, useCallback, useRef } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import taskService from '@/app/services/taskService'
+import { getApiBaseUrl } from '@/app/services/apiBaseUrl'
 import type { Task } from '@/app/types/task'
 
 /**
@@ -65,7 +66,7 @@ export function useTaskWebSocket(
       try {
         // Crear conexión SockJS al endpoint /ws/tasks del backend
         // SockJS proporciona fallback a WebSocket emulado si el navegador no lo soporta
-        const socket = new SockJS('http://localhost:8080/ws/tasks')
+        const socket = new SockJS(`${getApiBaseUrl()}/ws/tasks`)
 
         // Envolver la conexión con STOMP para protocolo de mensajería
         const stompClient = new Client({
