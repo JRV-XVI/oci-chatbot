@@ -1,0 +1,303 @@
+.chart {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: rgba(13, 17, 23, 0.86);
+  padding: 0.85rem;
+}
+
+.labelW48 {
+  --label-width: 48px;
+}
+
+.labelW64 {
+  --label-width: 64px;
+}
+
+.labelW80 {
+  --label-width: 80px;
+}
+
+.labelW96 {
+  --label-width: 96px;
+}
+
+.labelW120 {
+  --label-width: 120px;
+}
+
+.labelW140 {
+  --label-width: 140px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+
+.legendDot {
+  width: 0.68rem;
+  height: 0.68rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--label-width) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.row + .row {
+  margin-top: 0.6rem;
+}
+
+.index {
+  color: var(--foreground);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.verticalRows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.verticalRow {
+  border: 1px solid var(--border);
+  background: rgba(17, 22, 31, 0.72);
+  border-radius: 0.75rem;
+  padding: 0.65rem;
+}
+
+.verticalIndex {
+  display: block;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.verticalBars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-height: 150px;
+}
+
+.verticalBarItem {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.verticalBarButton {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(13, 17, 23, 0.88);
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 116px;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.verticalSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.verticalRect {
+  width: 100%;
+  fill: var(--bar-color, currentColor);
+  transition: y 180ms ease, height 180ms ease;
+}
+
+.verticalValue {
+  color: var(--kpi-chart-2);
+  font-size: 0.68rem;
+}
+
+.verticalCategory {
+  width: 100%;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.66rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.barCategory {
+  color: var(--muted-foreground);
+  font-size: 0.74rem;
+  max-width: 70%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barButton {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(17, 22, 31, 0.72);
+  border-radius: 9999px;
+  height: 1rem;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress {
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  accent-color: var(--bar-color, currentColor);
+}
+
+.progress::-webkit-progress-bar {
+  background: transparent;
+}
+
+.progress::-webkit-progress-value {
+  background: var(--bar-color, currentColor);
+  border-radius: 9999px;
+}
+
+.progress::-moz-progress-bar {
+  background: var(--bar-color, currentColor);
+  border-radius: 9999px;
+}
+
+.blue {
+  --bar-color: var(--kpi-chart-6);
+  color: var(--kpi-chart-6);
+}
+
+.emerald {
+  --bar-color: var(--kpi-chart-1);
+  color: var(--kpi-chart-1);
+}
+
+.violet {
+  --bar-color: var(--kpi-chart-2);
+  color: var(--kpi-chart-2);
+}
+
+.cyan {
+  --bar-color: var(--kpi-chart-3);
+  color: var(--kpi-chart-3);
+}
+
+.fuchsia {
+  --bar-color: var(--kpi-chart-4);
+  color: var(--kpi-chart-4);
+}
+
+.pink {
+  --bar-color: var(--kpi-chart-5);
+  color: var(--kpi-chart-5);
+}
+
+.amber {
+  --bar-color: var(--kpi-chart-2);
+  color: var(--kpi-chart-2);
+}
+
+.orange {
+  --bar-color: var(--kpi-chart-1);
+  color: var(--kpi-chart-1);
+}
+
+.red {
+  --bar-color: var(--kpi-chart-4);
+  color: var(--kpi-chart-4);
+}
+
+.orangeSoft {
+  --bar-color: var(--kpi-chart-2);
+  color: var(--kpi-chart-2);
+}
+
+.orangeDeep {
+  --bar-color: var(--kpi-chart-4);
+  color: var(--kpi-chart-4);
+}
+
+.slate {
+  --bar-color: var(--kpi-chart-6);
+  color: var(--kpi-chart-6);
+}
+
+.slateLight {
+  --bar-color: var(--kpi-chart-3);
+  color: var(--kpi-chart-3);
+}
+
+.slateDim {
+  --bar-color: var(--kpi-chart-5);
+  color: var(--kpi-chart-5);
+}
+
+.barValue {
+  color: var(--kpi-chart-2);
+  font-size: 0.72rem;
+}
+
+.empty {
+  color: var(--muted-foreground);
+  font-size: 0.84rem;
+  opacity: 0.9;
+}
+
+.srOnly {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
