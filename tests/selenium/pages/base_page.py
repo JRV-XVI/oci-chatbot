@@ -70,13 +70,15 @@ class BasePage:
         return self.driver.find_elements(*locator)
 
     def click(self, locator: tuple[str, str], timeout: int | None = None) -> None:
-        self.wait_react_hydrated(locator, timeout=4)
+        try:
+            self.wait_react_hydrated(locator, timeout=4)
+        except TimeoutException:
+            pass
         element = self.wait_clickable(locator, timeout)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
         try:
             element.click()
         except WebDriverException:
-            # Remote/headless drivers can intermittently fail native click.
             self.driver.execute_script("arguments[0].click();", element)
 
     def type_text(self, locator: tuple[str, str], value: str, timeout: int | None = None) -> None:
@@ -86,7 +88,6 @@ class BasePage:
         try:
             element.click()
         except WebDriverException:
-            # Some MUI inputs are wrapped and can intercept native clicks.
             self.driver.execute_script("arguments[0].focus();", element)
 
         used_js_fallback = False
@@ -99,7 +100,6 @@ class BasePage:
 
         current_value = (element.get_attribute("value") or "").strip()
         if used_js_fallback or current_value != value:
-            # JS fallback keeps React-controlled fields in sync in remote/headless runs.
             self.driver.execute_script(
                 """
                 const el = arguments[0];
@@ -132,18 +132,14 @@ class BasePage:
         input_el = self.wait_present(locator, timeout)
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", input_el)
 
-        # Subir al contenedor clickeable
         container = self.driver.execute_script(
             "return arguments[0].closest('.MuiPickersInputBase-root')", input_el
         )
 
         year, month, day = date_value.split("-")
-
-        # Click en el contenedor para activar MUI
         container.click()
         time.sleep(0.3)
 
-        # Enviar teclas al elemento activo via ActionChains
         actions = ActionChains(self.driver)
         actions.send_keys(year)
         actions.pause(0.1)

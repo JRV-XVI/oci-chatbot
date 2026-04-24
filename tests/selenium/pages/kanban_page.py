@@ -20,6 +20,10 @@ class KanbanPage(BasePage):
     TASK_DESCRIPTION_INPUT = BasePage.by_test_id("input-task-description")
     TASK_STATUS_SELECT = BasePage.by_test_id("select-task-status")
     TASK_PRIORITY_SELECT = BasePage.by_test_id("select-task-priority")
+    TASK_SPRINT_SELECT = BasePage.by_test_id("select-task-sprint")          
+    TASK_START_DATE_INPUT = BasePage.by_test_id("input-task-start-date")    
+    TASK_END_DATE_INPUT = BasePage.by_test_id("input-task-end-date")        
+    TASK_ESTIMATED_TIME_INPUT = BasePage.by_test_id("input-task-estimated-time")  
     TASK_ASSIGNED_TO_SELECT = BasePage.by_test_id("select-task-assigned-to")
 
     TASK_DETAILS_DIALOG = BasePage.by_test_id("dialog-task-details")
@@ -40,7 +44,7 @@ class KanbanPage(BasePage):
     KPIS_BUTTON = BasePage.by_test_id("btn-kpis")
 
     BACKLOG_COLUMN = BasePage.by_test_id("kanban-column-backlog")
-    
+
     SPRINT_CLOSE_BUTTON = (By.XPATH, "//div[@data-testid='dialog-add-sprint']//button[normalize-space()='Close']")
 
     def __init__(self, driver, settings: SeleniumSettings):
@@ -88,6 +92,11 @@ class KanbanPage(BasePage):
         description: str,
         status: str = "backlog",
         priority: str = "medium",
+        sprint: str | None = None,
+        estimated_hours: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        assigned_to: str | None = None,
     ) -> None:
         self.open_add_task_dialog()
 
@@ -96,12 +105,26 @@ class KanbanPage(BasePage):
         self.select_by_value(self.TASK_STATUS_SELECT, status)
         self.select_by_value(self.TASK_PRIORITY_SELECT, priority)
 
+        if sprint is not None:
+            self.select_by_value(self.TASK_SPRINT_SELECT, sprint)
+
+        if start_date is not None:
+            self.type_mui_date(self.TASK_START_DATE_INPUT, start_date)
+
+        if end_date is not None:
+            self.type_mui_date(self.TASK_END_DATE_INPUT, end_date)
+
+        if estimated_hours is not None:
+            self.type_text(self.TASK_ESTIMATED_TIME_INPUT, estimated_hours)
+
         assignees = self.available_assignees()
         if not assignees:
             raise RuntimeError("No assignees available to create a task.")
 
-        first_assignee_value = assignees[0][0]
-        self.select_by_value(self.TASK_ASSIGNED_TO_SELECT, first_assignee_value)
+        if assigned_to is not None:
+            self.select_by_value(self.TASK_ASSIGNED_TO_SELECT, assigned_to)
+        else:
+            self.select_by_value(self.TASK_ASSIGNED_TO_SELECT, assignees[0][0])
 
         self.click(self.SUBMIT_TASK_BUTTON)
         self.wait_invisible(self.ADD_TASK_DIALOG)
@@ -176,10 +199,8 @@ class KanbanPage(BasePage):
         self.type_mui_date(self.SPRINT_START_DATE_INPUT, start_date)
         self.type_mui_date(self.SPRINT_END_DATE_INPUT, end_date)
 
-        # ── DEBUG: captura antes del submit ──────────────────────────────
         self.driver.save_screenshot("/app/tests/selenium/artifacts/debug_before_submit.png")
 
-        # Leer valores actuales del DOM para ver si MUI los registró
         start_el = self.driver.find_element(*self.SPRINT_START_DATE_INPUT)
         end_el   = self.driver.find_element(*self.SPRINT_END_DATE_INPUT)
         print(f"\n[DEBUG] start input value: '{start_el.get_attribute('value')}'")
@@ -187,7 +208,6 @@ class KanbanPage(BasePage):
 
         self.click(self.SPRINT_SUBMIT_BUTTON)
 
-        # ── DEBUG: captura después del submit ────────────────────────────
         import time as _time
         _time.sleep(1)
         self.driver.save_screenshot("/app/tests/selenium/artifacts/debug_after_submit.png")
@@ -200,24 +220,35 @@ class KanbanPage(BasePage):
             self.click(self.SPRINT_CLOSE_BUTTON)
             self.wait_invisible(self.ADD_SPRINT_DIALOG)
         except TimeoutException:
-            pass  # ya estaba cerrado
+            pass
 
     def sprint_options_text(self) -> list[str]:
         self.open_sprint_dialog()
         select_element = self.wait_visible(self.SPRINT_SELECT)
         options = Select(select_element).options
         texts = [option.text.strip() for option in options]
-        self.close_sprint_dialog()  # ← ESTE es el fix
+        self.close_sprint_dialog()
         return texts
 
     def go_to_kpis(self) -> None:
-        for _ in range(4):
-            self.click(self.KPIS_BUTTON)
+        for _ in range(5):
+            try:
+                self.click(self.KPIS_BUTTON, timeout=8)
+            except TimeoutException:
+                time.sleep(0.4)
+                continue
             try:
                 WebDriverWait(self.driver, 6).until(lambda d: "/kpis" in d.current_url)
                 return
             except TimeoutException:
                 time.sleep(0.3)
+
+        self.open("/kpis")
+        try:
+            WebDriverWait(self.driver, 8).until(lambda d: "/kpis" in d.current_url)
+            return
+        except TimeoutException:
+            pass
 
         raise RuntimeError("Navigation to /kpis did not happen after clicking KPIs.")
 

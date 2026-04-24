@@ -20,6 +20,11 @@ def test_edit_task_changes_column_status(driver, settings: SeleniumSettings):
             description="Task to validate status edition from dialog",
             status="backlog",
             priority="high",
+            sprint="4",
+            estimated_hours="4",
+            start_date="2026-06-01",
+            end_date="2026-06-12",
+            assigned_to="MarioFengW",   
         )
     except RuntimeError as exc:
         pytest.skip(str(exc))
@@ -27,7 +32,7 @@ def test_edit_task_changes_column_status(driver, settings: SeleniumSettings):
     board.wait_task_in_column(task_title, "backlog")
 
     board.open_task_details(task_title)
-    board.update_task_status("in-progress", real_time_hours="2")
+    board.update_task_status("done", real_time_hours="4")
 
-    board.wait_task_in_column(task_title, "in-progress")
+    board.wait_task_in_column(task_title, "done")
     board.wait_task_removed_from_column(task_title, "backlog")

@@ -87,7 +87,17 @@ def build_driver(settings: SeleniumSettings) -> WebDriver:
             options=options,
         )
     else:
-        driver = webdriver.Edge(options=options)
+        local_driver = ROOT_DIR / "tests" / "edgedriver" / "edgedriver_win64" / "msedgedriver.exe"
+
+        if local_driver.exists():
+            from selenium.webdriver.edge.service import Service as EdgeService
+            service = EdgeService(executable_path=str(local_driver))
+            driver = webdriver.Edge(service=service, options=options)
+        else:
+            raise FileNotFoundError(
+                f"msedgedriver.exe no encontrado en {local_driver}. "
+                "Descárgalo desde https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/"
+            )
 
     driver.set_window_size(settings.window_width, settings.window_height)
     return driver

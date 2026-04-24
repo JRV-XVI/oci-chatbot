@@ -14,8 +14,6 @@ def test_create_task_is_visible_in_second_client_tab(driver, settings: SeleniumS
 
     first_tab = driver.current_window_handle
 
-    # Use a second tab in the same browser session to keep compatibility with
-    # selenium/standalone-edge defaults (usually single-session).
     driver.switch_to.new_window("tab")
     second_tab = driver.current_window_handle
 
@@ -33,6 +31,11 @@ def test_create_task_is_visible_in_second_client_tab(driver, settings: SeleniumS
             description=description,
             status="backlog",
             priority="medium",
+            sprint="4",
+            estimated_hours="4",
+            start_date="2026-06-01",
+            end_date="2026-06-12",
+            assigned_to="MarioFengW",   
         )
     except RuntimeError as exc:
         pytest.skip(str(exc))

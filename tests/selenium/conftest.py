@@ -43,7 +43,6 @@ def driver_factory(settings: SeleniumSettings) -> Callable[[], WebDriver]:
         try:
             driver.quit()
         except (InvalidSessionIdException, WebDriverException):
-            # Session already gone. This should not break pytest teardown.
             continue
 
 
@@ -64,7 +63,6 @@ def cleanup_created_entities(settings: SeleniumSettings):
 
     yield
 
-    # If backend API is not reachable, keep tests focused on their assertions.
     if baseline_task_ids is None or baseline_sprint_ids is None:
         return
 
