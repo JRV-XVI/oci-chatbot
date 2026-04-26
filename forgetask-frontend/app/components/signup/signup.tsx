@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
+import authService, { AuthApiError } from "@/app/services/authService"
 
 // ─── Schema de validación ─────────
 const signupSchema = z
@@ -116,22 +117,37 @@ export function SignupForm() {
     setIsLoading(true)
     setServerError(null)
     try {
-      // TODO: conectar con el endpoint de registro de Spring Boot
-      // Ejemplo:
-      // const payload = {
-      //   username:     values.username,
-      //   email:        values.email,
-      //   first_name:   values.first_name,
-      //   last_name:    values.last_name,
-      //   phone_number: values.phone_number || null,
-      //   password:     values.password,
-      // }
-      // await authService.signup(payload)
-      // router.push("/login")
-      console.log("TODO — enviar al backend Spring Boot:", values)
-    } catch {
-      // TODO: manejar errores del backend (ej. username/email ya existente)
-      setServerError("No se pudo crear la cuenta. Intenta de nuevo.")
+      const response = await authService.signup({
+        username: values.username,
+        email: values.email,
+        firstName: values.first_name,
+        lastName: values.last_name,
+        password: values.password,
+      })
+
+      localStorage.setItem("token", response.token)
+      localStorage.setItem("tokenType", response.tokenType)
+      localStorage.setItem(
+        "auth_user",
+        JSON.stringify({
+          idUser: response.idUser,
+          username: response.username,
+          email: response.email,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          roles: response.roles,
+        })
+      )
+
+      router.push("/")
+    } catch (error) {
+      if (error instanceof AuthApiError && error.status === 409) {
+        setServerError(error.message)
+      } else if (error instanceof Error) {
+        setServerError(error.message)
+      } else {
+        setServerError("No se pudo crear la cuenta. Intenta de nuevo.")
+      }
     } finally {
       setIsLoading(false)
     }

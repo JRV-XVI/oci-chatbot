@@ -7,6 +7,14 @@ export type LoginRequest = {
   password: string
 }
 
+export type SignupRequest = {
+  username: string
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+}
+
 export type LoginResponse = {
   token: string
   tokenType: string
@@ -62,6 +70,37 @@ class AuthService {
 
     if (!response.ok) {
       let errorMessage = "No se pudo iniciar sesión. Intenta nuevamente."
+
+      try {
+        const errorBody = await response.json()
+        errorMessage = getErrorMessage(errorBody) || errorMessage
+      } catch {
+        // If backend did not return JSON, keep the default message.
+      }
+
+      throw new AuthApiError(errorMessage, response.status)
+    }
+
+    return await response.json()
+  }
+
+  async signup(payload: SignupRequest): Promise<LoginResponse> {
+    let response: Response
+
+    try {
+      response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+    } catch {
+      throw new Error("No se pudo conectar con el servidor. Intenta nuevamente.")
+    }
+
+    if (!response.ok) {
+      let errorMessage = "No se pudo crear la cuenta. Intenta de nuevo."
 
       try {
         const errorBody = await response.json()

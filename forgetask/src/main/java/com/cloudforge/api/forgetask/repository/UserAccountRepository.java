@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
     /** Login by email (campo usado desde el frontend) */
     Optional<UserAccount> findByEmail(String email);
+    Optional<UserAccount> findByUsername(String username);
 
     /** Útil para signup: validar si el username ya existe */
     boolean existsByUsername(String username);
