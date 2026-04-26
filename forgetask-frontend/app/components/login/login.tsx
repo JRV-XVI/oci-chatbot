@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
+import authService, { AuthApiError } from "@/app/services/authService"
 
 // ─── Schema de validación ─────────────────────────────────────────────────────
 const loginSchema = z.object({
@@ -39,13 +40,31 @@ export function LoginForm() {
     setIsLoading(true)
     setServerError(null)
     try {
-      // TODO: reemplazar con tu authService real
-      console.log("Enviando al backend Spring Boot:", values)
-      // const token = await authService.login(values)
-      // localStorage.setItem("token", token)
+      const response = await authService.login(values)
+
+      localStorage.setItem("token", response.token)
+      localStorage.setItem("tokenType", response.tokenType)
+      localStorage.setItem(
+        "auth_user",
+        JSON.stringify({
+          idUser: response.idUser,
+          username: response.username,
+          email: response.email,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          roles: response.roles,
+        })
+      )
+
       router.push("/")
-    } catch {
-      setServerError("Credenciales incorrectas. Verifica tu correo y contraseña.")
+    } catch (error) {
+      if (error instanceof AuthApiError && error.status === 401) {
+        setServerError("Credenciales incorrectas. Verifica tu correo y contraseña.")
+      } else if (error instanceof Error) {
+        setServerError(error.message)
+      } else {
+        setServerError("No se pudo iniciar sesión. Intenta nuevamente.")
+      }
     } finally {
       setIsLoading(false)
     }
