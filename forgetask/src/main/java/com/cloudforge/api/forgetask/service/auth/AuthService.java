@@ -78,6 +78,7 @@ public class AuthService {
         return new LoginResponseDTO(
                 token,
                 user.getIdUser(),
+                user.getIdProject(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getFirstName(),
@@ -102,10 +103,9 @@ public class AuthService {
             throw new RuntimeException("El nombre de usuario ya está en uso.");
         }
 
-        // 2. Crear el Proyecto (workspace) del nuevo Manager
+        // 2. Crear el Proyecto temporal
         Project project = new Project();
-        project.setTitle(request.getFirstName() + "'s Workspace");
-        project.setDescription("Workspace personal de " + request.getFirstName());
+        project.setTitle("Proyecto temporal");
         Project savedProject = projectRepository.save(project);
 
         // 3. Crear el UserAccount

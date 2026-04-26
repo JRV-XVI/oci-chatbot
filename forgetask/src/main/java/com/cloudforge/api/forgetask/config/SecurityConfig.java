@@ -35,6 +35,7 @@ public class SecurityConfig {
                     "/health",
                     "/actuator/**"
                 ).permitAll()
+                .requestMatchers("/api/projects/**").authenticated() // Cambiar cuando implementemos auth en telegram
                 // TODO: implementar auth en telegram y proteger estas rutas:
                 .anyRequest().permitAll() // Por ahora, dejamos todo abierto para desarrollo. Cambiar a authenticated() cuando implementemos auth en telegram.
                 //.anyRequest().authenticated() // Todo lo demás requiere JWT válido
