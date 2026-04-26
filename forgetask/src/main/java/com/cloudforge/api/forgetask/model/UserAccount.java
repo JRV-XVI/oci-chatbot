@@ -8,6 +8,8 @@ import java.util.Set;
 
 public class UserAccount {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "APP_USER.SEQ_USER_ACCOUNT", allocationSize = 1)
     @Column(name = "ID_USER")
     private Long idUser;
 
@@ -32,7 +34,8 @@ public class UserAccount {
     @Column(name = "PHONE_NUMBER", length = 20)
     private String phoneNumber;
 
-    @OneToMany(mappedBy = "userAccount", fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_USER", insertable = false, updatable = false)
     private Set<UserRole> roles;
 
     public Long getIdUser()                      { return idUser; }
