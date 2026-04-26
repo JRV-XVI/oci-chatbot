@@ -2,6 +2,13 @@ package com.cloudforge.api.forgetask.service.auth;
 
 import com.cloudforge.api.forgetask.dto.auth.LoginRequestDTO;
 import com.cloudforge.api.forgetask.dto.auth.LoginResponseDTO;
+import com.cloudforge.api.forgetask.dto.auth.SignupRequestDTO;
+import com.cloudforge.api.forgetask.model.Project;
+import com.cloudforge.api.forgetask.model.UserRole;
+import com.cloudforge.api.forgetask.model.UserRoleId;
+import com.cloudforge.api.forgetask.repository.ProjectRepository;
+import com.cloudforge.api.forgetask.repository.UserRoleRepository;
+import org.springframework.transaction.annotation.Transactional;
 import com.cloudforge.api.forgetask.model.UserAccount;
 import com.cloudforge.api.forgetask.repository.UserAccountRepository;
 import com.cloudforge.api.forgetask.security.JwtUtil;
@@ -20,13 +27,19 @@ import java.util.stream.Collectors;
 @Service
 public class AuthService {
     private final UserAccountRepository userRepo;
+    private final ProjectRepository projectRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder       passwordEncoder;
     private final JwtUtil               jwtUtil;
 
     public AuthService(UserAccountRepository userRepo,
+                       ProjectRepository projectRepository,
+                       UserRoleRepository userRoleRepository,
                        PasswordEncoder passwordEncoder,
                        JwtUtil jwtUtil) {
         this.userRepo        = userRepo;
+        this.projectRepository = projectRepository;
+        this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil         = jwtUtil;
     }
@@ -71,5 +84,47 @@ public class AuthService {
                 user.getLastName(),
                 roles
         );
+    }
+
+        /**
+         * Registra un nuevo usuario con rol "USER" y lo asigna a un proyecto por defecto.
+         *
+         * @throws ResponseStatusException 400 si el email o username ya existen
+         */
+    @Transactional
+    public LoginResponseDTO signup(SignupRequestDTO request) {
+
+        // 1. Validar que el email y username no existan
+        if (userRepo.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("El correo ya está registrado.");
+        }
+        if (userRepo.existsByUsername(request.getUsername())) {
+            throw new RuntimeException("El nombre de usuario ya está en uso.");
+        }
+
+        // 2. Crear el Proyecto (workspace) del nuevo Manager
+        Project project = new Project();
+        project.setTitle(request.getFirstName() + "'s Workspace");
+        project.setDescription("Workspace personal de " + request.getFirstName());
+        Project savedProject = projectRepository.save(project);
+
+        // 3. Crear el UserAccount
+        UserAccount user = new UserAccount();
+        user.setIdProject(savedProject.getIdProject());
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        UserAccount savedUser = userRepo.save(user);
+
+        // 4. Asignar rol MANAGER al nuevo usuario
+        UserRoleId roleId = new UserRoleId(savedUser.getIdUser(), "manager");
+        UserRole role = new UserRole();
+        role.setId(roleId);
+        userRoleRepository.save(role);
+
+        // 5. Auto-login: devolver JWT igual que en /login
+        return login(new LoginRequestDTO(request.getEmail(), request.getPassword()));
     }
 }
