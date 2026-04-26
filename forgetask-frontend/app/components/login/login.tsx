@@ -52,37 +52,87 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 app-background">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen lg:grid lg:grid-cols-[minmax(320px,38%)_1fr]" style={{ background: "#060a12" }}>
+      <aside className="relative hidden min-h-screen overflow-hidden lg:flex">
+        <Image
+          src="/signup-side.jpg"
+          alt="Panel de control y colaboracion de equipo"
+          fill
+          priority
+          sizes="(min-width: 1024px) 38vw, 100vw"
+          className="object-cover object-[62%_center]"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(1,4,9,0.36)_0%,rgba(1,4,9,0.65)_48%,rgba(1,4,9,0.95)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(231,107,54,0.25),transparent_34%),radial-gradient(circle_at_84%_14%,rgba(231,107,54,0.12),transparent_30%)]" />
 
-        {/* ── Logo / Brand ── */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center rounded-xl mb-4 p-2"
-            style={{ background: "rgba(231,107,54,0.15)", border: "1px solid rgba(231,107,54,0.35)" }}>
-            <Image
-              src="/CloudForge.svg"
-              alt="CloudForge"
-              width={64}
-              height={64}
-              priority
-            />
+        <div className="relative z-10 flex min-h-screen w-full flex-col justify-between p-8 xl:p-10">
+          <div className="flex items-center gap-3">
+            <div
+              className="inline-flex items-center justify-center rounded-xl p-2"
+              style={{ background: "rgba(231,107,54,0.15)", border: "1px solid rgba(231,107,54,0.35)" }}
+            >
+              <Image src="/CloudForge.svg" alt="CloudForge" width={52} height={52} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: "#ffb28f" }}>
+                Forgetask
+              </p>
+              <p className="text-sm" style={{ color: "rgba(230,237,243,0.85)" }}>
+                Project Workspace
+              </p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight neon-orange">Forgetask</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)" }}>
-            Inicia sesión en tu espacio de trabajo
-          </p>
-        </div>
 
-        {/* ── Card ── */}
-        <div
-          className="rounded-xl p-6 backdrop-blur-sm"
-          style={{
-            background: "rgba(13, 17, 23, 0.85)",
-            border: "1px solid #2b3542",
-            boxShadow: "0 0 0 1px rgba(231,107,54,0.04), 0 24px 48px rgba(0,0,0,0.55)",
-          }}
-        >
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+          <div className="max-w-sm rounded-[28px] border border-white/10 bg-black/25 p-6 backdrop-blur-md">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: "#ffb28f" }}>
+              Bienvenido de nuevo
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-white">
+              Retoma el control de tus proyectos.
+            </h2>
+            <p className="mt-4 text-sm leading-6" style={{ color: "rgba(230,237,243,0.72)" }}>
+              Accede a tus tableros, revisa avances del sprint y continua donde lo dejaste.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <section className="app-background relative flex min-h-screen flex-col justify-start px-4 py-8 sm:px-6 lg:justify-center lg:px-10 xl:px-16">
+        <div className="mx-auto w-full max-w-[420px]">
+          {/* ── Logo / Brand (solo móvil) ── */}
+          <div className="mb-7 text-center lg:hidden">
+            <div
+              className="inline-flex items-center justify-center rounded-xl p-2"
+              style={{ background: "rgba(231,107,54,0.15)", border: "1px solid rgba(231,107,54,0.35)" }}
+            >
+              <Image src="/CloudForge.svg" alt="CloudForge" width={56} height={56} priority />
+            </div>
+            <h1 className="mt-4 text-2xl font-bold tracking-tight neon-orange">Forgetask</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)" }}>
+              Inicia sesion en tu espacio de trabajo
+            </p>
+          </div>
+
+          {/* ── Encabezado (desktop) ── */}
+          <div className="mb-6 hidden lg:block">
+            <h1 className="text-3xl font-semibold tracking-tight" style={{ color: "#e6edf3" }}>
+              Bienvenido de nuevo
+            </h1>
+            <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+              Retoma el control de tus proyectos.
+            </p>
+          </div>
+
+          {/* ── Card ── */}
+          <div
+            className="rounded-xl p-6 backdrop-blur-sm"
+            style={{
+              background: "rgba(13, 17, 23, 0.85)",
+              border: "1px solid #2b3542",
+              boxShadow: "0 0 0 1px rgba(231,107,54,0.04), 0 24px 48px rgba(0,0,0,0.55)",
+            }}
+          >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
 
             {/* Error del servidor */}
             {serverError && (
@@ -178,23 +228,24 @@ export function LoginForm() {
                 </span>
               ) : "Iniciar sesión"}
             </Button>
-          </form>
-        </div>
+            </form>
+          </div>
 
-        {/* ── Footer ── */}
-        <p className="text-center text-sm mt-5" style={{ color: "var(--muted-foreground)" }}>
-          ¿No tienes cuenta?{" "}
-          <a
-            href="/signup"
-            className="font-medium transition-colors"
-            style={{ color: "var(--forge-orange)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "#ff8a58")}
-            onMouseLeave={e => (e.currentTarget.style.color = "var(--forge-orange)")}
-          >
-            Regístrate gratis
-          </a>
-        </p>
-      </div>
+          {/* ── Footer ── */}
+          <p className="text-center text-sm mt-5" style={{ color: "var(--muted-foreground)" }}>
+            ¿No tienes cuenta?{" "}
+            <a
+              href="/signup"
+              className="font-medium transition-colors"
+              style={{ color: "var(--forge-orange)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#ff8a58")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--forge-orange)")}
+            >
+              Regístrate gratis
+            </a>
+          </p>
+        </div>
+      </section>
     </div>
   )
 }
