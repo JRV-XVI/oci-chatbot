@@ -34,6 +34,7 @@ public class LoginResponseDTO {
     public String getToken()            { return token; }
     public String getTokenType()        { return tokenType; }
     public Long   getIdUser()           { return idUser; }
+    public Long   getIdProject()        { return idProject; }
     public String getUsername()         { return username; }
     public String getEmail()            { return email; }
     public String getFirstName()        { return firstName; }
