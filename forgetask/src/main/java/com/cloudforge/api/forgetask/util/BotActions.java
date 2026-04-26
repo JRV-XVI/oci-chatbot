@@ -5,6 +5,7 @@ import com.cloudforge.api.forgetask.controller.TaskController;
 import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskAssigneeOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskDTO;
+import com.cloudforge.api.forgetask.service.DeepSeekService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class BotActions {
     private final TaskController taskController;
     private final SprintController sprintController;
     private ConversationManager conversationManager;
+    private DeepSeekService deepSeekService;
     private boolean exit;
 
     public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController) {
@@ -47,6 +49,10 @@ public class BotActions {
 
     public void setConversationManager(ConversationManager conversationManager) {
         this.conversationManager = conversationManager;
+    }
+
+    public void setDeepSeekService(DeepSeekService deepSeekService) {
+        this.deepSeekService = deepSeekService;
     }
 
     public void fnStart() {
@@ -243,6 +249,40 @@ public class BotActions {
         } else {
             // Fallback al mensaje antiguo si no hay conversation manager
             BotHelper.sendMessageToTelegram(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage(), telegramClient);
+        }
+        exit = true;
+    }
+
+    public void fnLLM() {
+        if (exit) {
+            return;
+        }
+
+        String trimmed = requestText.trim();
+        if (!trimmed.startsWith(BotCommands.LLM_REQ.getCommand())) {
+            return;
+        }
+
+        String prompt = trimmed.substring(BotCommands.LLM_REQ.getCommand().length()).trim();
+
+        if (deepSeekService == null || !deepSeekService.isConfigured()) {
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.LLM_NOT_CONFIGURED.getMessage(), telegramClient);
+            exit = true;
+            return;
+        }
+
+        if (prompt.isBlank()) {
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.LLM_PROMPT_MISSING.getMessage(), telegramClient);
+            exit = true;
+            return;
+        }
+
+        try {
+            String aiResponse = deepSeekService.generateText(prompt);
+            BotHelper.sendMessageToTelegram(chatId, aiResponse, telegramClient);
+        } catch (Exception e) {
+            logger.error("LLM request failed: {}", e.getLocalizedMessage(), e);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.LLM_ERROR.getMessage(), telegramClient);
         }
         exit = true;
     }

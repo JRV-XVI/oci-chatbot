@@ -1,6 +1,7 @@
 package com.cloudforge.api.forgetask.controller;
 
 import com.cloudforge.api.forgetask.config.TelegramBotConfig;
+import com.cloudforge.api.forgetask.service.DeepSeekService;
 import com.cloudforge.api.forgetask.util.BotActions;
 import com.cloudforge.api.forgetask.util.ConversationManager;
 import com.cloudforge.api.forgetask.util.ConversationState;
@@ -28,15 +29,17 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 	private final TelegramClient telegramClient;
 	private final TelegramBotConfig telegramBotConfig;
 	private final ConversationManager conversationManager;
+	private final DeepSeekService deepSeekService;
 
-	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController, 
+	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController,
 	                             SprintController sprintController, TelegramClient telegramClient,
-	                             ConversationManager conversationManager) {
+	                             ConversationManager conversationManager, DeepSeekService deepSeekService) {
 		this.telegramBotConfig = telegramBotConfig;
 		this.taskController = taskController;
 		this.sprintController = sprintController;
 		this.telegramClient = telegramClient;
 		this.conversationManager = conversationManager;
+		this.deepSeekService = deepSeekService;
 	}
 
 	@Override
@@ -78,6 +81,7 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 		actions.setRequestText(messageTextFromTelegram.trim());
 		actions.setChatId(chatId);
 		actions.setConversationManager(conversationManager);
+		actions.setDeepSeekService(deepSeekService);
 
 		// Execute bot action chain
 		actions.fnStart();
@@ -87,6 +91,7 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 		actions.fnHide();
 		actions.fnListAll();
 		actions.fnAddItem();
+		actions.fnLLM();
 		actions.fnElse();
 	}
 
