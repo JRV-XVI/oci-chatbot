@@ -19,6 +19,7 @@ export type LoginResponse = {
   token: string
   tokenType: string
   idUser: number
+  idProject: number
   username: string
   email: string
   firstName: string
