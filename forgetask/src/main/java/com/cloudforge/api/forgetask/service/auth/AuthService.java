@@ -4,10 +4,12 @@ import com.cloudforge.api.forgetask.dto.auth.LoginRequestDTO;
 import com.cloudforge.api.forgetask.dto.auth.LoginResponseDTO;
 import com.cloudforge.api.forgetask.dto.auth.SignupRequestDTO;
 import com.cloudforge.api.forgetask.model.Project;
+import com.cloudforge.api.forgetask.model.ProjectInvite;
 import com.cloudforge.api.forgetask.model.UserRole;
 import com.cloudforge.api.forgetask.model.UserRoleId;
 import com.cloudforge.api.forgetask.repository.ProjectRepository;
 import com.cloudforge.api.forgetask.repository.UserRoleRepository;
+import com.cloudforge.api.forgetask.service.invite.InviteService;
 import org.springframework.transaction.annotation.Transactional;
 import com.cloudforge.api.forgetask.model.UserAccount;
 import com.cloudforge.api.forgetask.repository.UserAccountRepository;
@@ -29,17 +31,20 @@ public class AuthService {
     private final UserAccountRepository userRepo;
     private final ProjectRepository projectRepository;
     private final UserRoleRepository userRoleRepository;
+    private final InviteService inviteService;
     private final PasswordEncoder       passwordEncoder;
     private final JwtUtil               jwtUtil;
 
     public AuthService(UserAccountRepository userRepo,
                        ProjectRepository projectRepository,
                        UserRoleRepository userRoleRepository,
+                       InviteService inviteService,
                        PasswordEncoder passwordEncoder,
                        JwtUtil jwtUtil) {
         this.userRepo        = userRepo;
         this.projectRepository = projectRepository;
         this.userRoleRepository = userRoleRepository;
+        this.inviteService = inviteService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil         = jwtUtil;
     }
@@ -103,26 +108,48 @@ public class AuthService {
             throw new RuntimeException("El nombre de usuario ya está en uso.");
         }
 
-        // 2. Crear el Proyecto temporal
-        Project project = new Project();
-        project.setTitle("Proyecto temporal");
-        Project savedProject = projectRepository.save(project);
-
-        // 3. Crear el UserAccount
+        // 2. Preparar UserAccount
         UserAccount user = new UserAccount();
-        user.setIdProject(savedProject.getIdProject());
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        UserAccount savedUser = userRepo.save(user);
 
-        // 4. Asignar rol MANAGER al nuevo usuario
-        UserRoleId roleId = new UserRoleId(savedUser.getIdUser(), "manager");
+        UserAccount savedUser;
         UserRole role = new UserRole();
-        role.setId(roleId);
-        userRoleRepository.save(role);
+        UserRoleId roleId = new UserRoleId();
+
+        if (request.getInviteToken() != null && !request.getInviteToken().isBlank()) {
+            // Flujo Developer: consume el token y asigna proyecto/rol del invite
+            ProjectInvite invite = inviteService.consumeInvite(request.getInviteToken());
+
+            if (!invite.getEmail().equalsIgnoreCase(request.getEmail())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El correo no coincide con la invitación.");
+            }
+
+            user.setIdProject(invite.getIdProject());
+            savedUser = userRepo.save(user);
+
+            roleId.setIdUser(savedUser.getIdUser());
+            roleId.setRole(invite.getRole());
+            role.setId(roleId);
+            userRoleRepository.save(role);
+        } else {
+            // Flujo Manager: crear proyecto temporal y asignar rol manager
+            Project project = new Project();
+            project.setTitle("Proyecto temporal");
+            Project savedProject = projectRepository.save(project);
+
+            user.setIdProject(savedProject.getIdProject());
+            savedUser = userRepo.save(user);
+
+            roleId.setIdUser(savedUser.getIdUser());
+            roleId.setRole("manager");
+            role.setId(roleId);
+            userRoleRepository.save(role);
+        }
 
         // 5. Auto-login: devolver JWT igual que en /login
         return login(new LoginRequestDTO(request.getEmail(), request.getPassword()));
