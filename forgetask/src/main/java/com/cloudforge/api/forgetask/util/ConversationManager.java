@@ -80,4 +80,11 @@ public class ConversationManager {
         conversations.remove(chatId);
         logger.info("Removed conversation for chatId: {}", chatId);
     }
+
+    public void startHoursLogging(long chatId) {
+        ConversationState state = getOrCreateConversation(chatId);
+        state.reset();
+        state.setCurrentStep(TaskCreationStep.AWAITING_TASK_SELECTION);
+    }
+
 }
