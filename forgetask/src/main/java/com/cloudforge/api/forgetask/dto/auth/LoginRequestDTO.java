@@ -15,6 +15,15 @@ public class LoginRequestDTO {
     @NotBlank(message = "La contraseña no puede estar vacía")
     private String password;
 
+    public LoginRequestDTO() {
+        // Constructor vacío requerido para deserialización JSON.
+    }
+
+    public LoginRequestDTO(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
     public String getEmail()               { return email; }
     public void setEmail(String email)     { this.email = email; }
     public String getPassword()            { return password; }
