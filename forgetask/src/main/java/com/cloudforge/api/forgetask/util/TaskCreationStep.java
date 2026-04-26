@@ -1,7 +1,15 @@
 package com.cloudforge.api.forgetask.util;
 
 /**
- * Enum que define los pasos en el flujo conversacional de creación de tareas
+ * Enum que define los pasos en los flujos conversacionales del bot.
+ *
+ * Flujo de creacion de tarea:
+ *   NONE -> AWAITING_TITLE -> AWAITING_DESCRIPTION -> AWAITING_PRIORITY ->
+ *   AWAITING_SPRINT -> AWAITING_START_DATE -> AWAITING_END_DATE ->
+ *   AWAITING_ESTIMATED_TIME -> AWAITING_ASSIGNEE -> AWAITING_CONFIRMATION -> COMPLETED
+ *
+ * Flujo de registro de horas reales:
+ *   NONE -> AWAITING_TASK_SELECTION -> AWAITING_HOURS -> NONE
  */
 public enum TaskCreationStep {
     NONE("none"),
@@ -14,7 +22,11 @@ public enum TaskCreationStep {
     AWAITING_ESTIMATED_TIME("awaiting_estimated_time"),
     AWAITING_ASSIGNEE("awaiting_assignee"),
     AWAITING_CONFIRMATION("awaiting_confirmation"),
-    COMPLETED("completed");
+    COMPLETED("completed"),
+
+    // Flujo de registro de horas reales (/loghours)
+    AWAITING_TASK_SELECTION("awaiting_task_selection"),
+    AWAITING_HOURS("awaiting_hours");
 
     private final String value;
 
@@ -33,5 +45,13 @@ public enum TaskCreationStep {
             }
         }
         return NONE;
+    }
+
+    /**
+     * Retorna true si el paso corresponde al flujo de registro de horas.
+     * Usado en TelegramBotController para enrutar al handler correcto.
+     */
+    public boolean isHoursFlow() {
+        return this == AWAITING_TASK_SELECTION || this == AWAITING_HOURS;
     }
 }

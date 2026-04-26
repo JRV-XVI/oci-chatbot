@@ -5,11 +5,10 @@ import com.cloudforge.api.forgetask.dto.TaskAssigneeOptionDTO;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utilidad para generar teclados (keyboards) de Telegram con opciones múltiples
+ * Utilidad para generar teclados (keyboards) de Telegram con opciones multiples
  */
 public class KeyboardBuilder {
 
@@ -44,7 +43,6 @@ public class KeyboardBuilder {
                 .oneTimeKeyboard(true)
                 .selective(true);
 
-        // Añadir sprints en filas de 2 usando su título/nombre
         for (int i = 0; i < sprints.size(); i += 2) {
             KeyboardRow row = new KeyboardRow();
             row.add(sprints.get(i).getTitle());
@@ -54,7 +52,6 @@ public class KeyboardBuilder {
             builder.keyboardRow(row);
         }
 
-        // Fila con opciones
         KeyboardRow optionsRow = new KeyboardRow();
         optionsRow.add("Back");
         optionsRow.add("Cancel");
@@ -64,7 +61,8 @@ public class KeyboardBuilder {
     }
 
     /**
-     * Construye un teclado para seleccionar usuario asignado
+     * Construye un teclado para seleccionar usuario asignado.
+     * No incluye "Unassigned" — la asignacion es obligatoria.
      */
     public static ReplyKeyboardMarkup buildAssigneeKeyboard(List<TaskAssigneeOptionDTO> assignees) {
         ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder builder = ReplyKeyboardMarkup.builder()
@@ -72,7 +70,6 @@ public class KeyboardBuilder {
                 .oneTimeKeyboard(true)
                 .selective(true);
 
-        // Añadir usuarios en filas de 2
         for (int i = 0; i < assignees.size(); i += 2) {
             KeyboardRow row = new KeyboardRow();
             row.add(assignees.get(i).getUsername());
@@ -82,11 +79,6 @@ public class KeyboardBuilder {
             builder.keyboardRow(row);
         }
 
-        // Fila especial para "Sin asignar" y opciones
-        KeyboardRow specialRow = new KeyboardRow();
-        specialRow.add("Unassigned");
-        builder.keyboardRow(specialRow);
-
         KeyboardRow optionsRow = new KeyboardRow();
         optionsRow.add("Back");
         optionsRow.add("Cancel");
@@ -96,7 +88,7 @@ public class KeyboardBuilder {
     }
 
     /**
-     * Construye un teclado para confirmación si/no
+     * Construye un teclado para confirmacion si/no
      */
     public static ReplyKeyboardMarkup buildConfirmationKeyboard() {
         KeyboardRow row = new KeyboardRow();
@@ -112,7 +104,8 @@ public class KeyboardBuilder {
     }
 
     /**
-     * Construye un teclado para omitir campos opcionales
+     * Construye un teclado para campos opcionales (con boton SKIP).
+     * Usar solo para campos que el usuario puede omitir.
      */
     public static ReplyKeyboardMarkup buildOptionalFieldKeyboard() {
         KeyboardRow row = new KeyboardRow();
@@ -132,7 +125,24 @@ public class KeyboardBuilder {
     }
 
     /**
-     * Construye un teclado con opciones simples para el menú principal
+     * Construye un teclado para campos obligatorios (sin boton SKIP).
+     * Usar para fechas, horas estimadas y cualquier campo requerido.
+     */
+    public static ReplyKeyboardMarkup buildRequiredFieldKeyboard() {
+        KeyboardRow optionsRow = new KeyboardRow();
+        optionsRow.add("Back");
+        optionsRow.add("Cancel");
+
+        return ReplyKeyboardMarkup.builder()
+                .keyboardRow(optionsRow)
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true)
+                .build();
+    }
+
+    /**
+     * Construye un teclado con opciones simples para el menu principal
      */
     public static ReplyKeyboardMarkup buildMainMenuKeyboard() {
         KeyboardRow row1 = new KeyboardRow();

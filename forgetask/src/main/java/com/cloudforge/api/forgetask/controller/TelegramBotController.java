@@ -23,13 +23,14 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 public class TelegramBotController implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
 	private static final Logger logger = LoggerFactory.getLogger(TelegramBotController.class);
+
 	private final TaskController taskController;
 	private final SprintController sprintController;
 	private final TelegramClient telegramClient;
 	private final TelegramBotConfig telegramBotConfig;
 	private final ConversationManager conversationManager;
 
-	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController, 
+	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController,
 	                             SprintController sprintController, TelegramClient telegramClient,
 	                             ConversationManager conversationManager) {
 		this.telegramBotConfig = telegramBotConfig;
@@ -55,44 +56,56 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 			return;
 		}
 
-		String messageTextFromTelegram = update.getMessage().getText();
-		if (messageTextFromTelegram == null || messageTextFromTelegram.isBlank()) {
+		String messageText = update.getMessage().getText();
+		if (messageText == null || messageText.isBlank()) {
 			return;
 		}
 
 		long chatId = update.getMessage().getChatId();
+		String trimmedText = messageText.trim();
 
-		// Obtener o crear el estado de conversación del usuario
 		ConversationState conversationState = conversationManager.getOrCreateConversation(chatId);
+		TaskCreationStep currentStep = conversationState.getCurrentStep();
 
-		// Si el usuario está en mitad de crear una tarea, usar flujo conversacional
-		if (conversationState.getCurrentStep() != TaskCreationStep.NONE) {
+		// --- Flujo de creacion de tarea (ConversationalTaskCreator) -----------
+		// Intercepta cuando el usuario esta en cualquier paso de creacion
+		// de tarea, excepto NONE y los pasos del flujo de horas.
+		if (currentStep != TaskCreationStep.NONE && !currentStep.isHoursFlow()) {
 			ConversationalTaskCreator creator = new ConversationalTaskCreator(
 					telegramClient, taskController, sprintController, conversationState);
-			creator.processMessage(messageTextFromTelegram.trim());
+			creator.processMessage(trimmedText);
 			return;
 		}
 
-		// Flujo normal de comandos
+		// --- Flujo de horas y comandos normales (BotActions) ------------------
+		// El flujo de horas (AWAITING_TASK_SELECTION, AWAITING_HOURS) y todos
+		// los comandos normales pasan por la cadena de BotActions.
 		BotActions actions = new BotActions(telegramClient, taskController, sprintController);
-		actions.setRequestText(messageTextFromTelegram.trim());
+		actions.setRequestText(trimmedText);
 		actions.setChatId(chatId);
 		actions.setConversationManager(conversationManager);
 
-		// Execute bot action chain
+		// Cadena de responsabilidad. Orden importante:
+		//   1. Comandos de menu principal (fnStart, fnHide)
+		//   2. Acciones sobre tareas existentes (fnDone, fnUndo, fnDelete)
+		//   3. Listado de tareas
+		//   4. Inicio de flujos conversacionales (fnAddItem, fnLogHours)
+		//   5. Continuacion de flujos activos (fnHandleConversation) — ANTES de fnElse
+		//   6. Creacion de tarea via texto libre (fnElse)
 		actions.fnStart();
+		actions.fnHide();
 		actions.fnDone();
 		actions.fnUndo();
 		actions.fnDelete();
-		actions.fnHide();
 		actions.fnListAll();
 		actions.fnAddItem();
+		actions.fnLogHours();
+		actions.fnHandleConversation();
 		actions.fnElse();
 	}
 
 	@AfterBotRegistration
 	public void afterRegistration(BotSession botSession) {
-		logger.info("Telegram bot registered and running state is: " + botSession.isRunning());
+		logger.info("Telegram bot registered and running state is: {}", botSession.isRunning());
 	}
-
 }
