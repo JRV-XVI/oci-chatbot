@@ -1,6 +1,7 @@
 package com.cloudforge.api.forgetask.controller;
 
 import com.cloudforge.api.forgetask.config.TelegramBotConfig;
+import com.cloudforge.api.forgetask.service.TelegramReportService;
 import com.cloudforge.api.forgetask.util.BotActions;
 import com.cloudforge.api.forgetask.util.ConversationManager;
 import com.cloudforge.api.forgetask.util.ConversationState;
@@ -29,15 +30,17 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 	private final TelegramClient telegramClient;
 	private final TelegramBotConfig telegramBotConfig;
 	private final ConversationManager conversationManager;
+	private final TelegramReportService telegramReportService;
 
 	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController,
 	                             SprintController sprintController, TelegramClient telegramClient,
-	                             ConversationManager conversationManager) {
+	                             ConversationManager conversationManager, TelegramReportService telegramReportService) {
 		this.telegramBotConfig = telegramBotConfig;
 		this.taskController = taskController;
 		this.sprintController = sprintController;
 		this.telegramClient = telegramClient;
 		this.conversationManager = conversationManager;
+		this.telegramReportService = telegramReportService;
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 		// --- Flujo de horas y comandos normales (BotActions) ------------------
 		// El flujo de horas (AWAITING_TASK_SELECTION, AWAITING_HOURS) y todos
 		// los comandos normales pasan por la cadena de BotActions.
-		BotActions actions = new BotActions(telegramClient, taskController, sprintController);
+		BotActions actions = new BotActions(telegramClient, taskController, sprintController, telegramReportService);
 		actions.setRequestText(trimmedText);
 		actions.setChatId(chatId);
 		actions.setConversationManager(conversationManager);
@@ -89,15 +92,17 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 		//   1. Comandos de menu principal (fnStart, fnHide)
 		//   2. Acciones sobre tareas existentes (fnDone, fnUndo, fnDelete)
 		//   3. Listado de tareas
-		//   4. Inicio de flujos conversacionales (fnAddItem, fnLogHours)
-		//   5. Continuacion de flujos activos (fnHandleConversation) — ANTES de fnElse
-		//   6. Creacion de tarea via texto libre (fnElse)
+		//   4. Generacion de reportes (fnGenerateReport)
+		//   5. Inicio de flujos conversacionales (fnAddItem, fnLogHours)
+		//   6. Continuacion de flujos activos (fnHandleConversation) — ANTES de fnElse
+		//   7. Creacion de tarea via texto libre (fnElse)
 		actions.fnStart();
 		actions.fnHide();
 		actions.fnDone();
 		actions.fnUndo();
 		actions.fnDelete();
 		actions.fnListAll();
+		actions.fnGenerateReport();
 		actions.fnAddItem();
 		actions.fnLogHours();
 		actions.fnHandleConversation();
