@@ -95,7 +95,7 @@ public class ReportGeneratorService {
         
         // Count by status
         long done = tasks.stream().filter(t -> "done".equalsIgnoreCase(t.getStatus())).count();
-        long inProgress = tasks.stream().filter(t -> "in-progress".equalsIgnoreCase(t.getStatus())).count();
+        long inProgress = tasks.stream().filter(t -> "in_progress".equalsIgnoreCase(t.getStatus())).count();
         long review = tasks.stream().filter(t -> "review".equalsIgnoreCase(t.getStatus())).count();
         long ready = tasks.stream().filter(t -> "ready".equalsIgnoreCase(t.getStatus())).count();
         long backlog = tasks.stream().filter(t -> "backlog".equalsIgnoreCase(t.getStatus())).count();

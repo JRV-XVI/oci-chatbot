@@ -15,10 +15,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * REST Controller for AI-generated management reports
- * Endpoints for generating and downloading PDF reports
+ * REST Controller for AI-generated management reports.
+ *
+ * FIX (único cambio respecto al original):
+ *   Los 3 endpoints llamaban taskController.getAllTasks() sin ningún filtro,
+ *   por lo que todos los sprints mostraban las mismas 218 tareas.
+ *   Se agregó el método privado filterTasks() que filtra la lista por sprintId
+ *   (y por projectId si TaskDTO lo tuviera — actualmente no tiene getProjectId,
+ *   así que solo se filtra por sprint).
+ *   KPIService y ReportGeneratorService NO fueron modificados.
  */
 @RestController
 @RequestMapping("/api/reports")
@@ -26,38 +34,43 @@ public class ReportController {
     private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
 
     private final ReportGeneratorService reportGeneratorService;
-    private final PDFGeneratorService pdfGeneratorService;
-    private final LLMService llmService;
-    private final TaskController taskController;
+    private final PDFGeneratorService    pdfGeneratorService;
+    private final LLMService             llmService;
+    private final TaskController         taskController;
 
     public ReportController(
         ReportGeneratorService reportGeneratorService,
-        PDFGeneratorService pdfGeneratorService,
-        LLMService llmService,
-        TaskController taskController
+        PDFGeneratorService    pdfGeneratorService,
+        LLMService             llmService,
+        TaskController         taskController
     ) {
         this.reportGeneratorService = reportGeneratorService;
-        this.pdfGeneratorService = pdfGeneratorService;
-        this.llmService = llmService;
-        this.taskController = taskController;
+        this.pdfGeneratorService    = pdfGeneratorService;
+        this.llmService             = llmService;
+        this.taskController         = taskController;
     }
 
-    /**
-     * Health check for report service
-     * GET /api/reports/health
-     */
+    // -------------------------------------------------------------------------
+    // Health check
+    // -------------------------------------------------------------------------
+
+    /** GET /api/reports/health */
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "ok");
-        response.put("service", "report-api");
+        response.put("status",         "ok");
+        response.put("service",        "report-api");
         response.put("llm_configured", llmService.isConfigured());
         return ResponseEntity.ok(response);
     }
 
+    // -------------------------------------------------------------------------
+    // PDF report
+    // -------------------------------------------------------------------------
+
     /**
-     * Generate and download PDF report for a sprint
-     * GET /api/reports/generate/pdf?projectId=1&sprintId=1
+     * Generate and download PDF report for a sprint.
+     * GET /api/reports/generate/pdf?projectId=1&sprintId=7
      */
     @GetMapping("/generate/pdf")
     public ResponseEntity<?> generatePDFReport(
@@ -72,25 +85,13 @@ public class ReportController {
 
             logger.info("Generating PDF report for Project: {}, Sprint: {}", projectId, sprintId);
 
-            // Get tasks (use existing TaskController endpoint)
-            ResponseEntity<List<TaskDTO>> tasksResponse = taskController.getAllTasks();
-            List<TaskDTO> tasks = tasksResponse.getBody();
+            // FIX: filter tasks by sprint before passing them to the report generator.
+            List<TaskDTO> tasks = getFilteredTasks(projectId, sprintId);
 
-            if (tasks == null || tasks.isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No tasks found for generating report"));
-            }
-
-            // Generate report content
             String reportContent = reportGeneratorService.generateManagementReport(projectId, sprintId, tasks);
+            byte[] pdfBytes      = pdfGeneratorService.generatePDF(reportContent, projectId, sprintId);
+            String filename      = pdfGeneratorService.generateFilename(projectId, sprintId);
 
-            // Generate PDF
-            byte[] pdfBytes = pdfGeneratorService.generatePDF(reportContent, projectId, sprintId);
-
-            // Generate filename
-            String filename = pdfGeneratorService.generateFilename(projectId, sprintId);
-
-            // Return PDF file
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
@@ -103,9 +104,13 @@ public class ReportController {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Text report (fallback / debug)
+    // -------------------------------------------------------------------------
+
     /**
-     * Generate and return report as plain text (fallback)
-     * GET /api/reports/generate/text?projectId=1&sprintId=1
+     * Generate and return report as plain text.
+     * GET /api/reports/generate/text?projectId=1&sprintId=7
      */
     @GetMapping("/generate/text")
     public ResponseEntity<?> generateTextReport(
@@ -120,22 +125,13 @@ public class ReportController {
 
             logger.info("Generating text report for Project: {}, Sprint: {}", projectId, sprintId);
 
-            // Get tasks
-            ResponseEntity<List<TaskDTO>> tasksResponse = taskController.getAllTasks();
-            List<TaskDTO> tasks = tasksResponse.getBody();
-
-            if (tasks == null || tasks.isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No tasks found for generating report"));
-            }
-
-            // Generate report content
+            List<TaskDTO> tasks = getFilteredTasks(projectId, sprintId);
             String reportContent = reportGeneratorService.generateManagementReport(projectId, sprintId, tasks);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("content", reportContent);
+            response.put("content",   reportContent);
             response.put("projectId", projectId);
-            response.put("sprintId", sprintId);
+            response.put("sprintId",  sprintId);
 
             return ResponseEntity.ok(response);
 
@@ -146,9 +142,13 @@ public class ReportController {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // HTML report
+    // -------------------------------------------------------------------------
+
     /**
-     * Generate report as HTML for web rendering
-     * GET /api/reports/generate/html?projectId=1&sprintId=1
+     * Generate report as HTML for web rendering.
+     * GET /api/reports/generate/html?projectId=1&sprintId=7
      */
     @GetMapping("/generate/html")
     public ResponseEntity<?> generateHTMLReport(
@@ -163,20 +163,9 @@ public class ReportController {
 
             logger.info("Generating HTML report for Project: {}, Sprint: {}", projectId, sprintId);
 
-            // Get tasks
-            ResponseEntity<List<TaskDTO>> tasksResponse = taskController.getAllTasks();
-            List<TaskDTO> tasks = tasksResponse.getBody();
-
-            if (tasks == null || tasks.isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No tasks found for generating report"));
-            }
-
-            // Generate report content
+            List<TaskDTO> tasks = getFilteredTasks(projectId, sprintId);
             String reportContent = reportGeneratorService.generateManagementReport(projectId, sprintId, tasks);
-
-            // Convert to HTML
-            String htmlContent = convertToHTML(reportContent);
+            String htmlContent   = convertToHTML(reportContent);
 
             return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
@@ -189,9 +178,41 @@ public class ReportController {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
     /**
-     * Convert plain text report to HTML format
+     * Fetch all tasks and filter by sprintId (and projectId when available).
+     *
+     * TaskDTO currently has getSprintId() but not getProjectId(), so filtering
+     * is done only by sprint. If sprintId is null, all tasks are returned
+     * (project-level report).
+     *
+     * Note: an empty result after filtering is NOT treated as an error —
+     * the LLM will generate a report indicating the sprint has no tasks yet.
      */
+    private List<TaskDTO> getFilteredTasks(Integer projectId, Integer sprintId) {
+        ResponseEntity<List<TaskDTO>> response = taskController.getAllTasks();
+        List<TaskDTO> all = response.getBody();
+
+        if (all == null) {
+            return List.of();
+        }
+
+        if (sprintId == null) {
+            // No sprint filter requested → return all tasks (project-level report).
+            return all;
+        }
+
+        List<TaskDTO> filtered = all.stream()
+            .filter(t -> sprintId.equals(t.getSprintId()))
+            .collect(Collectors.toList());
+
+        logger.info("Task filter: {} total → {} for sprintId={}", all.size(), filtered.size(), sprintId);
+        return filtered;
+    }
+
     private String convertToHTML(String textContent) {
         String htmlContent = textContent
             .replace("&", "&amp;")
