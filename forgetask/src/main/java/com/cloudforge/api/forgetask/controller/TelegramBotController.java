@@ -1,6 +1,7 @@
 package com.cloudforge.api.forgetask.controller;
 
 import com.cloudforge.api.forgetask.config.TelegramBotConfig;
+import com.cloudforge.api.forgetask.service.ManagementReportService;
 import com.cloudforge.api.forgetask.util.BotActions;
 import com.cloudforge.api.forgetask.util.ConversationManager;
 import com.cloudforge.api.forgetask.util.ConversationState;
@@ -28,15 +29,18 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 	private final TelegramClient telegramClient;
 	private final TelegramBotConfig telegramBotConfig;
 	private final ConversationManager conversationManager;
+	private final ManagementReportService managementReportService;
 
-	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController, 
+	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController,
 	                             SprintController sprintController, TelegramClient telegramClient,
-	                             ConversationManager conversationManager) {
+	                             ConversationManager conversationManager,
+	                             ManagementReportService managementReportService) {
 		this.telegramBotConfig = telegramBotConfig;
 		this.taskController = taskController;
 		this.sprintController = sprintController;
 		this.telegramClient = telegramClient;
 		this.conversationManager = conversationManager;
+		this.managementReportService = managementReportService;
 	}
 
 	@Override
@@ -74,7 +78,7 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 		}
 
 		// Flujo normal de comandos
-		BotActions actions = new BotActions(telegramClient, taskController, sprintController);
+		BotActions actions = new BotActions(telegramClient, taskController, sprintController, managementReportService);
 		actions.setRequestText(messageTextFromTelegram.trim());
 		actions.setChatId(chatId);
 		actions.setConversationManager(conversationManager);
@@ -87,6 +91,7 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 		actions.fnHide();
 		actions.fnListAll();
 		actions.fnAddItem();
+		actions.fnReport();
 		actions.fnElse();
 	}
 

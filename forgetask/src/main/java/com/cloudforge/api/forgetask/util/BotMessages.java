@@ -13,7 +13,9 @@ public enum BotMessages {
 	INVALID_TASK_FORMAT("Invalid task format. Example:\n/addtask API docs | priority=high | sprint=2 | start=2026-04-14 | end=2026-04-20 | est=6 | assignee=jane"),
 	TASK_OPERATION_FAILED("Task operation failed. Please verify task id and attributes."),
 	BYE("Bye! Select /start to resume!"),
-	CREATION_CANCELLED("Task creation cancelled. Use /start to return to main menu.");
+	CREATION_CANCELLED("Task creation cancelled. Use /start to return to main menu."),
+	REPORT_GENERATING("Generating AI management report... This may take a few seconds."),
+	REPORT_ERROR("Could not generate the management report. Please try again later.");
 
 	private String message;
 

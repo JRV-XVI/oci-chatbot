@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bot, Loader2 } from "lucide-react";
 import { ProjectHeader } from "@/app/components/kanban/project-header";
 import TotalTasksKpi from "../components/kpis/TotalTasksKpi";
 import TotalHoursKpi from "../components/kpis/TotalHoursKpi";
@@ -12,7 +12,9 @@ import UserTasksCompletionKpi from "../components/kpis/UserTasksCompletionKpi";
 import RealTotalHoursByUserKpi from "@/app/components/chart/RealTotalHoursByUserKpi";
 import sprintService from "../services/sprintService";
 import projectService from "../services/projectService";
+import aiService from "../services/aiService";
 import type { SprintOption } from "../types/sprint";
+import { Button } from "../components/ui/button";
 
 import metricsService, {
   type SprintUserPerformance,
@@ -41,6 +43,9 @@ function KpisContent() {
   const [error, setError] = useState<string | null>(null);
   const [kpis, setKpis] = useState<ProjectKpisSummary | null>(null);
   const [kpisLoading, setKpisLoading] = useState(true);
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [aiReportLoading, setAiReportLoading] = useState(false);
+  const [aiReportError, setAiReportError] = useState<string | null>(null);
 
   const usersCardTitle = "Tasks completed by user · All sprints";
 
@@ -133,6 +138,22 @@ function KpisContent() {
   const handleBackToKanban = useCallback(() => {
     router.push("/");
   }, [router]);
+
+  const handleGenerateReport = useCallback(async () => {
+    if (projectId === null) return;
+    setAiReportLoading(true);
+    setAiReportError(null);
+    setAiReport(null);
+    try {
+      const result = await aiService.getManagementReport(projectId);
+      setAiReport(result.report);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to generate report";
+      setAiReportError(msg);
+    } finally {
+      setAiReportLoading(false);
+    }
+  }, [projectId]);
 
   return (
     <div className="h-full flex flex-col min-h-0">
@@ -232,6 +253,59 @@ function KpisContent() {
             {/* ── Real Total Hours by User KPI ── */}
             <section className="kpi-section-enter">
               <RealTotalHoursByUserKpi sprintOptions={sprints} taskSprintData={tasksBySprint} />
+            </section>
+
+            {/* ── AI Management Report ── */}
+            <section className="kpi-section-enter">
+              <div className="w-full rounded-2xl border border-border bg-card/60 p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] md:p-6">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      AI Management Report
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Generate an AI-powered sprint status summary with improvement recommendations.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateReport}
+                    disabled={aiReportLoading || projectId === null}
+                    data-testid="btn-generate-ai-report"
+                  >
+                    {aiReportLoading ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Bot />
+                        Generate Report
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {aiReportError && (
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                    {aiReportError}
+                  </div>
+                )}
+
+                {aiReport && (
+                  <div className="rounded-lg border border-border bg-background/40 p-4 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                    {aiReport}
+                  </div>
+                )}
+
+                {!aiReport && !aiReportLoading && !aiReportError && (
+                  <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    Click &quot;Generate Report&quot; to get an AI analysis of the current sprint.
+                  </div>
+                )}
+              </div>
             </section>
           </section>
         </div>

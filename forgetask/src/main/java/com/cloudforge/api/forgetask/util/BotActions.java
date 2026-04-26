@@ -5,6 +5,7 @@ import com.cloudforge.api.forgetask.controller.TaskController;
 import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskAssigneeOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskDTO;
+import com.cloudforge.api.forgetask.service.ManagementReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -21,19 +22,23 @@ public class BotActions {
 
     private static final Logger logger = LoggerFactory.getLogger(BotActions.class);
     private static final String FIELD_SEPARATOR_REGEX = "\\|";
+    private static final int DEFAULT_PROJECT_ID = 1;
 
     private String requestText;
     private long chatId;
     private final TelegramClient telegramClient;
     private final TaskController taskController;
     private final SprintController sprintController;
+    private final ManagementReportService managementReportService;
     private ConversationManager conversationManager;
     private boolean exit;
 
-    public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController) {
+    public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController,
+                      ManagementReportService managementReportService) {
         telegramClient = tc;
         this.taskController = taskController;
         this.sprintController = sprintController;
+        this.managementReportService = managementReportService;
         exit = false;
     }
 
@@ -245,6 +250,40 @@ public class BotActions {
             BotHelper.sendMessageToTelegram(chatId, BotMessages.TYPE_NEW_TODO_ITEM.getMessage(), telegramClient);
         }
         exit = true;
+    }
+
+    public void fnReport() {
+        if (exit) {
+            return;
+        }
+
+        if (!requestText.startsWith(BotCommands.REPORT.getCommand())) {
+            return;
+        }
+
+        BotHelper.sendMessageToTelegram(chatId, BotMessages.REPORT_GENERATING.getMessage(), telegramClient);
+
+        try {
+            Integer projectId = parseReportProjectId(requestText);
+            String report = managementReportService.generateReport(projectId);
+            BotHelper.sendMessageToTelegram(chatId, report, telegramClient);
+        } catch (Exception e) {
+            logger.error("Error generating management report via bot", e);
+            BotHelper.sendMessageToTelegram(chatId, BotMessages.REPORT_ERROR.getMessage(), telegramClient);
+        }
+        exit = true;
+    }
+
+    private Integer parseReportProjectId(String text) {
+        String suffix = text.substring(BotCommands.REPORT.getCommand().length()).trim();
+        if (suffix.isBlank()) {
+            return DEFAULT_PROJECT_ID;
+        }
+        try {
+            return Integer.parseInt(suffix);
+        } catch (NumberFormatException e) {
+            return DEFAULT_PROJECT_ID;
+        }
     }
 
     public void fnElse() {

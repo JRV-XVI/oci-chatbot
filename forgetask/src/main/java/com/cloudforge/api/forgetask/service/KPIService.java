@@ -116,6 +116,48 @@ public class KPIService {
     }
 
     /**
+     * Return done hours and done tasks grouped by sprint and user, filtered by project.
+     */
+    public List<RealHoursBySprintUserDTO> getRealHoursBySprintUserForProject(Integer projectId) {
+        String sql = """
+                SELECT s.ID_SPRINT,
+                       COALESCE(
+                           CASE
+                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#\\s*[0-9]+', 'i')
+                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#\\s*([0-9]+)', 1, 1, NULL, 1))
+                               ELSE NULL
+                           END,
+                           s.ID_SPRINT
+                       ) AS SPRINT_NUMBER,
+                       s.TITLE AS SPRINT_TITLE,
+                       NVL(ua.USERNAME, 'Sin asignar') AS USERNAME,
+                       NVL(SUM(CASE WHEN LOWER(NVL(ts.STATE, '')) = 'done' THEN NVL(t.REAL_TIME, 0) ELSE 0 END), 0) AS REAL_TOTAL_HOURS,
+                       NVL(SUM(CASE WHEN LOWER(NVL(ts.STATE, '')) = 'done' THEN 1 ELSE 0 END), 0) AS DONE_TASKS
+                FROM TASK t
+                LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
+                LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+                LEFT JOIN SPRINT s ON s.ID_SPRINT = t.ID_SPRINT
+                WHERE t.ID_SPRINT IS NOT NULL
+                  AND t.ID_PROJECT = ?
+                GROUP BY s.ID_SPRINT, s.TITLE, NVL(ua.USERNAME, 'Sin asignar')
+                ORDER BY SPRINT_NUMBER, s.ID_SPRINT, USERNAME
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                (rs, rowNum) -> new RealHoursBySprintUserDTO(
+                        rs.getInt("ID_SPRINT"),
+                        rs.getInt("SPRINT_NUMBER"),
+                        rs.getString("SPRINT_TITLE"),
+                        rs.getString("USERNAME"),
+                        rs.getDouble("REAL_TOTAL_HOURS"),
+                        rs.getInt("DONE_TASKS")
+                ),
+                projectId
+        );
+    }
+
+    /**
      * Return done tasks (title + real time) for one user.
      * If sprintId is provided, rows are limited to that sprint.
      */
