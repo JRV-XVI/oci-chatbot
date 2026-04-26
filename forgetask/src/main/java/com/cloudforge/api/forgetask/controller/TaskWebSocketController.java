@@ -10,8 +10,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.http.ResponseEntity;
 
-import java.util.List;
-
 /**
  * CREADO EN ESTE PROMPT
  * Controlador WebSocket que maneja la comunicación bidireccional en tiempo real
