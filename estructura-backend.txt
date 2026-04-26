@@ -1,0 +1,236 @@
+Listado de rutas de carpetas para el volumen Workspace
+El número de serie del volumen es DECE-2105
+E:\UNIVERSITY\6-SEMESTER\PROJECT\OCI-CHATBOT\OCI-CHATBOT\FORGETASK
+¦   .dockerignore
+¦   .gitattributes
+¦   .gitignore
+¦   Dockerfile
+¦   DockerfileDev
+¦   HELP.md
+¦   mvnw
+¦   mvnw.cmd
+¦   package-lock.json
+¦   pom.xml
+¦   
++---.mvn
+¦   +---wrapper
+¦           maven-wrapper.properties
+¦           
++---.vscode
+¦       NEWLY_CREATED_BY_SPRING_INITIALIZR
+¦       
++---src
+¦   +---main
+¦   ¦   +---java
+¦   ¦   ¦   +---com
+¦   ¦   ¦       +---cloudforge
+¦   ¦   ¦           +---api
+¦   ¦   ¦               +---forgetask
+¦   ¦   ¦                   ¦   ForgetaskApplication.java
+¦   ¦   ¦                   ¦   HealthController.java
+¦   ¦   ¦                   ¦   
+¦   ¦   ¦                   +---config
+¦   ¦   ¦                   ¦       SecurityConfig.java
+¦   ¦   ¦                   ¦       TelegramBotClientConfig.java
+¦   ¦   ¦                   ¦       TelegramBotConfig.java
+¦   ¦   ¦                   ¦       WebConfig.java
+¦   ¦   ¦                   ¦       WebSocketConfig.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---controller
+¦   ¦   ¦                   ¦       AuthController.java
+¦   ¦   ¦                   ¦       KPIController.java
+¦   ¦   ¦                   ¦       MetricsController.java
+¦   ¦   ¦                   ¦       ProjectController.java
+¦   ¦   ¦                   ¦       README.md
+¦   ¦   ¦                   ¦       SprintController.java
+¦   ¦   ¦                   ¦       TaskController.java
+¦   ¦   ¦                   ¦       TaskWebSocketController.java
+¦   ¦   ¦                   ¦       TelegramBotController.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---dto
+¦   ¦   ¦                   ¦   ¦   KPIMetrics.java
+¦   ¦   ¦                   ¦   ¦   ProjectKpisSummaryDTO.java
+¦   ¦   ¦                   ¦   ¦   ProjectOptionDTO.java
+¦   ¦   ¦                   ¦   ¦   RealHoursBySprintUserDTO.java
+¦   ¦   ¦                   ¦   ¦   RealHoursByUserDTO.java
+¦   ¦   ¦                   ¦   ¦   RealHoursTaskDetailDTO.java
+¦   ¦   ¦                   ¦   ¦   SprintOptionDTO.java
+¦   ¦   ¦                   ¦   ¦   SprintUserPerformanceDTO.java
+¦   ¦   ¦                   ¦   ¦   TaskAssigneeOptionDTO.java
+¦   ¦   ¦                   ¦   ¦   TaskCreateMessage.java
+¦   ¦   ¦                   ¦   ¦   TaskDeleteMessage.java
+¦   ¦   ¦                   ¦   ¦   TaskDTO.java
+¦   ¦   ¦                   ¦   ¦   TaskEventMessage.java
+¦   ¦   ¦                   ¦   ¦   TaskUpdateMessage.java
+¦   ¦   ¦                   ¦   ¦   
+¦   ¦   ¦                   ¦   +---auth
+¦   ¦   ¦                   ¦           LoginRequestDTO.java
+¦   ¦   ¦                   ¦           LoginResponseDTO.java
+¦   ¦   ¦                   ¦           
+¦   ¦   ¦                   +---model
+¦   ¦   ¦                   ¦       UserAccount.java
+¦   ¦   ¦                   ¦       UserRole.java
+¦   ¦   ¦                   ¦       UserRoleId.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---repository
+¦   ¦   ¦                   ¦       UserAccountRepository.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---security
+¦   ¦   ¦                   ¦       JwtAuthFilter.java
+¦   ¦   ¦                   ¦       JwtUtil.java
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---service
+¦   ¦   ¦                   ¦   ¦   KPIService.java
+¦   ¦   ¦                   ¦   ¦   README.md
+¦   ¦   ¦                   ¦   ¦   
+¦   ¦   ¦                   ¦   +---auth
+¦   ¦   ¦                   ¦           AuthService.java
+¦   ¦   ¦                   ¦           
+¦   ¦   ¦                   +---util
+¦   ¦   ¦                           BotActions.java
+¦   ¦   ¦                           BotCommands.java
+¦   ¦   ¦                           BotHelper.java
+¦   ¦   ¦                           BotLabels.java
+¦   ¦   ¦                           BotMessages.java
+¦   ¦   ¦                           ConversationalTaskCreator.java
+¦   ¦   ¦                           ConversationManager.java
+¦   ¦   ¦                           ConversationState.java
+¦   ¦   ¦                           KeyboardBuilder.java
+¦   ¦   ¦                           README.md
+¦   ¦   ¦                           TaskCreationStep.java
+¦   ¦   ¦                           
+¦   ¦   +---resources
+¦   ¦       ¦   application.properties
+¦   ¦       ¦   
+¦   ¦       +---static
+¦   ¦       +---templates
+¦   +---test
+¦       +---java
+¦           +---com
+¦               +---cloudforge
+¦                   +---api
+¦                       +---forgetask
+¦                               ForgetaskApplicationTests.java
+¦                               
++---target
+¦   +---classes
+¦   ¦   ¦   application.properties
+¦   ¦   ¦   
+¦   ¦   +---com
+¦   ¦       +---cloudforge
+¦   ¦           +---api
+¦   ¦               +---forgetask
+¦   ¦                   ¦   ForgetaskApplication.class
+¦   ¦                   ¦   HealthController.class
+¦   ¦                   ¦   
+¦   ¦                   +---config
+¦   ¦                   ¦       SecurityConfig.class
+¦   ¦                   ¦       TelegramBotClientConfig.class
+¦   ¦                   ¦       TelegramBotConfig.class
+¦   ¦                   ¦       WebConfig.class
+¦   ¦                   ¦       WebSocketConfig.class
+¦   ¦                   ¦       
+¦   ¦                   +---controller
+¦   ¦                   ¦       AuthController.class
+¦   ¦                   ¦       KPIController$KPICalculationRequest.class
+¦   ¦                   ¦       KPIController.class
+¦   ¦                   ¦       MetricsController.class
+¦   ¦                   ¦       ProjectController.class
+¦   ¦                   ¦       README.md
+¦   ¦                   ¦       SprintController$SprintCreateRequest.class
+¦   ¦                   ¦       SprintController$SprintUpdateRequest.class
+¦   ¦                   ¦       SprintController.class
+¦   ¦                   ¦       TaskController$ExistingTaskSnapshot.class
+¦   ¦                   ¦       TaskController$ResolvedAssignee.class
+¦   ¦                   ¦       TaskController.class
+¦   ¦                   ¦       TaskWebSocketController.class
+¦   ¦                   ¦       TelegramBotController.class
+¦   ¦                   ¦       
+¦   ¦                   +---dto
+¦   ¦                   ¦   ¦   KPIMetrics.class
+¦   ¦                   ¦   ¦   ProjectKpisSummaryDTO.class
+¦   ¦                   ¦   ¦   ProjectOptionDTO.class
+¦   ¦                   ¦   ¦   RealHoursBySprintUserDTO.class
+¦   ¦                   ¦   ¦   RealHoursByUserDTO.class
+¦   ¦                   ¦   ¦   RealHoursTaskDetailDTO.class
+¦   ¦                   ¦   ¦   SprintOptionDTO.class
+¦   ¦                   ¦   ¦   SprintUserPerformanceDTO.class
+¦   ¦                   ¦   ¦   TaskAssigneeOptionDTO.class
+¦   ¦                   ¦   ¦   TaskCreateMessage.class
+¦   ¦                   ¦   ¦   TaskDeleteMessage.class
+¦   ¦                   ¦   ¦   TaskDTO.class
+¦   ¦                   ¦   ¦   TaskEventMessage.class
+¦   ¦                   ¦   ¦   TaskUpdateMessage.class
+¦   ¦                   ¦   ¦   
+¦   ¦                   ¦   +---auth
+¦   ¦                   ¦           LoginRequestDTO.class
+¦   ¦                   ¦           LoginResponseDTO.class
+¦   ¦                   ¦           
+¦   ¦                   +---model
+¦   ¦                   ¦       UserAccount.class
+¦   ¦                   ¦       UserRole.class
+¦   ¦                   ¦       UserRoleId.class
+¦   ¦                   ¦       
+¦   ¦                   +---repository
+¦   ¦                   ¦       UserAccountRepository.class
+¦   ¦                   ¦       
+¦   ¦                   +---security
+¦   ¦                   ¦       JwtAuthFilter.class
+¦   ¦                   ¦       JwtUtil.class
+¦   ¦                   ¦       
+¦   ¦                   +---service
+¦   ¦                   ¦   ¦   KPIService.class
+¦   ¦                   ¦   ¦   README.md
+¦   ¦                   ¦   ¦   
+¦   ¦                   ¦   +---auth
+¦   ¦                   ¦           AuthService.class
+¦   ¦                   ¦           
+¦   ¦                   +---util
+¦   ¦                           BotActions.class
+¦   ¦                           BotCommands.class
+¦   ¦                           BotHelper.class
+¦   ¦                           BotLabels.class
+¦   ¦                           BotMessages.class
+¦   ¦                           ConversationalTaskCreator.class
+¦   ¦                           ConversationManager.class
+¦   ¦                           ConversationState.class
+¦   ¦                           KeyboardBuilder.class
+¦   ¦                           README.md
+¦   ¦                           TaskCreationStep.class
+¦   ¦                           
+¦   +---generated-sources
+¦   ¦   +---annotations
+¦   +---generated-test-sources
+¦   ¦   +---test-annotations
+¦   +---maven-status
+¦   ¦   +---maven-compiler-plugin
+¦   ¦       +---compile
+¦   ¦       ¦   +---default-compile
+¦   ¦       ¦           createdFiles.lst
+¦   ¦       ¦           inputFiles.lst
+¦   ¦       ¦           
+¦   ¦       +---testCompile
+¦   ¦           +---default-testCompile
+¦   ¦                   createdFiles.lst
+¦   ¦                   inputFiles.lst
+¦   ¦                   
+¦   +---test-classes
+¦       +---com
+¦           +---cloudforge
+¦               +---api
+¦                   +---forgetask
+¦                           ForgetaskApplicationTests.class
+¦                           
++---wallet
+        cwallet.sso
+        cwallet.sso.lck
+        ewallet.p12
+        ewallet.p12.lck
+        ewallet.pem
+        keystore.jks
+        ojdbc.properties
+        README
+        sqlnet.ora
+        tnsnames.ora
+        truststore.jks
+        
