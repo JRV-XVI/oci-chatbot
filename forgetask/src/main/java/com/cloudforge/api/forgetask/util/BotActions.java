@@ -5,6 +5,7 @@ import com.cloudforge.api.forgetask.controller.TaskController;
 import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskAssigneeOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskDTO;
+import com.cloudforge.api.forgetask.service.TelegramReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -35,13 +36,15 @@ public class BotActions {
     private final TelegramClient telegramClient;
     private final TaskController taskController;
     private final SprintController sprintController;
+    private final TelegramReportService telegramReportService;
     private ConversationManager conversationManager;
     private boolean exit;
 
-    public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController) {
+    public BotActions(TelegramClient tc, TaskController taskController, SprintController sprintController, TelegramReportService telegramReportService) {
         telegramClient = tc;
         this.taskController = taskController;
         this.sprintController = sprintController;
+        this.telegramReportService = telegramReportService;
         exit = false;
     }
 
@@ -71,6 +74,7 @@ public class BotActions {
                 ReplyKeyboardMarkup.builder()
                         .keyboardRow(new KeyboardRow(BotLabels.ADD_NEW_ITEM.getLabel()))
                         .keyboardRow(new KeyboardRow(BotLabels.LIST_ALL_ITEMS.getLabel()))
+                        .keyboardRow(new KeyboardRow(BotLabels.GENERATE_REPORT.getLabel()))
                         .build()
         );
         exit = true;
@@ -461,6 +465,39 @@ public class BotActions {
             conversationManager.cancelConversation(chatId);
             BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_OPERATION_FAILED.getMessage(), telegramClient);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // fnGenerateReport: generar reporte via LLM
+    // -------------------------------------------------------------------------
+
+    public void fnGenerateReport() {
+        if (exit) return;
+
+        if (!requestText.equals(BotLabels.GENERATE_REPORT.getLabel())) {
+            return;
+        }
+
+        logger.info("User {} requested report generation", chatId);
+        
+        // Check if report service is available
+        if (telegramReportService == null) {
+            BotHelper.sendMessageToTelegram(chatId, "❌ Report service is not available.", telegramClient);
+            exit = true;
+            return;
+        }
+
+        // Generate report asynchronously
+        new Thread(() -> {
+            try {
+                telegramReportService.generateAndSendReport(chatId, null, null, telegramClient);
+            } catch (Exception e) {
+                logger.error("Error in report generation thread: {}", e.getMessage(), e);
+                BotHelper.sendMessageToTelegram(chatId, "❌ Error generating report. Please try again later.", telegramClient);
+            }
+        }).start();
+
+        exit = true;
     }
 
     // -------------------------------------------------------------------------

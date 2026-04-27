@@ -73,3 +73,9 @@ __pycache__/
 venv/
 tests/selenium/artifacts/*
 !tests/selenium/artifacts/.gitkeep
+
+# Old files
+MtdrSpring/*
+
+# Other
+schemes/*
