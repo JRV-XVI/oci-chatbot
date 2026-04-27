@@ -108,23 +108,42 @@ public class TaskController {
             ORDER BY t.ID_TASK
             """;
     
-    private static final String SELECT_TASKS_BY_PROJECT_SQL =
-    "SELECT t.IDTASK, t.IDUSER, t.IDPROJECT, t.IDSPRINT, t.TITLE, t.DESCRIPTION, " +
-    "t.STARTDATE, t.ENDDATE, " +
-    "TO_CHAR(t.STARTDATE, 'YYYY-MM-DD') AS STARTDATETEXT, " +
-    "TO_CHAR(t.ENDDATE, 'YYYY-MM-DD') AS ENDDATETEXT, " +
-    "t.ESTIMATEDTIME, t.REALTIME, ts.STATE, pt.PRIORITY, " +
-    "ua.FIRSTNAME, ua.LASTNAME, ua.USERNAME, ur.ROLE " +
-    "FROM TASK t " +
-    "LEFT JOIN TASKSTATE ts ON ts.IDTASK = t.IDTASK " +
-    "LEFT JOIN (SELECT IDTASK, MAX(CASE WHEN LOWER(TAG) IN ('low','medium','high') " +
-    "           THEN LOWER(TAG) END) AS PRIORITY FROM TASKTAG GROUP BY IDTASK) pt " +
-    "           ON pt.IDTASK = t.IDTASK " +
-    "LEFT JOIN USERACCOUNT ua ON ua.IDUSER = t.IDUSER AND ua.IDPROJECT = t.IDPROJECT " +
-    "LEFT JOIN (SELECT IDUSER, MIN(ROLE) AS ROLE FROM USERROLE GROUP BY IDUSER) ur " +
-    "           ON ur.IDUSER = t.IDUSER " +
-    "WHERE t.IDPROJECT = ? " +
-    "ORDER BY t.IDTASK";
+    private static final String SELECT_TASKS_BY_PROJECT_SQL = """
+        SELECT t.ID_TASK,
+               t.ID_USER,
+               t.ID_PROJECT,
+               t.ID_SPRINT,
+               t.TITLE,
+               t.DESCRIPTION,
+               t.START_DATE,
+               t.END_DATE,
+               TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+               TO_CHAR(t.END_DATE, 'YYYY-MM-DD')   AS END_DATE_TEXT,
+               t.ESTIMATED_TIME,
+               t.REAL_TIME,
+               ts.STATE,
+               pt.PRIORITY,
+               ua.FIRST_NAME,
+               ua.LAST_NAME,
+               ua.USERNAME,
+               ur.ROLE
+        FROM TASK t
+        LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+        LEFT JOIN (
+            SELECT ID_TASK,
+                   MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
+            FROM TASK_TAG
+            GROUP BY ID_TASK
+        ) pt ON pt.ID_TASK = t.ID_TASK
+        LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
+        LEFT JOIN (
+            SELECT ID_USER, MIN(ROLE) AS ROLE
+            FROM USER_ROLE
+            GROUP BY ID_USER
+        ) ur ON ur.ID_USER = t.ID_USER
+        WHERE t.ID_PROJECT = ?
+        ORDER BY t.ID_TASK
+        """;
 
     private final JdbcTemplate jdbcTemplate;
     private final JwtUtil jwtUtil;
@@ -164,38 +183,31 @@ public class TaskController {
 
     @GetMapping("/project")
     public ResponseEntity<List<TaskDTO>> getTasksByProjectFromToken(HttpServletRequest request) {
-        // Extraer el token del header Authorization
         String token = extractBearerToken(request);
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        // Obtener el projectId desde las claims del JWT
         Integer projectId = jwtUtil.getIdProjectFromToken(token);
-
-        if (projectId == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        if (projectId == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
         List<TaskDTO> tasks = jdbcTemplate.query(
             SELECT_TASKS_BY_PROJECT_SQL,
             (rs, rowNum) -> mapRowToTask(
-                rs.getInt("IDTASK"),
-                rs.getObject("IDUSER"),
-                rs.getObject("IDPROJECT"),
-                rs.getObject("IDSPRINT"),
+                rs.getInt("ID_TASK"),
+                rs.getObject("ID_USER"),
+                rs.getObject("ID_PROJECT"),
+                rs.getObject("ID_SPRINT"),
                 rs.getString("TITLE"),
                 rs.getString("DESCRIPTION"),
-                rs.getObject("STARTDATE"),
-                rs.getObject("ENDDATE"),
-                rs.getString("STARTDATETEXT"),
-                rs.getString("ENDDATETEXT"),
-                rs.getObject("ESTIMATEDTIME"),
-                rs.getObject("REALTIME"),
+                rs.getObject("START_DATE"),
+                rs.getObject("END_DATE"),
+                rs.getString("START_DATE_TEXT"),
+                rs.getString("END_DATE_TEXT"),
+                rs.getObject("ESTIMATED_TIME"),
+                rs.getObject("REAL_TIME"),
                 rs.getString("STATE"),
                 rs.getString("PRIORITY"),
-                rs.getString("FIRSTNAME"),
-                rs.getString("LASTNAME"),
+                rs.getString("FIRST_NAME"),
+                rs.getString("LAST_NAME"),
                 rs.getString("USERNAME"),
                 rs.getString("ROLE")
             ),
