@@ -65,6 +65,31 @@ public class SprintController {
             )
             """;
 
+    private static final String GET_CURRENT_SPRINT_SQL = """
+            SELECT * FROM (
+                SELECT s.ID_SPRINT,
+                       s.ID_PROJECT,
+                       COALESCE(
+                           CASE
+                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                               ELSE NULL
+                           END,
+                           ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+                       ) AS SPRINT_NUMBER,
+                       s.TITLE,
+                       s.GOAL,
+                       TO_CHAR(s.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+                       TO_CHAR(s.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT
+                FROM SPRINT s
+                WHERE s.ID_PROJECT = ?
+                  AND s.START_DATE <= SYSDATE
+                  AND s.END_DATE >= SYSDATE
+                ORDER BY s.START_DATE DESC NULLS LAST, s.ID_SPRINT DESC
+            )
+            WHERE ROWNUM = 1
+            """;
+
         private static final String COUNT_OVERLAPPING_SPRINTS_SQL = """
                         SELECT COUNT(1)
                         FROM SPRINT s
@@ -109,6 +134,31 @@ public class SprintController {
                 ),
                 resolvedProjectId
         );
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<SprintOptionDTO> getCurrentSprint(@RequestParam(required = false) Integer projectId) {
+        int resolvedProjectId = projectId != null ? projectId : resolveDefaultProjectId();
+
+        List<SprintOptionDTO> current = jdbcTemplate.query(
+                GET_CURRENT_SPRINT_SQL,
+                (rs, rowNum) -> new SprintOptionDTO(
+                        rs.getInt("ID_SPRINT"),
+                        rs.getInt("ID_PROJECT"),
+                        rs.getInt("SPRINT_NUMBER"),
+                        rs.getString("TITLE"),
+                        rs.getString("GOAL"),
+                        rs.getString("START_DATE_TEXT"),
+                        rs.getString("END_DATE_TEXT")
+                ),
+                resolvedProjectId
+        );
+
+        if (current.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(current.get(0));
     }
 
     @PostMapping
