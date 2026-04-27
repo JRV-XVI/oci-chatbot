@@ -10,6 +10,7 @@ public class LoginResponseDTO {
     private String token;
     private String tokenType = "Bearer";
     private Long   idUser;
+    private Long   idProject;
     private String username;
     private String email;
     private String firstName;
@@ -17,11 +18,12 @@ public class LoginResponseDTO {
     private List<String> roles;
 
     // Constructor completo
-    public LoginResponseDTO(String token, Long idUser, String username,
+    public LoginResponseDTO(String token, Long idUser, Long idProject, String username,
                             String email, String firstName, String lastName,
                             List<String> roles) {
         this.token     = token;
         this.idUser    = idUser;
+        this.idProject = idProject;
         this.username  = username;
         this.email     = email;
         this.firstName = firstName;
@@ -32,6 +34,7 @@ public class LoginResponseDTO {
     public String getToken()            { return token; }
     public String getTokenType()        { return tokenType; }
     public Long   getIdUser()           { return idUser; }
+    public Long   getIdProject()        { return idProject; }
     public String getUsername()         { return username; }
     public String getEmail()            { return email; }
     public String getFirstName()        { return firstName; }

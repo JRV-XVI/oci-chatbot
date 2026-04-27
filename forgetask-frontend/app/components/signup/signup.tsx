@@ -131,6 +131,7 @@ export function SignupForm() {
         "auth_user",
         JSON.stringify({
           idUser: response.idUser,
+          idProject: response.idProject,
           username: response.username,
           email: response.email,
           firstName: response.firstName,
@@ -139,7 +140,7 @@ export function SignupForm() {
         })
       )
 
-      router.push("/")
+      router.push("/onboarding")
     } catch (error) {
       if (error instanceof AuthApiError && error.status === 409) {
         setServerError(error.message)

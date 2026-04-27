@@ -8,6 +8,7 @@ public enum BotLabels {
 	ADD_NEW_ITEM("Add New Item"),
 	TASK_FORMAT_HELP("Task Format Help"),
 	LOG_HOURS("Log Hours"),
+	GENERATE_REPORT("📊 Generate Report"),
 	DONE("DONE"),
 	UNDO("UNDO"),
 	DELETE("DELETE"),
