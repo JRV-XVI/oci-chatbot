@@ -4,7 +4,7 @@ import * as React from 'react'
 import Image from 'next/image'
 import {
   BarChart3,
-  FileText,
+  Sparkles,
   Users,
   LucideIcon,
 } from 'lucide-react'
@@ -248,8 +248,8 @@ export function ProjectHeader({
               variant="outline"
               className="cursor-pointer"
             >
-              <FileText className="w-4 h-4 mr-2" />
-              Generate Report
+              <Sparkles className="w-4 h-4 mr-2 text-[#f59e0b] drop-shadow-[0_0_7px_rgba(245,158,11,0.85)]" />
+              Generate Report AI
             </Button>
           )}
 
