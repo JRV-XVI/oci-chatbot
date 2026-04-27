@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import authService, { AuthApiError } from "@/app/services/authService"
+import { getApiBaseUrl } from "@/app/services/apiBaseUrl"
 
 // ─── Schema de validación ─────────
 const signupSchema = z
@@ -86,6 +87,8 @@ function Field({
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get("invite")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -95,6 +98,7 @@ export function SignupForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -108,6 +112,27 @@ export function SignupForm() {
       confirm_password: "",
     },
   })
+
+  useEffect(() => {
+    if (!inviteToken) return
+
+    let isActive = true
+
+    fetch(`${getApiBaseUrl()}/api/invites/validate/${encodeURIComponent(inviteToken)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isActive && data?.email) {
+          setValue("email", data.email)
+        }
+      })
+      .catch(() => {
+        // Silencioso: la validación definitiva sucede al enviar el signup
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [inviteToken, setValue])
 
   // Indicador de fuerza de contraseña
   const passwordValue = watch("password", "")
@@ -123,6 +148,7 @@ export function SignupForm() {
         firstName: values.first_name,
         lastName: values.last_name,
         password: values.password,
+        inviteToken: inviteToken ?? undefined,
       })
 
       localStorage.setItem("token", response.token)
@@ -140,7 +166,7 @@ export function SignupForm() {
         })
       )
 
-      router.push("/onboarding")
+      router.push(inviteToken ? "/" : "/onboarding")
     } catch (error) {
       if (error instanceof AuthApiError && error.status === 409) {
         setServerError(error.message)
