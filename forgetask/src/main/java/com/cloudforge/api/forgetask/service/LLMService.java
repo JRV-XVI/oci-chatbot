@@ -1,9 +1,8 @@
 package com.cloudforge.api.forgetask.service;
 
-import com.cloudforge.api.forgetask.config.LLMConfig;
-import com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO;
-import com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO;
-import com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO.Message;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -11,11 +10,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.cloudforge.api.forgetask.config.LLMConfig;
+import com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO;
+import com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO;
+import com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO.Message;
 
 /**
  * Service to interact with LLM providers (Groq, DeepSeek)
