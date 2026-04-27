@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.cloudforge.api.forgetask.security.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -105,12 +107,33 @@ public class TaskController {
               AND t.ID_SPRINT = ?
             ORDER BY t.ID_TASK
             """;
+    
+    private static final String SELECT_TASKS_BY_PROJECT_SQL =
+    "SELECT t.IDTASK, t.IDUSER, t.IDPROJECT, t.IDSPRINT, t.TITLE, t.DESCRIPTION, " +
+    "t.STARTDATE, t.ENDDATE, " +
+    "TO_CHAR(t.STARTDATE, 'YYYY-MM-DD') AS STARTDATETEXT, " +
+    "TO_CHAR(t.ENDDATE, 'YYYY-MM-DD') AS ENDDATETEXT, " +
+    "t.ESTIMATEDTIME, t.REALTIME, ts.STATE, pt.PRIORITY, " +
+    "ua.FIRSTNAME, ua.LASTNAME, ua.USERNAME, ur.ROLE " +
+    "FROM TASK t " +
+    "LEFT JOIN TASKSTATE ts ON ts.IDTASK = t.IDTASK " +
+    "LEFT JOIN (SELECT IDTASK, MAX(CASE WHEN LOWER(TAG) IN ('low','medium','high') " +
+    "           THEN LOWER(TAG) END) AS PRIORITY FROM TASKTAG GROUP BY IDTASK) pt " +
+    "           ON pt.IDTASK = t.IDTASK " +
+    "LEFT JOIN USERACCOUNT ua ON ua.IDUSER = t.IDUSER AND ua.IDPROJECT = t.IDPROJECT " +
+    "LEFT JOIN (SELECT IDUSER, MIN(ROLE) AS ROLE FROM USERROLE GROUP BY IDUSER) ur " +
+    "           ON ur.IDUSER = t.IDUSER " +
+    "WHERE t.IDPROJECT = ? " +
+    "ORDER BY t.IDTASK";
 
     private final JdbcTemplate jdbcTemplate;
+    private final JwtUtil jwtUtil;
+
     private volatile boolean taskStateConstraintChecked;
 
-    public TaskController(JdbcTemplate jdbcTemplate) {
+    public TaskController(JdbcTemplate jdbcTemplate, JwtUtil jwtUtil) {
         this.jdbcTemplate = jdbcTemplate;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -135,6 +158,49 @@ public class TaskController {
                 rs.getString("USERNAME"),
                 rs.getString("ROLE")
         ));
+
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/project")
+    public ResponseEntity<List<TaskDTO>> getTasksByProjectFromToken(HttpServletRequest request) {
+        // Extraer el token del header Authorization
+        String token = extractBearerToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Obtener el projectId desde las claims del JWT
+        Integer projectId = jwtUtil.getIdProjectFromToken(token);
+
+        if (projectId == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        List<TaskDTO> tasks = jdbcTemplate.query(
+            SELECT_TASKS_BY_PROJECT_SQL,
+            (rs, rowNum) -> mapRowToTask(
+                rs.getInt("IDTASK"),
+                rs.getObject("IDUSER"),
+                rs.getObject("IDPROJECT"),
+                rs.getObject("IDSPRINT"),
+                rs.getString("TITLE"),
+                rs.getString("DESCRIPTION"),
+                rs.getObject("STARTDATE"),
+                rs.getObject("ENDDATE"),
+                rs.getString("STARTDATETEXT"),
+                rs.getString("ENDDATETEXT"),
+                rs.getObject("ESTIMATEDTIME"),
+                rs.getObject("REALTIME"),
+                rs.getString("STATE"),
+                rs.getString("PRIORITY"),
+                rs.getString("FIRSTNAME"),
+                rs.getString("LASTNAME"),
+                rs.getString("USERNAME"),
+                rs.getString("ROLE")
+            ),
+            projectId
+        );
 
         return ResponseEntity.ok(tasks);
     }
@@ -979,4 +1045,13 @@ public class TaskController {
             int projectId
     ) {
     }
+
+    private String extractBearerToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
 }
+

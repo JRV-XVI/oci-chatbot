@@ -57,6 +57,8 @@ export function LoginForm() {
         })
       )
 
+      document.cookie = `token=${response.token}; path=/; max-age=86400; SameSite=Lax`;
+
       router.push("/")
     } catch (error) {
       if (error instanceof AuthApiError && error.status === 401) {

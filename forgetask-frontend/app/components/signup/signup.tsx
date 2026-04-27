@@ -166,6 +166,8 @@ export function SignupForm() {
         })
       )
 
+      document.cookie = `token=${response.token}; path=/; max-age=86400; SameSite=Lax`;
+
       router.push(inviteToken ? "/" : "/onboarding")
     } catch (error) {
       if (error instanceof AuthApiError && error.status === 409) {

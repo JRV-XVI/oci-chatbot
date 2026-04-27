@@ -76,8 +76,11 @@ public class AuthService {
                       .collect(Collectors.toList())
                 : List.of();
 
-        // 4. Generar JWT firmado (subject = email)
-        String token = jwtUtil.generateToken(user.getEmail());
+        // 4. Generar JWT firmado (subject = email) con idProject como claim
+        String token = jwtUtil.generateToken(
+            user.getEmail(),
+            user.getIdProject() != null ? user.getIdProject().intValue() : null
+        );
 
         // 5. Construir respuesta
         return new LoginResponseDTO(
