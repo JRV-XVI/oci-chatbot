@@ -30,10 +30,10 @@ import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { ProjectHeader } from './project-header'
-import { Button } from '../ui/button'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
 import type { SprintOption } from '@/app/types/sprint'
+import reportService from '@/app/services/reportService'
 
 interface ColumnProps {
   title: string
@@ -334,30 +334,22 @@ export function ProjectBoard({
   /**
    * Generar reporte de proyecto
    */
-  const handleGenerateReport = () => {
-    const totalTasks = tasks.length
-    const completedTasks = doneTasks.length
-    const inProgressCount = inProgressTasks.length
-    const totalEstimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0)
-    const totalRealHours = tasks.reduce((sum, task) => sum + (task.realTime || 0), 0)
-
-    const report = `Project Board Report\nGenerated: ${new Date().toLocaleString()}\n\n=== Summary ===\nTotal Tasks: ${totalTasks}\nCompleted: ${completedTasks}\nIn Progress: ${inProgressCount}\nBacklog: ${backlogTasks.length}\nReady: ${readyTasks.length}\nReview: ${reviewTasks.length}\n\n=== Time Tracking ===\nTotal Estimated Hours: ${totalEstimatedHours}\nTotal Real Hours: ${totalRealHours}\nVariance: ${totalRealHours - totalEstimatedHours} hours\n\n=== Tasks by Status ===\n${tasks
-      .map(
-        (task) =>
-          `- [${task.status.toUpperCase()}] ${task.title} (Priority: ${task.priority || 'none'})`,
-      )
-      .join('\n')}`
-
-    const blob = new Blob([report], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `project-report-${new Date().toISOString().split('T')[0]}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+  const handleGenerateReport = useCallback(async () => {
+    try {
+      const { blob, filename } = await reportService.generateCurrentSprintPdfReport()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error generating PDF report:', error)
+      window.alert(error instanceof Error ? error.message : 'No se pudo generar el reporte PDF.')
+    }
+  }, [])
 
   const handleOpenKpis = useCallback(() => {
     router.push('/kpis')
