@@ -48,6 +48,7 @@ export function LoginForm() {
         "auth_user",
         JSON.stringify({
           idUser: response.idUser,
+          idProject: response.idProject,
           username: response.username,
           email: response.email,
           firstName: response.firstName,
