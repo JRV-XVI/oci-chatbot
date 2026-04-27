@@ -35,6 +35,7 @@ import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
 import type { SprintOption } from '@/app/types/sprint'
 import reportService from '@/app/services/reportService'
+import { getCurrentProjectId } from '@/app/services/authUtils'
 
 interface ColumnProps {
   title: string
@@ -259,6 +260,8 @@ export function ProjectBoard({
     review: 2,
     done: 10,
   })
+
+  const resolvedProjectId = useMemo(() => projectId ?? getCurrentProjectId(), [projectId])
 
   /**
    * Manejar drag & drop
@@ -615,7 +618,7 @@ export function ProjectBoard({
         open={membersDialogOpen}
         onOpenChange={setMembersDialogOpen}
         tasks={tasks}
-        projectId={projectId ?? undefined}
+        projectId={resolvedProjectId ?? undefined}
       />
     </div>
   )

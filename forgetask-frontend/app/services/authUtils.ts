@@ -29,3 +29,7 @@ export function getAuthData(): AuthData {
 
   return { token, tokenType, projectId, userId };
 }
+
+export function getCurrentProjectId(): number | null {
+  return getAuthData().projectId;
+}

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Genera y valida JWT firmados con HMAC-SHA256.
@@ -26,12 +28,41 @@ public class JwtUtil {
 
     /** Genera un JWT con el email del usuario como subject. */
     public String generateToken(String email) {
+        return generateToken(email, null);
+    }
+
+    /** Genera un JWT con claims adicionales, incluyendo idProject cuando está disponible. */
+    public String generateToken(String email, Integer idProject) {
+        Map<String, Object> claims = new HashMap<>();
+        if (idProject != null) {
+            claims.put("idProject", idProject);
+        }
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    /** Extrae idProject del token cuando existe como claim. */
+    public Integer getIdProjectFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Object raw = claims.get("idProject");
+        if (raw instanceof Integer) {
+            return (Integer) raw;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).intValue();
+        }
+        return null;
     }
 
     /** Extrae el email (subject) del token. */

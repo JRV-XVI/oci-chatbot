@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { getApiBaseUrl } from '@/app/services/apiBaseUrl';
+import { getAuthData } from '@/app/services/authUtils';
 
 interface MembersDialogProps {
   open: boolean;
@@ -35,6 +36,8 @@ interface MemberStats {
 }
 
 export function MembersDialog({ open, onOpenChange, tasks, projectId }: MembersDialogProps) {
+  const resolvedProjectId = projectId ?? getAuthData().projectId;
+
   // Manejo de vistas dentro del dialog
   // 'list' = lista de miembros
   // 'invite-form' = formulario para ingresar email
@@ -65,25 +68,25 @@ export function MembersDialog({ open, onOpenChange, tasks, projectId }: MembersD
   // Función para crear la invitación en el backend
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail || !inviteEmail.includes('@') || !projectId) return;
+    if (!inviteEmail || !inviteEmail.includes('@') || !resolvedProjectId) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
+      const { token, tokenType } = getAuthData();
       if (!token) throw new Error("No hay sesión activa");
 
       const response = await fetch(`${getApiBaseUrl()}/api/invites`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `${tokenType} ${token}`
         },
         body: JSON.stringify({
           email: inviteEmail,
           role: inviteRole,
-          idProject: projectId
+          idProject: resolvedProjectId
         })
       });
 
@@ -187,7 +190,7 @@ export function MembersDialog({ open, onOpenChange, tasks, projectId }: MembersD
                     View team members and their productivity metrics
                   </DialogDescription>
                 </div>
-                {projectId && (
+                {resolvedProjectId && (
                   <Button 
                     onClick={() => setView('invite-form')}
                     className="bg-[#e76b36] hover:bg-[#ff8a58] text-white h-9 px-3 gap-2 shrink-0 transition-colors"
@@ -375,21 +378,30 @@ export function MembersDialog({ open, onOpenChange, tasks, projectId }: MembersD
               </p>
             </div>
 
-            <div className="flex items-center gap-2 bg-[#11161f] border border-[#2b3542] p-2 rounded-lg">
-              <div className="bg-[#1a222d] p-2 rounded-md shrink-0">
-                <LinkIcon className="h-4 w-4 text-[#9aa4b2]" />
+            <div className="rounded-lg border border-[#2b3542] bg-[#11161f] p-3 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#9aa4b2]">
+                <div className="bg-[#1a222d] p-1.5 rounded-md shrink-0">
+                  <LinkIcon className="h-4 w-4 text-[#9aa4b2]" />
+                </div>
+                Invitation Link
               </div>
-              <div className="truncate text-sm text-left text-[#e6edf3] flex-1 px-1 select-all">
-                {generatedLink}
+
+              <div className="overflow-x-auto rounded-md border border-[#2b3542]/80 bg-[#0D1117] p-3 text-left">
+                <p className="text-sm leading-relaxed text-[#e6edf3] whitespace-nowrap select-all min-w-max">
+                  {generatedLink}
+                </p>
               </div>
-              <Button 
-                onClick={copyToClipboard} 
-                variant="secondary"
-                className={`shrink-0 transition-all ${copied ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-[#1a222d] hover:bg-[#2b3542] text-white'}`}
-              >
-                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                {copied ? 'Copied' : 'Copy'}
-              </Button>
+
+              <div className="flex justify-end">
+                <Button
+                  onClick={copyToClipboard}
+                  variant="secondary"
+                  className={`w-full sm:w-auto transition-all ${copied ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-[#1a222d] hover:bg-[#2b3542] text-white'}`}
+                >
+                  {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                  {copied ? 'Copied' : 'Copy Link'}
+                </Button>
+              </div>
             </div>
 
             <div className="pt-4">
