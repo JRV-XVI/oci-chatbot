@@ -1,9 +1,12 @@
 package com.cloudforge.api.forgetask.controller;
 
+import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
 import com.cloudforge.api.forgetask.dto.TaskDTO;
 import com.cloudforge.api.forgetask.service.LLMService;
 import com.cloudforge.api.forgetask.service.PDFGeneratorService;
 import com.cloudforge.api.forgetask.service.ReportGeneratorService;
+import com.cloudforge.api.forgetask.service.TelegramReportService;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -36,17 +39,26 @@ public class ReportController {
     private final ReportGeneratorService reportGeneratorService;
     private final PDFGeneratorService    pdfGeneratorService;
     private final LLMService             llmService;
+    private final SprintController       sprintController;
     private final TaskController         taskController;
+    private final TelegramReportService  telegramReportService;
+    private final TelegramClient         telegramClient;
 
     public ReportController(
         ReportGeneratorService reportGeneratorService,
         PDFGeneratorService    pdfGeneratorService,
         LLMService             llmService,
+        SprintController       sprintController,
+        TelegramReportService  telegramReportService,
+        TelegramClient         telegramClient,
         TaskController         taskController
     ) {
         this.reportGeneratorService = reportGeneratorService;
         this.pdfGeneratorService    = pdfGeneratorService;
         this.llmService             = llmService;
+        this.sprintController       = sprintController;
+        this.telegramReportService  = telegramReportService;
+        this.telegramClient         = telegramClient;
         this.taskController         = taskController;
     }
 
@@ -62,6 +74,84 @@ public class ReportController {
         response.put("service",        "report-api");
         response.put("llm_configured", llmService.isConfigured());
         return ResponseEntity.ok(response);
+    }
+
+    // -------------------------------------------------------------------------
+    // Telegram current sprint context
+    // -------------------------------------------------------------------------
+
+    /**
+     * Resolve active sprint + tasks + status stats for Telegram current-sprint report.
+     * GET /api/reports/telegram/current-sprint?projectId=1
+     */
+    @GetMapping("/telegram/current-sprint")
+    public ResponseEntity<?> getTelegramCurrentSprintContext(
+        @RequestParam(required = false) Integer projectId
+    ) {
+        try {
+            ResponseEntity<SprintOptionDTO> sprintResponse = sprintController.getCurrentSprint(projectId);
+            if (!sprintResponse.getStatusCode().is2xxSuccessful() || sprintResponse.getBody() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "No active sprint found for this project"));
+            }
+
+            SprintOptionDTO sprint = sprintResponse.getBody();
+            ResponseEntity<List<TaskDTO>> taskResponse = taskController.getTasksByProjectAndSprint(
+                sprint.getIdProject(),
+                sprint.getIdSprint()
+            );
+
+            List<TaskDTO> tasks = taskResponse.getBody() != null ? taskResponse.getBody() : List.of();
+
+            long backlog = tasks.stream().filter(t -> "backlog".equalsIgnoreCase(t.getStatus())).count();
+            long ready = tasks.stream().filter(t -> "ready".equalsIgnoreCase(t.getStatus())).count();
+            long inProgress = tasks.stream().filter(t -> "in-progress".equalsIgnoreCase(t.getStatus())).count();
+            long review = tasks.stream().filter(t -> "review".equalsIgnoreCase(t.getStatus())).count();
+            long done = tasks.stream().filter(t -> "done".equalsIgnoreCase(t.getStatus())).count();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("projectId", sprint.getIdProject());
+            response.put("currentSprintId", sprint.getIdSprint());
+            response.put("currentSprintTitle", sprint.getTitle());
+            response.put("startDate", sprint.getStartDate());
+            response.put("endDate", sprint.getEndDate());
+            response.put("totalTasks", tasks.size());
+            response.put("statusBreakdown", Map.of(
+                "backlog", backlog,
+                "ready", ready,
+                "inProgress", inProgress,
+                "review", review,
+                "done", done
+            ));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error resolving Telegram current sprint context", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to resolve current sprint context: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Trigger Telegram report generation for current sprint only.
+     * POST /api/reports/telegram/current-sprint/send?chatId=123456&projectId=1
+     */
+    @PostMapping("/telegram/current-sprint/send")
+    public ResponseEntity<?> sendTelegramCurrentSprintReport(
+        @RequestParam long chatId,
+        @RequestParam(required = false) Integer projectId
+    ) {
+        try {
+            telegramReportService.generateAndSendReport(chatId, projectId, null, telegramClient);
+            return ResponseEntity.accepted().body(Map.of(
+                "status", "accepted",
+                "message", "Telegram current sprint report generation started"
+            ));
+        } catch (Exception e) {
+            logger.error("Error triggering Telegram current sprint report", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to trigger Telegram report: " + e.getMessage()));
+        }
     }
 
     // -------------------------------------------------------------------------
