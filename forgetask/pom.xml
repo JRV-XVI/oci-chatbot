@@ -116,11 +116,10 @@
 			<version>9.1.0</version>
 		</dependency>
 		
-		<!-- PDF Generation with Apache PDFBox (Open Source) -->
 		<dependency>
-			<groupId>org.apache.pdfbox</groupId>
-			<artifactId>pdfbox</artifactId>
-			<version>3.0.0</version>
+			<groupId>com.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>1.0.10</version>
 		</dependency>
 		
 		<!-- HTTP Client for LLM API calls (RestClient / RestTemplate) -->
