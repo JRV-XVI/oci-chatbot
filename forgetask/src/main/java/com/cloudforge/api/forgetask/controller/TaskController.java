@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.cloudforge.api.forgetask.security.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -105,12 +107,52 @@ public class TaskController {
               AND t.ID_SPRINT = ?
             ORDER BY t.ID_TASK
             """;
+    
+    private static final String SELECT_TASKS_BY_PROJECT_SQL = """
+        SELECT t.ID_TASK,
+               t.ID_USER,
+               t.ID_PROJECT,
+               t.ID_SPRINT,
+               t.TITLE,
+               t.DESCRIPTION,
+               t.START_DATE,
+               t.END_DATE,
+               TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+               TO_CHAR(t.END_DATE, 'YYYY-MM-DD')   AS END_DATE_TEXT,
+               t.ESTIMATED_TIME,
+               t.REAL_TIME,
+               ts.STATE,
+               pt.PRIORITY,
+               ua.FIRST_NAME,
+               ua.LAST_NAME,
+               ua.USERNAME,
+               ur.ROLE
+        FROM TASK t
+        LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+        LEFT JOIN (
+            SELECT ID_TASK,
+                   MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
+            FROM TASK_TAG
+            GROUP BY ID_TASK
+        ) pt ON pt.ID_TASK = t.ID_TASK
+        LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
+        LEFT JOIN (
+            SELECT ID_USER, MIN(ROLE) AS ROLE
+            FROM USER_ROLE
+            GROUP BY ID_USER
+        ) ur ON ur.ID_USER = t.ID_USER
+        WHERE t.ID_PROJECT = ?
+        ORDER BY t.ID_TASK
+        """;
 
     private final JdbcTemplate jdbcTemplate;
+    private final JwtUtil jwtUtil;
+
     private volatile boolean taskStateConstraintChecked;
 
-    public TaskController(JdbcTemplate jdbcTemplate) {
+    public TaskController(JdbcTemplate jdbcTemplate, JwtUtil jwtUtil) {
         this.jdbcTemplate = jdbcTemplate;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -135,6 +177,42 @@ public class TaskController {
                 rs.getString("USERNAME"),
                 rs.getString("ROLE")
         ));
+
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/project")
+    public ResponseEntity<List<TaskDTO>> getTasksByProjectFromToken(HttpServletRequest request) {
+        String token = extractBearerToken(request);
+        if (token == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Integer projectId = jwtUtil.getIdProjectFromToken(token);
+        if (projectId == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        List<TaskDTO> tasks = jdbcTemplate.query(
+            SELECT_TASKS_BY_PROJECT_SQL,
+            (rs, rowNum) -> mapRowToTask(
+                rs.getInt("ID_TASK"),
+                rs.getObject("ID_USER"),
+                rs.getObject("ID_PROJECT"),
+                rs.getObject("ID_SPRINT"),
+                rs.getString("TITLE"),
+                rs.getString("DESCRIPTION"),
+                rs.getObject("START_DATE"),
+                rs.getObject("END_DATE"),
+                rs.getString("START_DATE_TEXT"),
+                rs.getString("END_DATE_TEXT"),
+                rs.getObject("ESTIMATED_TIME"),
+                rs.getObject("REAL_TIME"),
+                rs.getString("STATE"),
+                rs.getString("PRIORITY"),
+                rs.getString("FIRST_NAME"),
+                rs.getString("LAST_NAME"),
+                rs.getString("USERNAME"),
+                rs.getString("ROLE")
+            ),
+            projectId
+        );
 
         return ResponseEntity.ok(tasks);
     }
@@ -979,4 +1057,13 @@ public class TaskController {
             int projectId
     ) {
     }
+
+    private String extractBearerToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
 }
+

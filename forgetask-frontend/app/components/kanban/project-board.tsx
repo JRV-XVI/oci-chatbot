@@ -30,10 +30,12 @@ import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { ProjectHeader } from './project-header'
+import TaskFilterBar, { applyFilters, EMPTY_FILTERS, type TaskFilters } from './task-filter-bar'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
 import type { SprintOption } from '@/app/types/sprint'
 import reportService from '@/app/services/reportService'
+import { getCurrentProjectId } from '@/app/services/authUtils'
 
 interface ColumnProps {
   title: string
@@ -250,6 +252,7 @@ export function ProjectBoard({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [membersDialogOpen, setMembersDialogOpen] = useState(false)
+  const [filters, setFilters] = useState<TaskFilters>(EMPTY_FILTERS)
   const [expectedTasks, setExpectedTasks] = useState({
     backlog: 5,
     ready: 3,
@@ -257,6 +260,8 @@ export function ProjectBoard({
     review: 2,
     done: 10,
   })
+
+  const resolvedProjectId = useMemo(() => projectId ?? getCurrentProjectId(), [projectId])
 
   /**
    * Manejar drag & drop
@@ -355,16 +360,110 @@ export function ProjectBoard({
     router.push('/kpis')
   }, [router])
 
+  const filterMembers = useMemo(
+    () =>
+      assigneeOptions.map((option) => ({
+        idUser: option.idUser,
+        name: option.displayName || option.username,
+      })),
+    [assigneeOptions]
+  )
+
+  const filterSprints = useMemo(
+    () =>
+      sprintOptions.map((option) => ({
+        idSprint: option.idSprint,
+        name: option.title,
+      })),
+    [sprintOptions]
+  )
+
+  const assigneeIdLookup = useMemo(() => {
+    const lookup = new Map<string, number>()
+
+    assigneeOptions.forEach((option) => {
+      if (option.displayName) {
+        lookup.set(option.displayName.toLowerCase(), option.idUser)
+      }
+      if (option.username) {
+        lookup.set(option.username.toLowerCase(), option.idUser)
+      }
+    })
+
+    return lookup
+  }, [assigneeOptions])
+
+  const resolveAssigneeIds = useCallback(
+    (task: Task) => {
+      const ids = new Set<number>()
+
+      if (task.assignedUsername) {
+        const matched = assigneeIdLookup.get(task.assignedUsername.toLowerCase())
+        if (matched !== undefined) {
+          ids.add(matched)
+        }
+      }
+
+      if (task.assignedTo) {
+        task.assignedTo.forEach((name) => {
+          const matched = assigneeIdLookup.get(name.toLowerCase())
+          if (matched !== undefined) {
+            ids.add(matched)
+          }
+        })
+      }
+
+      return Array.from(ids)
+    },
+    [assigneeIdLookup]
+  )
+
+  const tasksForFiltering = useMemo(
+    () =>
+      tasks.map((task) => {
+        const assigneeIds = resolveAssigneeIds(task)
+
+        return {
+          ...task,
+          idTask: Number(task.id),
+          idUser: assigneeIds[0] ?? -1,
+          assigneeIds,
+          idSprint: task.sprintId ?? null,
+          endDate: task.endDate ?? null,
+          estimatedTime: task.estimatedTime ?? null,
+          realTime: task.realTime ?? null,
+          status: task.status,
+          priority: task.priority,
+        }
+      }),
+    [tasks, resolveAssigneeIds]
+  )
+
+  const filteredTasks = useMemo(
+    () => applyFilters(tasksForFiltering, filters),
+    [tasksForFiltering, filters]
+  )
+
   // Filtrar tareas por estado
-  const backlogTasks = tasks.filter((task) => task.status === 'backlog')
-  const readyTasks = tasks.filter((task) => task.status === 'ready')
-  const inProgressTasks = tasks.filter((task) => task.status === 'in-progress')
-  const reviewTasks = tasks.filter((task) => task.status === 'review')
-  const doneTasks = tasks.filter((task) => task.status === 'done')
+  const backlogTasks = filteredTasks.filter((task) => task.status === 'backlog')
+  const readyTasks = filteredTasks.filter((task) => task.status === 'ready')
+  const inProgressTasks = filteredTasks.filter((task) => task.status === 'in-progress')
+  const reviewTasks = filteredTasks.filter((task) => task.status === 'review')
+  const doneTasks = filteredTasks.filter((task) => task.status === 'done')
 
   // Calcular métricas - memoizado
-  const totalEstimatedHours = useMemo(() => tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0), [tasks])
-  const completedRealHours = useMemo(() => doneTasks.reduce((sum, task) => sum + (task.realTime || 0), 0), [doneTasks])
+  const totalEstimatedHours = useMemo(
+    () => tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0),
+    [tasks]
+  )
+  const doneTasksAll = useMemo(
+    () => tasks.filter((task) => task.status === 'done'),
+    [tasks]
+  )
+  const completedRealHours = useMemo(
+    () => doneTasksAll.reduce((sum, task) => sum + (task.realTime || 0), 0),
+    [doneTasksAll]
+  )
   const progressPercentage = useMemo(() =>
     totalEstimatedHours > 0 ? Math.round((completedRealHours / totalEstimatedHours) * 100) : 0,
     [totalEstimatedHours, completedRealHours]
@@ -406,6 +505,17 @@ export function ProjectBoard({
           },
         }}
       />
+
+      <div className="px-6">
+        <TaskFilterBar
+          members={filterMembers}
+          sprints={filterSprints}
+          totalTasks={tasks.length}
+          matchingTasks={filteredTasks.length}
+          filters={filters}
+          onChange={setFilters}
+        />
+      </div>
 
       {/* Columns Container */}
       <div className="flex-1 min-h-0 overflow-x-auto p-6 app-background">
@@ -508,6 +618,7 @@ export function ProjectBoard({
         open={membersDialogOpen}
         onOpenChange={setMembersDialogOpen}
         tasks={tasks}
+        projectId={resolvedProjectId ?? undefined}
       />
     </div>
   )
