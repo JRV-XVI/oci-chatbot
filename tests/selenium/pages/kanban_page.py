@@ -33,7 +33,7 @@ class KanbanPage(BasePage):
 
     CHECK_SPRINT_BUTTON = BasePage.by_test_id("btn-check-sprint")
     ADD_SPRINT_DIALOG = BasePage.by_test_id("dialog-add-sprint")
-    SPRINT_NUMBER_INPUT = BasePage.by_test_id("input-sprint-number")
+    SPRINT_TITLE_INPUT = BasePage.by_test_id("input-sprint-number")
     SPRINT_GOAL_INPUT = BasePage.by_test_id("input-sprint-goal")
     SPRINT_START_DATE_INPUT = BasePage.by_test_id("input-sprint-start-date")
     SPRINT_END_DATE_INPUT = BasePage.by_test_id("input-sprint-end-date")
@@ -174,10 +174,10 @@ class KanbanPage(BasePage):
 
         self.wait_visible(self.ADD_SPRINT_DIALOG, timeout=4)
 
-    def create_sprint(self, sprint_number: int, goal: str, start_date: str, end_date: str) -> None:
+    def create_sprint(self, sprint_title: str, goal: str, start_date: str, end_date: str) -> None:
         self.open_sprint_dialog()
 
-        self.type_text(self.SPRINT_NUMBER_INPUT, str(sprint_number))
+        self.type_text(self.SPRINT_TITLE_INPUT, sprint_title)
         self.type_text(self.SPRINT_GOAL_INPUT, goal)
         self.type_mui_date(self.SPRINT_START_DATE_INPUT, start_date)
         self.type_mui_date(self.SPRINT_END_DATE_INPUT, end_date)
@@ -191,10 +191,10 @@ class KanbanPage(BasePage):
 
         self.wait_invisible(self.ADD_SPRINT_DIALOG)
 
-    def attempt_overlapping_sprint(self, sprint_number: int, goal: str, start_date: str, end_date: str) -> str:
+    def attempt_overlapping_sprint(self, sprint_title: str, goal: str, start_date: str, end_date: str) -> str:
         self.open_sprint_dialog()
 
-        self.type_text(self.SPRINT_NUMBER_INPUT, str(sprint_number))
+        self.type_text(self.SPRINT_TITLE_INPUT, sprint_title)
         self.type_text(self.SPRINT_GOAL_INPUT, goal)
         self.type_mui_date(self.SPRINT_START_DATE_INPUT, start_date)
         self.type_mui_date(self.SPRINT_END_DATE_INPUT, end_date)

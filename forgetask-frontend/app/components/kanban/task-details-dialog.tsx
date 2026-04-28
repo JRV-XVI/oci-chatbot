@@ -87,9 +87,6 @@ export function TaskDetailsDialog({
   sprintOptions,
 }: TaskDetailsDialogProps) {
   // Estado único del formulario inicializado desde la tarea.
-  // El componente padre debe pasar key={task?.id} para que React
-  // cree una nueva instancia cuando cambia la tarea, evitando
-  // cualquier necesidad de sincronizar estado via useEffect.
   const [form, setForm] = useState(() => buildFormFromTask(task, assigneeOptions))
   const [touched, setTouched] = useState({
     startDate: false,
@@ -148,12 +145,14 @@ export function TaskDetailsDialog({
     set({ sprintId: newSprintId, startDate: '', endDate: '' })
   }
   React.useEffect(() => {
+    if (!open) return
+    setForm(buildFormFromTask(task, assigneeOptions))
     setTouched({
       startDate: false,
       endDate: false,
       estimatedTime: false,
     })
-  }, [task?.id])
+  }, [open, task?.id, assigneeOptions])
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = (e: React.FormEvent) => {
