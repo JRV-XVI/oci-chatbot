@@ -10,7 +10,8 @@ export interface SprintOption {
 
 export interface SprintCreateRequest {
   projectId?: number;
-  sprintNumber: number;
+  title: string;
+  sprintNumber?: number;
   goal?: string;
   startDate?: string;
   endDate?: string;
