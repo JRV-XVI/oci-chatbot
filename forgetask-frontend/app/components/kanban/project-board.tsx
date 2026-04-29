@@ -30,6 +30,7 @@ import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { ProjectHeader } from './project-header'
+import { AppLayout } from '../layout/app-layout'
 import TaskFilterBar, { applyFilters, EMPTY_FILTERS, type TaskFilters } from './task-filter-bar'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
@@ -465,22 +466,20 @@ export function ProjectBoard({
     [totalEstimatedHours, completedRealHours]
   )
 
-  return (
-    <div className="h-full min-h-0 flex flex-col">
+  // Render the content inside the main area
+  const headerAndContent = (
+    <>
       {/* Header */}
       <ProjectHeader
         projectTitle={projectTitle}
         completedHours={completedRealHours}
         totalHours={totalEstimatedHours}
         progressPercentage={progressPercentage}
+        showProgress={true}
         buttonsConfig={{
           kpis: {
             show: true,
             onClick: handleOpenKpis,
-          },
-          members: {
-            show: true,
-            onClick: () => setMembersDialogOpen(true),
           },
           generateReport: {
             show: true,
@@ -499,6 +498,10 @@ export function ProjectBoard({
             assigneeOptions,
             sprintOptions,
           },
+        }}
+        showSidebarToggle={true}
+        onSidebarToggle={() => {
+          // This will be handled by AppLayout
         }}
       />
 
@@ -616,6 +619,16 @@ export function ProjectBoard({
         tasks={tasks}
         projectId={resolvedProjectId ?? undefined}
       />
-    </div>
+    </>
+  )
+
+  return (
+    <AppLayout
+      onMembersClick={() => setMembersDialogOpen(true)}
+    >
+      <div className="h-full min-h-0 flex flex-col">
+        {headerAndContent}
+      </div>
+    </AppLayout>
   )
 }

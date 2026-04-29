@@ -565,8 +565,8 @@ export function TaskFilterBar({
   )
 
   return (
-    <div className="w-full" ref={barRef}>
-      <div className="flex flex-wrap items-center gap-2 py-3">
+    <div className="w-full overflow-x-auto" ref={barRef}>
+      <div className="flex items-center gap-2 py-3 min-w-fit">
         <input
           id="filter-bar-component-input"
           role="combobox"
