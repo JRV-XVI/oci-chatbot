@@ -30,6 +30,7 @@ import { AddSprintDialog } from './add-sprint-dialog'
 import { TaskDetailsDialog } from './task-details-dialog'
 import { MembersDialog } from './members-dialog'
 import { ProjectHeader } from './project-header'
+import { AppLayout } from '../layout/app-layout'
 import TaskFilterBar, { applyFilters, EMPTY_FILTERS, type TaskFilters } from './task-filter-bar'
 import { useTaskStore } from '@/app/store/taskStore'
 import type { TaskAssigneeOption } from '@/app/types/task'
@@ -101,20 +102,18 @@ function Column({
       ref={drop as unknown as React.LegacyRef<HTMLDivElement>}
       data-testid={`kanban-column-${status}`}
       className={`flex flex-col h-full rounded-xl border transition-colors ${
-        isOver
-          ? 'border-[#e76b36]/70 bg-[#11161f]/95 shadow-[0_0_16px_rgba(231,107,54,0.24)]'
-          : 'border-[#2b3542] bg-[#0d1117]/95 shadow-[0_0_10px_rgba(0,0,0,0.28)]'
+        isOver ? 'kanban-column-over' : 'kanban-column'
       }`}
     >
       {/* Column Header - Altura fija */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#2b3542]">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 kanban-column-header">
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-semibold text-[#e6edf3]">{title}</span>
+          <span className="font-semibold kanban-column-title">{title}</span>
           
           {/* CASO 1: Columna sin límite (Done) - Solo mostrar contador simple */}
           {hasNoLimit ? (
-            <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded font-semibold">
+            <span className="text-xs px-2 py-0.5 rounded font-semibold kanban-count-badge">
               {tasks.length}
             </span>
           ) : (
@@ -130,7 +129,7 @@ function Column({
                 aria-label={`Expected tasks for ${title}`}
                 title={`Expected tasks for ${title}`}
                 placeholder="Expected"
-                className="w-12 text-xs bg-accent/10 text-accent px-2 py-0.5 rounded border border-accent text-center font-semibold"
+                className="w-12 text-xs px-2 py-0.5 rounded border text-center font-semibold kanban-count-edit"
               />
             ) : (
               <span
@@ -139,9 +138,7 @@ function Column({
                   setIsEditingExpected(true)
                 }}
                 className={`text-xs px-2 py-0.5 rounded cursor-pointer font-semibold transition-all duration-200 ${
-                  isOverloaded
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/50'
-                    : 'bg-[#11161f] text-[#f19367] border border-[#2b3542]'
+                  isOverloaded ? 'kanban-count-over' : 'kanban-count-standard'
                 }`}
                 title={isOverloaded ? `Sobre límite: ${tasks.length}/${expectedTasks}` : `Click para editar límite`}
               >
@@ -155,15 +152,13 @@ function Column({
           <button
             type="button"
             onClick={() => setShowOverloadDetails((current) => !current)}
-            className={`cursor-pointer select-none flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-[#e76b36] border border-[#e76b36]/45 bg-[#11161f] transition-all duration-150 ${
-              showOverloadDetails
-                ? 'shadow-[0_0_16px_rgba(231,107,54,0.62)] ring-1 ring-[#e76b36]/65'
-                : 'shadow-[0_0_10px_rgba(231,107,54,0.45)] hover:shadow-[0_0_14px_rgba(231,107,54,0.58)]'
+            className={`cursor-pointer select-none flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold transition-all duration-150 kanban-overload-toggle ${
+              showOverloadDetails ? 'kanban-overload-toggle-open' : 'kanban-overload-toggle-closed'
             }`}
             title="Show overload details"
             aria-label={`Column ${title} has ${overloadCount} extra tasks`}
           >
-            <AlertTriangle className="w-3 h-3" />
+            <AlertTriangle className="w-3 h-3 kanban-icon-alert" />
             <span>+{overloadCount}</span>
             {showOverloadDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
@@ -171,15 +166,15 @@ function Column({
       </div>
 
       {showOverloadDetails && isOverloaded && (
-        <div className="mx-3 mt-3 rounded-md border border-[#2b3542] bg-[#0d1117] p-3 text-xs shadow-[0_0_12px_rgba(0,0,0,0.26)]">
-          <p className="font-semibold text-[#e76b36] neon-orange">Over limit in {title}</p>
-          <p className="mt-1 text-[#9aa4b2]">
-            Current: <span className="text-[#e6edf3]">{tasks.length}</span> · Expected: <span className="text-[#e6edf3]">{expectedTasks}</span>
+        <div className="mx-3 mt-3 rounded-md p-3 text-xs kanban-overload-panel">
+          <p className="font-semibold neon-orange">Over limit in {title}</p>
+          <p className="mt-1 text-muted-foreground">
+            Current: <span className="text-foreground">{tasks.length}</span> · Expected: <span className="text-foreground">{expectedTasks}</span>
           </p>
           {overloadedTasks.length > 0 && (
             <div className="mt-2 space-y-1 max-h-28 overflow-y-auto">
               {overloadedTasks.map((task) => (
-                <p key={task.id} className="truncate text-[#e6edf3]">
+                <p key={task.id} className="truncate text-foreground">
                   {task.title}
                 </p>
               ))}
@@ -191,7 +186,7 @@ function Column({
       {/* Tasks Container - Altura flexible con scroll individual */}
       <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3" data-testid={`kanban-column-${status}-tasks`}>
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-[#9aa4b2] text-sm">
+          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
             No tasks in {title.toLowerCase()}
           </div>
         ) : (
@@ -226,6 +221,13 @@ interface ProjectBoardProps {
   sprintOptions: SprintOption[]
   onSprintSaved: (sprint: SprintOption) => void
   onSprintDeleted: (sprintId: number) => void
+}
+
+type FilterableTask = Task & {
+  idTask: number
+  idUser: number
+  assigneeIds: number[]
+  idSprint?: number | null
 }
 
 /**
@@ -418,7 +420,7 @@ export function ProjectBoard({
     [assigneeIdLookup]
   )
 
-  const tasksForFiltering = useMemo(
+  const tasksForFiltering = useMemo<FilterableTask[]>(
     () =>
       tasks.map((task) => {
         const assigneeIds = resolveAssigneeIds(task)
@@ -429,11 +431,6 @@ export function ProjectBoard({
           idUser: assigneeIds[0] ?? -1,
           assigneeIds,
           idSprint: task.sprintId ?? null,
-          endDate: task.endDate ?? null,
-          estimatedTime: task.estimatedTime ?? null,
-          realTime: task.realTime ?? null,
-          status: task.status,
-          priority: task.priority,
         }
       }),
     [tasks, resolveAssigneeIds]
@@ -469,22 +466,20 @@ export function ProjectBoard({
     [totalEstimatedHours, completedRealHours]
   )
 
-  return (
-    <div className="h-full min-h-0 flex flex-col">
+  // Render the content inside the main area
+  const headerAndContent = (
+    <>
       {/* Header */}
       <ProjectHeader
         projectTitle={projectTitle}
         completedHours={completedRealHours}
         totalHours={totalEstimatedHours}
         progressPercentage={progressPercentage}
+        showProgress={true}
         buttonsConfig={{
           kpis: {
             show: true,
             onClick: handleOpenKpis,
-          },
-          members: {
-            show: true,
-            onClick: () => setMembersDialogOpen(true),
           },
           generateReport: {
             show: true,
@@ -503,6 +498,10 @@ export function ProjectBoard({
             assigneeOptions,
             sprintOptions,
           },
+        }}
+        showSidebarToggle={true}
+        onSidebarToggle={() => {
+          // This will be handled by AppLayout
         }}
       />
 
@@ -526,7 +525,7 @@ export function ProjectBoard({
               title="Backlog"
               status="backlog"
               tasks={backlogTasks}
-              icon={<Circle className="w-5 h-5 text-muted-foreground" />}
+              icon={<Circle className="w-5 h-5 kanban-icon-backlog" />}
               sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
@@ -542,7 +541,7 @@ export function ProjectBoard({
               title="Ready"
               status="ready"
               tasks={readyTasks}
-              icon={<Layers className="w-5 h-5 text-secondary" />}
+              icon={<Layers className="w-5 h-5 kanban-icon-ready" />}
               sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
@@ -558,7 +557,7 @@ export function ProjectBoard({
               title="In Progress"
               status="in-progress"
               tasks={inProgressTasks}
-              icon={<CircleDot className="w-5 h-5 text-[#f19367]" />}
+              icon={<CircleDot className="w-5 h-5 kanban-icon-in-progress" />}
               sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
@@ -574,7 +573,7 @@ export function ProjectBoard({
               title="Review"
               status="review"
               tasks={reviewTasks}
-              icon={<Eye className="w-5 h-5 text-[#ffb28e]" />}
+              icon={<Eye className="w-5 h-5 kanban-icon-review" />}
               sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
@@ -590,7 +589,7 @@ export function ProjectBoard({
               title="Done"
               status="done"
               tasks={doneTasks}
-              icon={<CheckCircle2 className="w-5 h-5 text-[#e76b36]" />}
+              icon={<CheckCircle2 className="w-5 h-5 kanban-icon-done" />}
               sprintOptions={sprintOptions}
               onDrop={handleDrop}
               onDeleteTask={handleDeleteTask}
@@ -620,6 +619,16 @@ export function ProjectBoard({
         tasks={tasks}
         projectId={resolvedProjectId ?? undefined}
       />
-    </div>
+    </>
+  )
+
+  return (
+    <AppLayout
+      onMembersClick={() => setMembersDialogOpen(true)}
+    >
+      <div className="h-full min-h-0 flex flex-col">
+        {headerAndContent}
+      </div>
+    </AppLayout>
   )
 }

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ProjectHeader } from "@/app/components/kanban/project-header";
+import { AppLayout } from "@/app/components/layout/app-layout";
 import TotalTasksKpi from "../components/kpis/TotalTasksKpi";
 import TotalHoursKpi from "../components/kpis/TotalHoursKpi";
 import AvgTasksKpi from "../components/kpis/AvgTasksKpi";
@@ -134,109 +135,126 @@ function KpisContent() {
     router.push("/");
   }, [router]);
 
-  return (
-    <div className="h-full flex flex-col min-h-0">
-      <ProjectHeader
-        projectTitle={projectTitle}
-        buttonsConfig={{
-          addSprint: {
-            show: true,
-            projectId,
-            sprintOptions: sprints,
-            onSprintSaved: () => {},
-            onSprintDeleted: () => {},
+  const headerContent = (
+    <ProjectHeader
+      projectTitle={projectTitle}
+      buttonsConfig={{
+        addSprint: {
+          show: true,
+          projectId,
+          sprintOptions: sprints,
+          onSprintSaved: () => {},
+          onSprintDeleted: () => {},
+        },
+        custom: [
+          {
+            label: "Kanban Board",
+            icon: ArrowLeft,
+            onClick: handleBackToKanban,
+            variant: "outline",
+            testId: "btn-back-to-kanban",
           },
-          custom: [
-            {
-              label: "Kanban Board",
-              icon: ArrowLeft,
-              onClick: handleBackToKanban,
-              variant: "outline",
-              testId: "btn-back-to-kanban",
-            },
-          ],
-        }}
-        sectionsConfig={{
-          progress: { show: false },
-        }}
-      />
+        ],
+      }}
+      sectionsConfig={{
+        progress: { show: false },
+      }}
+      showSidebarToggle={true}
+      onSidebarToggle={() => {
+        // This will be handled by AppLayout
+      }}
+    />
+  );
 
-      <main className="flex-1 min-h-0 overflow-y-auto app-background px-4 py-5 md:px-6 md:py-6">
-        <div className="mx-auto w-full max-w-[1680px] space-y-6">
-          <section className="kpi-section-enter">
-            <div className="w-full rounded-2xl border border-border bg-card/60 p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] md:p-6">
-              <div className="mb-4 text-center">
-                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Key indicators
-                </h2>
-              </div>
-
-              {kpisLoading ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
-                  ))}
-                </div>
-              ) : kpis ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <TotalTasksKpi
-                    total={kpis.totalTasks}
-                    backlog={kpis.tasksBacklog}
-                    ready={kpis.tasksReady}
-                    inProgress={kpis.tasksInProgress}
-                    review={kpis.tasksReview}
-                    done={kpis.tasksDone}
-                  />
-                  <TotalHoursKpi
-                    realHours={kpis.realHours}
-                    estimatedHours={kpis.estimatedHours}
-                  />
-                  <AvgTasksKpi
-                    totalTasks={kpis.totalTasks}
-                    totalDevs={kpis.totalDevs}
-                    sprintTasks={kpis.sprintTasks}
-                    sprintDevs={kpis.sprintDevs}
-                  />
-                  <AvgHoursDevKpi
-                    totalHours={kpis.realHours}
-                    totalDevs={kpis.totalDevs}
-                    expectedHoursPerDev={kpis.expectedHoursPerDev}
-                    sprintRealHours={kpis.sprintRealHours}
-                    sprintEstimatedHours={kpis.sprintEstimatedHours}
-                  />
-                </div>
-              ) : (
-                <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-                  No KPI data available for this project.
-                </div>
-              )}
+  const mainContent = (
+    <main className="flex-1 min-h-0 overflow-y-auto app-background px-4 py-5 md:px-6 md:py-6">
+      <div className="mx-auto w-full max-w-[1680px] space-y-6">
+        <section className="kpi-section-enter">
+          <div className="w-full rounded-2xl border border-border bg-card/60 p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] md:p-6">
+            <div className="mb-4 text-center">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Key indicators
+              </h2>
             </div>
+
+            {kpisLoading ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
+                ))}
+              </div>
+            ) : kpis ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <TotalTasksKpi
+                  total={kpis.totalTasks}
+                  backlog={kpis.tasksBacklog}
+                  ready={kpis.tasksReady}
+                  inProgress={kpis.tasksInProgress}
+                  review={kpis.tasksReview}
+                  done={kpis.tasksDone}
+                />
+                <TotalHoursKpi
+                  realHours={kpis.realHours}
+                  estimatedHours={kpis.estimatedHours}
+                />
+                <AvgTasksKpi
+                  totalTasks={kpis.totalTasks}
+                  totalDevs={kpis.totalDevs}
+                  sprintTasks={kpis.sprintTasks}
+                  sprintDevs={kpis.sprintDevs}
+                />
+                <AvgHoursDevKpi
+                  totalHours={kpis.realHours}
+                  totalDevs={kpis.totalDevs}
+                  expectedHoursPerDev={kpis.expectedHoursPerDev}
+                  sprintRealHours={kpis.sprintRealHours}
+                  sprintEstimatedHours={kpis.sprintEstimatedHours}
+                />
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+                No KPI data available for this project.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          {/* ── User Tasks Completion KPI ── */}
+          <section className="kpi-section-enter">
+            {error ? (
+              <div className="kpi-error-box rounded-lg border p-4">
+                Error loading data: {error}
+              </div>
+            ) : loading ? (
+              <div className="kpi-panel rounded-lg border border-border p-4 text-muted-foreground">
+                Loading user task data...
+              </div>
+            ) : (
+              <UserTasksCompletionKpi sprintData={tasksBySprint} title={usersCardTitle} />
+            )}
           </section>
 
-          <section className="space-y-6">
-            {/* ── User Tasks Completion KPI ── */}
-            <section className="kpi-section-enter">
-              {error ? (
-                <div className="kpi-error-box rounded-lg border p-4">
-                  Error loading data: {error}
-                </div>
-              ) : loading ? (
-                <div className="kpi-panel rounded-lg border border-border p-4 text-muted-foreground">
-                  Loading user task data...
-                </div>
-              ) : (
-                <UserTasksCompletionKpi sprintData={tasksBySprint} title={usersCardTitle} />
-              )}
-            </section>
-
-            {/* ── Real Total Hours by User KPI ── */}
-            <section className="kpi-section-enter">
-              <RealTotalHoursByUserKpi sprintOptions={sprints} taskSprintData={tasksBySprint} />
-            </section>
+          {/* ── Real Total Hours by User KPI ── */}
+          <section className="kpi-section-enter">
+            <RealTotalHoursByUserKpi sprintOptions={sprints} taskSprintData={tasksBySprint} />
           </section>
-        </div>
-      </main>
-    </div>
+        </section>
+      </div>
+    </main>
+  );
+
+  return (
+    <AppLayout
+      onMembersClick={() => {
+        // Members dialog not shown in KPIs page
+      }}
+    >
+      <div className="h-full min-h-0 flex flex-col">
+        {headerContent}
+        {mainContent}
+      </div>
+    </AppLayout>
   );
 }
 

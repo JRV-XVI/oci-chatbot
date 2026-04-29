@@ -168,8 +168,16 @@ public class SprintController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        if (request.sprintNumber == null || request.sprintNumber < 0) {
+        if (request.sprintNumber != null && request.sprintNumber < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        String title = normalizeTextOrNull(request.title);
+        if (title == null) {
+            if (request.sprintNumber == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            title = "Sprint #" + request.sprintNumber;
         }
 
         int resolvedProjectId = request.projectId != null ? request.projectId : resolveDefaultProjectId();
@@ -188,8 +196,6 @@ public class SprintController {
         if (nextId == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        String title = "Sprint #" + request.sprintNumber;
 
         jdbcTemplate.update(
                 "INSERT INTO SPRINT (ID_SPRINT, ID_PROJECT, TITLE, GOAL, START_DATE, END_DATE) VALUES (?, ?, ?, ?, ?, ?)",
@@ -236,7 +242,13 @@ public class SprintController {
         }
 
         String resolvedTitle = existing.get("TITLE") != null ? existing.get("TITLE").toString() : null;
-        if (request.sprintNumber != null) {
+        if (request.title != null) {
+            String normalizedTitle = normalizeTextOrNull(request.title);
+            if (normalizedTitle == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            resolvedTitle = normalizedTitle;
+        } else if (request.sprintNumber != null) {
             if (request.sprintNumber < 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
@@ -397,6 +409,7 @@ public class SprintController {
 
     public static class SprintCreateRequest {
         public Integer projectId;
+        public String title;
         public Integer sprintNumber;
         public String goal;
         public String startDate;
@@ -405,6 +418,7 @@ public class SprintController {
 
     public static class SprintUpdateRequest {
         public Integer projectId;
+        public String title;
         public Integer sprintNumber;
         public String goal;
         public String startDate;

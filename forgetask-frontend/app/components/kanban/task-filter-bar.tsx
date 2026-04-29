@@ -60,43 +60,32 @@ export const EMPTY_FILTERS: TaskFilters = {
 const HOURS_MAX = 4
 const HOURS_STEP = 0.5
 
-const STATUS_TAG_META: Record<TaskState, { label: string; bg: string; text: string; border: string }> = {
-  backlog: {
-    label: 'Backlog',
-    bg: 'rgba(180, 178, 169, 0.2)',
-    text: '#d6d2c9',
-    border: 'rgba(180, 178, 169, 0.55)',
-  },
-  ready: {
-    label: 'Ready',
-    bg: 'rgba(55, 138, 221, 0.2)',
-    text: '#a9d0ff',
-    border: 'rgba(55, 138, 221, 0.55)',
-  },
-  'in-progress': {
-    label: 'In progress',
-    bg: 'rgba(239, 159, 39, 0.2)',
-    text: '#ffd59a',
-    border: 'rgba(239, 159, 39, 0.55)',
-  },
-  review: {
-    label: 'Review',
-    bg: 'rgba(127, 119, 221, 0.2)',
-    text: '#d6ccff',
-    border: 'rgba(127, 119, 221, 0.55)',
-  },
-  done: {
-    label: 'Done',
-    bg: 'rgba(29, 158, 117, 0.2)',
-    text: '#a6f0d1',
-    border: 'rgba(29, 158, 117, 0.55)',
-  },
+const STATUS_LABELS: Record<TaskState, string> = {
+  backlog: 'Backlog',
+  ready: 'Ready',
+  'in-progress': 'In progress',
+  review: 'Review',
+  done: 'Done',
 }
 
-const TAG_META: Record<TaskTag, { label: string; bg: string; text: string; border: string }> = {
-  high: { label: 'High', bg: 'rgba(226, 75, 74, 0.2)', text: '#ffb4b4', border: 'rgba(226, 75, 74, 0.55)' },
-  medium: { label: 'Medium', bg: 'rgba(239, 159, 39, 0.2)', text: '#ffd59a', border: 'rgba(239, 159, 39, 0.55)' },
-  low: { label: 'Low', bg: 'rgba(29, 158, 117, 0.2)', text: '#a6f0d1', border: 'rgba(29, 158, 117, 0.55)' },
+const STATUS_TAG_CLASSES: Record<TaskState, string> = {
+  backlog: 'task-tag-status-backlog',
+  ready: 'task-tag-status-ready',
+  'in-progress': 'task-tag-status-in-progress',
+  review: 'task-tag-status-review',
+  done: 'task-tag-status-done',
+}
+
+const TAG_LABELS: Record<TaskTag, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+}
+
+const TAG_CLASSES: Record<TaskTag, string> = {
+  high: 'task-tag-priority-high',
+  medium: 'task-tag-priority-medium',
+  low: 'task-tag-priority-low',
 }
 
 const PRESET_LABELS: Record<string, string> = {
@@ -106,11 +95,11 @@ const PRESET_LABELS: Record<string, string> = {
   nodate: 'No due date',
 }
 
-const PRESET_TAG_META: Record<'overdue' | 'today' | 'week' | 'nodate', { bg: string; text: string; border: string }> = {
-  overdue: { bg: 'rgba(226, 75, 74, 0.2)', text: '#ffb4b4', border: 'rgba(226, 75, 74, 0.55)' },
-  today: { bg: 'rgba(239, 159, 39, 0.2)', text: '#ffd59a', border: 'rgba(239, 159, 39, 0.55)' },
-  week: { bg: 'rgba(29, 158, 117, 0.2)', text: '#a6f0d1', border: 'rgba(29, 158, 117, 0.55)' },
-  nodate: { bg: 'rgba(180, 178, 169, 0.2)', text: '#d6d2c9', border: 'rgba(180, 178, 169, 0.55)' },
+const PRESET_TAG_CLASSES: Record<'overdue' | 'today' | 'week' | 'nodate', string> = {
+  overdue: 'task-tag-due-overdue',
+  today: 'task-tag-due-today',
+  week: 'task-tag-due-week',
+  nodate: 'task-tag-due-nodate',
 }
 
 const sprintTagVariants = [
@@ -133,10 +122,12 @@ const resolveSprintTagClass = (sprintId?: number) => {
 export interface TaskLike {
   idTask: number
   idUser: number
-  idSprint: number | null
-  endDate: string | null
-  estimatedTime: number | null
-  realTime: number | null
+
+  idSprint?: number | null
+  endDate?: string | null
+  estimatedTime?: number | null
+  realTime?: number | null
+
   title?: string
   description?: string
   status?: TaskState
@@ -161,9 +152,10 @@ export function applyFilters<T extends TaskLike>(tasks: T[], f: TaskFilters): T[
     if (f.assigneeIds.length > 0 && !f.assigneeIds.some((id) => taskAssigneeIds.includes(id))) return false
 
     if (f.sprintIds.length > 0) {
+      const taskSprintId = task.idSprint ?? null
       const match =
-        (task.idSprint === null && f.sprintIds.includes('none')) ||
-        (task.idSprint !== null && f.sprintIds.includes(task.idSprint))
+        (taskSprintId === null && f.sprintIds.includes('none')) ||
+        (taskSprintId !== null && f.sprintIds.includes(taskSprintId))
       if (!match) return false
     }
 
@@ -247,10 +239,17 @@ interface DropdownProps {
 
 function Dropdown({ open, children, minWidth = 240 }: DropdownProps) {
   if (!open) return null
+  const widthClass =
+    minWidth === 200
+      ? 'min-w-[200px]'
+      : minWidth === 180
+        ? 'min-w-[180px]'
+        : minWidth === 260
+          ? 'min-w-[260px]'
+          : 'min-w-[240px]'
   return (
     <div
-      className="absolute top-[calc(100%+6px)] left-0 z-50 rounded-xl overflow-hidden bg-card border border-border shadow-[0_12px_24px_rgba(0,0,0,0.45)]"
-      style={{ minWidth }}
+      className={`absolute top-[calc(100%+6px)] left-0 z-50 rounded-xl overflow-hidden bg-card border border-border kanban-dropdown ${widthClass}`}
     >
       {children}
     </div>
@@ -268,14 +267,12 @@ function CheckItem({ label, selected, onClick }: CheckItemProps) {
     <button
       onClick={onClick}
       className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm text-left transition-colors cursor-pointer ${
-        selected
-          ? 'bg-[#e76b36]/15 text-[#ffd5c2]'
-          : 'text-foreground hover:bg-accent/70'
+        selected ? 'kanban-check-item-selected' : 'kanban-check-item'
       }`}
     >
       <span
-        className={`flex-shrink-0 w-[15px] h-[15px] rounded border flex items-center justify-center ${
-          selected ? 'bg-[#e76b36] border-[#e76b36]' : 'border-border'
+        className={`flex-shrink-0 w-[15px] h-[15px] rounded border flex items-center justify-center kanban-checkmark ${
+          selected ? 'kanban-checkmark-selected' : ''
         }`}
       >
         {selected && (
@@ -307,9 +304,7 @@ function FilterBtn({ active, onClick, icon, label }: FilterBtnProps) {
     <button
       onClick={onClick}
       className={`flex items-center gap-1.5 px-2.5 py-[5px] rounded-md border text-sm transition-colors cursor-pointer ${
-        active
-          ? 'border-[#e76b36]/60 bg-[#e76b36]/15 text-[#ffd5c2]'
-          : 'border-border bg-card text-muted-foreground hover:bg-accent/70 hover:text-foreground'
+        active ? 'kanban-filter-btn-active' : 'kanban-filter-btn-inactive'
       }`}
     >
       {icon}
@@ -329,6 +324,7 @@ function HoursDropdown({ value, onChange, onClose }: HoursDropdownProps) {
   const [min, setMin] = useState(value?.min ?? 0)
   const [max, setMax] = useState(value?.max ?? HOURS_MAX)
   const [budget, setBudget] = useState<'over' | 'within' | null>(value?.budget ?? null)
+  const rangeRef = useRef<HTMLDivElement>(null)
 
   const pctLeft = (min / HOURS_MAX) * 100
   const pctWidth = ((max - min) / HOURS_MAX) * 100
@@ -345,6 +341,12 @@ function HoursDropdown({ value, onChange, onClose }: HoursDropdownProps) {
     onClose()
   }
 
+  useEffect(() => {
+    if (!rangeRef.current) return
+    rangeRef.current.style.setProperty('--range-left', `${pctLeft}%`)
+    rangeRef.current.style.setProperty('--range-width', `${pctWidth}%`)
+  }, [pctLeft, pctWidth])
+
   return (
     <>
       <div className="px-3.5 py-3">
@@ -355,14 +357,11 @@ function HoursDropdown({ value, onChange, onClose }: HoursDropdownProps) {
           </span>
         </div>
 
-        <div className="relative h-1 bg-[#1a222d] rounded-full">
-          <div
-            className="absolute h-full bg-[#e76b36] rounded-full pointer-events-none"
-            style={{ left: `${pctLeft}%`, width: `${pctWidth}%` }}
-          />
+        <div className="relative h-1 rounded-full kanban-hours-track">
+          <div ref={rangeRef} className="kanban-hours-range" />
         </div>
 
-        <div className="relative" style={{ marginTop: -6 }}>
+        <div className="relative kanban-hours-slider">
           <input
             type="range"
             min={0}
@@ -370,8 +369,9 @@ function HoursDropdown({ value, onChange, onClose }: HoursDropdownProps) {
             step={HOURS_STEP}
             value={min}
             onChange={clampMin}
-            style={{ position: 'absolute', width: '100%', zIndex: min > HOURS_MAX - 1 ? 5 : 3 }}
-            className="appearance-none bg-transparent cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#0d1117] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[#e76b36] [&::-webkit-slider-thumb]:shadow"
+            className={`absolute w-full kanban-range-input ${min > HOURS_MAX - 1 ? 'z-20' : 'z-10'}`}
+            title="Minimum hours"
+            aria-label="Minimum hours"
           />
           <input
             type="range"
@@ -380,10 +380,11 @@ function HoursDropdown({ value, onChange, onClose }: HoursDropdownProps) {
             step={HOURS_STEP}
             value={max}
             onChange={clampMax}
-            style={{ position: 'absolute', width: '100%', zIndex: 4 }}
-            className="appearance-none bg-transparent cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#0d1117] [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[#e76b36] [&::-webkit-slider-thumb]:shadow"
+            className="absolute w-full kanban-range-input z-30"
+            title="Maximum hours"
+            aria-label="Maximum hours"
           />
-          <div style={{ height: 18 }} />
+          <div className="kanban-hours-spacer" />
         </div>
 
         <div className="flex justify-between mt-2.5">
@@ -487,14 +488,14 @@ export function TaskFilterBar({
     if (m) chips.push({ label: `Assignee: ${m.name}`, onRemove: () => toggleAssignee(id) })
   })
   filters.sprintIds.forEach((id) => {
-    const label = id === 'none' ? 'No sprint' : sprints.find((s) => s.idSprint === id)?.name ?? `Sprint ${id}`
+    const label = id === 'none' ? 'Sin sprint' : sprints.find((s) => s.idSprint === id)?.name ?? `Sprint ${id}`
     chips.push({ label: `Sprint: ${label}`, onRemove: () => toggleSprint(id) })
   })
   filters.states.forEach((s) =>
-    chips.push({ label: `Status: ${STATUS_TAG_META[s].label}`, onRemove: () => toggleState(s) })
+    chips.push({ label: `Status: ${STATUS_LABELS[s]}`, onRemove: () => toggleState(s) })
   )
   filters.tags.forEach((t) =>
-    chips.push({ label: `Priority: ${TAG_META[t].label}`, onRemove: () => toggleTag(t) })
+    chips.push({ label: `Priority: ${TAG_LABELS[t]}`, onRemove: () => toggleTag(t) })
   )
   if (filters.dueDate) {
     const d = filters.dueDate
@@ -564,8 +565,8 @@ export function TaskFilterBar({
   )
 
   return (
-    <div className="w-full" ref={barRef}>
-      <div className="flex flex-wrap items-center gap-2 py-3">
+    <div className="w-full overflow-x-auto" ref={barRef}>
+      <div className="flex items-center gap-2 py-3 min-w-fit">
         <input
           id="filter-bar-component-input"
           role="combobox"
@@ -578,7 +579,7 @@ export function TaskFilterBar({
           spellCheck={false}
           value={filters.query}
           onChange={(e) => onChange({ ...filters, query: e.target.value })}
-          className="min-w-[220px] h-9 rounded-md border border-border bg-card text-foreground placeholder:text-muted-foreground px-3 text-sm shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)] transition-[color,box-shadow,border-color] outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="min-w-[220px] h-9 rounded-md border border-border bg-card text-foreground placeholder:text-muted-foreground px-3 text-sm kanban-filter-input transition-[color,box-shadow,border-color] outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
         />
 
         <div className="relative">
@@ -600,7 +601,7 @@ export function TaskFilterBar({
               />
             </div>
             <div className="max-h-56 overflow-y-auto p-1.5">
-              {filteredMembers.map((m, i) => (
+              {filteredMembers.map((m) => (
                 <CheckItem
                   key={m.idUser}
                   label={<span className="text-sm">{m.name}</span>}
@@ -632,7 +633,7 @@ export function TaskFilterBar({
               <CheckItem
                 label={
                   <Badge variant="outline" className={`task-tag ${sprintTagVariants[0]}`}>
-                    No sprint (Backlog)
+                    Sin sprint
                   </Badge>
                 }
                 selected={filters.sprintIds.includes('none')}
@@ -661,16 +662,12 @@ export function TaskFilterBar({
           <FilterBtn active={filters.states.length > 0} onClick={() => toggle('status')} icon={iconStatus} label="Status" />
           <Dropdown open={open === 'status'} minWidth={200}>
             <div className="p-1.5">
-              {(Object.entries(STATUS_TAG_META) as [TaskState, (typeof STATUS_TAG_META)[TaskState]][]).map(([val, meta]) => (
+              {(Object.entries(STATUS_LABELS) as [TaskState, string][]).map(([val, label]) => (
                 <CheckItem
                   key={val}
                   label={
-                    <Badge
-                      variant="outline"
-                      className="task-tag"
-                      style={{ background: meta.bg, color: meta.text, borderColor: meta.border }}
-                    >
-                      {meta.label}
+                    <Badge variant="outline" className={`task-tag ${STATUS_TAG_CLASSES[val]}`}>
+                      {label}
                     </Badge>
                   }
                   selected={filters.states.includes(val)}
@@ -685,20 +682,15 @@ export function TaskFilterBar({
           <FilterBtn active={filters.tags.length > 0} onClick={() => toggle('tag')} icon={iconTag} label="Priority" />
           <Dropdown open={open === 'tag'} minWidth={180}>
             <div className="p-1.5">
-              {(Object.entries(TAG_META) as [TaskTag, (typeof TAG_META)[TaskTag]][]).map(([val, meta]) => (
+              {(Object.entries(TAG_LABELS) as [TaskTag, string][]).map(([val, label]) => (
                 <CheckItem
                     key={val}
                     label={
                     <Badge
                         variant="outline"
-                        className="task-tag"
-                        style={{
-                        background: meta.bg,
-                        color: meta.text,
-                        borderColor: meta.text + '55',
-                        }}
+                        className={`task-tag ${TAG_CLASSES[val]}`}
                     >
-                        {meta.label}
+                        {label}
                     </Badge>
                     }
                   selected={filters.tags.includes(val)}
@@ -725,12 +717,7 @@ export function TaskFilterBar({
                   label={
                     <Badge
                       variant="outline"
-                      className="task-tag"
-                      style={{
-                        background: PRESET_TAG_META[value].bg,
-                        color: PRESET_TAG_META[value].text,
-                        borderColor: PRESET_TAG_META[value].border,
-                      }}
+                      className={`task-tag ${PRESET_TAG_CLASSES[value]}`}
                     >
                       {PRESET_LABELS[value]}
                     </Badge>
@@ -791,12 +778,12 @@ export function TaskFilterBar({
             {chips.map((chip, i) => (
               <span
                 key={i}
-                className="flex items-center gap-1 px-2.5 py-[5px] rounded-md border border-[#e76b36]/50 bg-[#e76b36]/10 text-[#ffd5c2] text-sm"
+                className="flex items-center gap-1 px-2.5 py-[5px] rounded-md border text-sm kanban-filter-chip"
               >
                 {chip.label}
                 <button
                   onClick={chip.onRemove}
-                  className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#e76b36]/20 hover:bg-[#e76b36]/40 text-[#ffd5c2] text-[10px] leading-none cursor-pointer"
+                  className="flex items-center justify-center w-3.5 h-3.5 rounded-full text-[10px] leading-none cursor-pointer kanban-filter-chip-remove"
                 >
                   x
                 </button>

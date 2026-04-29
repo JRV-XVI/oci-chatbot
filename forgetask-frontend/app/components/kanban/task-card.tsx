@@ -118,7 +118,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
       data-testid={`task-card-${task.id}`}
       data-task-id={task.id}
       data-task-title={task.title}
-      className={`bg-[#0d1117] rounded-lg border border-[#2b3542] p-3 group hover:border-[#e76b36]/55 hover:shadow-[0_0_12px_rgba(231,107,54,0.18)] transition-all cursor-pointer ${
+      className={`kanban-card rounded-lg p-3 group transition-all cursor-pointer ${
         isDragging ? 'opacity-50' : 'opacity-100'
       }`}
     >
@@ -130,7 +130,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
         {/* Task Content */}
         <div className="flex-1 min-w-0 space-y-2" onClick={handleCardClick}>
-          <h3 className="font-medium text-[#e6edf3]" data-testid={`task-title-${task.id}`}>{task.title}</h3>
+          <h3 className="font-medium kanban-card-title" data-testid={`task-title-${task.id}`}>{task.title}</h3>
 
           {/* Priority Badge */}
           {task.priority && (
@@ -153,8 +153,8 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
           {/* Date Range */}
           {hasAnyDate && (
-            <div className="flex items-center gap-1 text-xs text-[#e6edf3]">
-              <Calendar className="w-3 h-3 flex-shrink-0 text-[#f19367]" />
+            <div className="flex items-center gap-1 text-xs kanban-card-date">
+              <Calendar className="w-3 h-3 flex-shrink-0 kanban-card-date-icon" />
               <div className="inline-block font-medium">
                 {dateRangeLabel}
               </div>
@@ -162,7 +162,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
           )}
 
           {/* Time Estimates */}
-          <div className="flex items-center gap-3 text-xs text-[#9aa4b2]">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
             {task.estimatedTime !== undefined && (
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3 flex-shrink-0" />
@@ -179,7 +179,7 @@ export function TaskCard({ task, sprintOptions, onTaskClick, onDeleteTask }: Tas
 
           {/* Assignee */}
           {task.assignedTo && task.assignedTo.length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-[#9aa4b2]">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <User className="w-3 h-3 flex-shrink-0" />
               <span>{task.assignedTo.join(', ')}</span>
             </div>

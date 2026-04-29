@@ -21,7 +21,7 @@ interface AddSprintDialogProps {
 export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSprintDeleted }: AddSprintDialogProps) {
   const [open, setOpen] = useState(false)
   const [selectedSprintId, setSelectedSprintId] = useState('')
-  const [sprintNumber, setSprintNumber] = useState('')
+  const [sprintTitle, setSprintTitle] = useState('')
   const [goal, setGoal] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -56,7 +56,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
   const openDialog = () => {
     setSelectedSprintId('')
-    setSprintNumber('')
+    setSprintTitle('')
     setGoal('')
     setStartDate('')
     setEndDate('')
@@ -102,9 +102,9 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
       return
     }
 
-    const parsedSprintNumber = sprintNumber.trim() === '' ? NaN : Number(sprintNumber)
-    if (!Number.isFinite(parsedSprintNumber) || parsedSprintNumber < 0) {
-      setErrorMessage('Sprint number must be greater than or equal to 0.')
+    const trimmedTitle = sprintTitle.trim()
+    if (trimmedTitle.length === 0) {
+      setErrorMessage('Sprint name is required.')
       return
     }
 
@@ -124,7 +124,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
     try {
       const request = {
         projectId,
-        sprintNumber: parsedSprintNumber,
+        title: trimmedTitle,
         goal: goal || undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
@@ -189,7 +189,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                       setErrorMessage('')
 
                       if (!value) {
-                        setSprintNumber('')
+                        setSprintTitle('')
                         setGoal('')
                         setStartDate('')
                         setEndDate('')
@@ -198,7 +198,7 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
 
                       const sprint = sprintOptions.find((option) => String(option.idSprint) === value)
                       if (sprint) {
-                        setSprintNumber(String(sprint.sprintNumber))
+                        setSprintTitle(sprint.title || '')
                         setGoal(sprint.goal || '')
                         setStartDate(sprint.startDate || '')
                         setEndDate(sprint.endDate || '')
@@ -218,14 +218,13 @@ export function AddSprintDialog({ projectId, sprintOptions, onSprintSaved, onSpr
                 </div>
 
                 <div className="grid gap-2 rounded-lg border border-[#2b3542] bg-[#11161f] p-3">
-                  <Label htmlFor="sprint-number">Sprint Number *</Label>
+                  <Label htmlFor="sprint-number">Sprint Name *</Label>
                   <Input
                     id="sprint-number"
                     data-testid="input-sprint-number"
-                    value={sprintNumber}
-                    onChange={(e) => setSprintNumber(e.target.value)}
-                    placeholder="1"
-                    inputMode="numeric"
+                    value={sprintTitle}
+                    onChange={(e) => setSprintTitle(e.target.value)}
+                    placeholder="Sprint name"
                     required
                   />
                 </div>

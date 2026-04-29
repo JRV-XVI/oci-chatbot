@@ -11,15 +11,15 @@ def test_create_sprint_and_validate_overlap_rule(driver, settings: SeleniumSetti
     board = KanbanPage(driver, settings)
     board.open_board()
 
-    sprint_number = 5
-    overlap_sprint_number = sprint_number + 1
+    sprint_title = "Sprint 5 - Telegram"
+    overlap_sprint_title = "Sprint 6 - Overlap"
 
     start_date = "2026-06-13"
     end_date = "2026-06-20"
 
     try:
         board.create_sprint(
-            sprint_number=sprint_number,
+            sprint_title=sprint_title,
             goal="Sprint 5 para testear telegram",
             start_date=start_date,
             end_date=end_date,
@@ -28,12 +28,12 @@ def test_create_sprint_and_validate_overlap_rule(driver, settings: SeleniumSetti
         pytest.skip(str(exc))
 
     option_texts = board.sprint_options_text()
-    assert any(str(sprint_number) in option for option in option_texts), (
-        "Created sprint number was not found in sprint selector"
+    assert any(sprint_title in option for option in option_texts), (
+        "Created sprint title was not found in sprint selector"
     )
 
     overlap_error = board.attempt_overlapping_sprint(
-        sprint_number=overlap_sprint_number,
+        sprint_title=overlap_sprint_title,
         goal="Overlapping sprint should fail",
         start_date=start_date,
         end_date=end_date,
