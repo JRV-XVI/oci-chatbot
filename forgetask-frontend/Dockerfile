@@ -40,8 +40,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
 RUN npm install sharp@latest
 
-RUN mkdir .next && chown nextjs:nodejs .next
-
 USER nextjs
 
 EXPOSE 3000
