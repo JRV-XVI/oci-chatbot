@@ -42,10 +42,10 @@ export function AppSidebar({
             {isOpen && (
               <div className="flex items-center justify-center rounded-xl border border-[#2b3542] bg-[#11161f] p-2">
                 <Image
-                  src="/CloudForge.svg"
+                  src="/ForgeTask (long).svg"
                   alt="CloudForge"
-                  width={42}
-                  height={42}
+                  width={160}
+                  height={50}
                   priority
                 />
               </div>

@@ -144,21 +144,10 @@ export function ProjectHeader({
       className={`border-b border-[#2b3542] bg-[#0d1117] px-4 py-2 shadow-[0_0_14px_rgba(0,0,0,0.35)] overflow-hidden ${className}`}
     >
       <div className="flex items-center gap-3 h-fit">
-        {/* Left Section: Sidebar Toggle */}
-        {showSidebarToggle && (
-          <Button
-            onClick={onSidebarToggle}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 flex-shrink-0"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-        )}
 
-        {/* Middle Section: Progress Bar (optional) */}
+        {/* Middle Section: Progress Bar */}
         {showProgress && (
-          <div className="flex-1 min-w-0 flex items-center gap-2 py-0.5">
+          <div className="flex-1 min-w-0 flex items-center gap-2 py-0.5 px-3">
             <div className="flex items-center gap-1.5 min-w-fit">
               <span className="text-xs text-[#9aa4b2]">Progress:</span>
               <span className="text-xs font-semibold text-[#e6edf3] whitespace-nowrap">

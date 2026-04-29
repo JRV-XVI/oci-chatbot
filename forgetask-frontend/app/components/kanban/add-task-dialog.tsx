@@ -139,7 +139,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
 
   const sprintRangeHint =
     selectedSprint?.startDate && selectedSprint?.endDate
-      ? `Sprint range: ${selectedSprint.startDate} – ${selectedSprint.endDate}`
+      ? `Sprint range: ${selectedSprint.startDate} - ${selectedSprint.endDate}`
       : null
 
   return (
@@ -237,7 +237,7 @@ export function AddTaskDialog({ onAddTask, assigneeOptions, sprintOptions }: Add
                   {sprintRangeHint && (
                     <p className="flex items-center gap-1.5 text-xs text-[#58a6ff] mt-1">
                       <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                      {sprintRangeHint} — task dates must fall within this range.
+                      {sprintRangeHint} - Task dates must fall within this range.
                     </p>
                   )}
                 </div>
