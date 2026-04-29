@@ -398,6 +398,48 @@ while ! state_done APP_SECRETS_SET; do
     read -r -p "Enter Telegram Bot Name (leave empty to disable): " TELEGRAM_BOT_NAME
     echo
   fi
+  TELEGRAM_BOT_ENABLED="${TELEGRAM_BOT_ENABLED:-true}"
+
+  echo
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} LLM Configuration (Groq / DeepSeek / etc.)"
+  echo -e "${purpleColour}[main-setup.sh][*]${endColour} Get a free Groq API key at: https://console.groq.com/keys"
+  echo
+
+  if [ -z "$LLM_PROVIDER" ]; then
+    read -r -p "LLM Provider [groq]: " LLM_PROVIDER
+    LLM_PROVIDER="${LLM_PROVIDER:-groq}"
+    echo
+  fi
+
+  if [ -z "$LLM_API_KEY" ]; then
+    read -r -p "LLM API Key: " LLM_API_KEY
+    echo -e "${yellowColour}[main-setup.sh][+]${endColour} LLM_API_KEY ingresada: ${LLM_API_KEY}"
+    echo
+  fi
+
+  if [ -z "$LLM_MODEL" ]; then
+    read -r -p "LLM Model [llama-3.1-8b-instant]: " LLM_MODEL
+    LLM_MODEL="${LLM_MODEL:-llama-3.1-8b-instant}"
+    echo
+  fi
+
+  if [ -z "$LLM_API_URL" ]; then
+    read -r -p "LLM API URL [https://api.groq.com/openai/v1/]: " LLM_API_URL
+    LLM_API_URL="${LLM_API_URL:-https://api.groq.com/openai/v1/}"
+    echo
+  fi
+
+  if [ -z "$LLM_MAX_TOKENS" ]; then
+    read -r -p "LLM Max Tokens [2048]: " LLM_MAX_TOKENS
+    LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-2048}"
+    echo
+  fi
+
+  if [ -z "$LLM_TEMPERATURE" ]; then
+    read -r -p "LLM Temperature [0.7]: " LLM_TEMPERATURE
+    LLM_TEMPERATURE="${LLM_TEMPERATURE:-0.7}"
+    echo
+  fi
 
   if kubectl create secret generic forgetask-app-secrets \
     --from-literal=DB_USER="$DB_USER_INPUT" \
@@ -405,17 +447,24 @@ while ! state_done APP_SECRETS_SET; do
     --from-literal=TELEGRAM_BOT_ENABLED="${TELEGRAM_BOT_TOKEN:+true}" \
     --from-literal=TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}" \
     --from-literal=TELEGRAM_BOT_NAME="${TELEGRAM_BOT_NAME:-}" \
+    --from-literal=LLM_PROVIDER="$LLM_PROVIDER" \
+    --from-literal=LLM_API_KEY="$LLM_API_KEY" \
+    --from-literal=LLM_MODEL="$LLM_MODEL" \
+    --from-literal=LLM_API_URL="$LLM_API_URL" \
+    --from-literal=LLM_MAX_TOKENS="$LLM_MAX_TOKENS" \
+    --from-literal=LLM_TEMPERATURE="$LLM_TEMPERATURE" \
     -n mtdrworkshop 2>/dev/null || \
-     kubectl get secret forgetask-app-secrets -n mtdrworkshop &>/dev/null; then
+    kubectl get secret forgetask-app-secrets -n mtdrworkshop &>/dev/null; then
     state_set_done APP_SECRETS_SET
     echo -e "${greenColour}[main-setup.sh][+]${endColour} forgetask-app-secrets created."
   else
     echo -e "${redColour}[main-setup.sh][x]${endColour} Error creating forgetask-app-secrets. Retrying..."
+    # Reset inputs so the user is prompted again on retry
+    unset DB_USER_INPUT DB_PASSWORD_INPUT TELEGRAM_BOT_TOKEN TELEGRAM_BOT_NAME
+    unset LLM_PROVIDER LLM_API_KEY LLM_MODEL LLM_API_URL LLM_MAX_TOKENS LLM_TEMPERATURE
     sleep 5
   fi
 done
-
-
 
 # Wait for OKE Setup
 while ! state_done OKE_SETUP; do
