@@ -7,6 +7,7 @@ import {
   Sparkles,
   Users,
   LucideIcon,
+  Menu,
 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
@@ -55,7 +56,7 @@ export interface ProjectHeaderButtonsConfig {
 }
 
 /**
- * Configuration for header sections
+ * Configuration for header sections (deprecated - kept for backward compatibility)
  */
 export interface ProjectHeaderSectionsConfig {
   logo?: {
@@ -88,70 +89,33 @@ export interface ProjectHeaderProps {
   buttonsConfig: ProjectHeaderButtonsConfig
   sectionsConfig?: ProjectHeaderSectionsConfig
   className?: string
+  showSidebarToggle?: boolean
+  onSidebarToggle?: () => void
+  showProgress?: boolean
 }
 
 /**
- * Default configuration for sections
- */
-const DEFAULT_SECTIONS_CONFIG: ProjectHeaderSectionsConfig = {
-  logo: {
-    show: true,
-    src: '/CloudForge.svg',
-    alt: 'CloudForge',
-    width: 86,
-    height: 86,
-  },
-  title: {
-    show: true,
-  },
-  subtitle: {
-    show: true,
-    text: 'Coordinate tasks, sprints, and delivery flow',
-  },
-  progress: {
-    show: true,
-  },
-}
-
-/**
- * Reusable ProjectHeader component with full customization support
+ * Compact ProjectHeader component without logo
+ * Used with the new AppLayout with sidebar
+ * 
+ * The sidebar toggle button is always visible and allows collapsing/expanding the sidebar.
+ * Progress bar can be optionally displayed (for Kanban only).
  *
  * @example
- * // Minimal usage - show all default buttons
  * <ProjectHeader
  *   projectTitle="My Project"
- *   completedHours={10}
- *   totalHours={40}
- *   progressPercentage={25}
  *   buttonsConfig={{
  *     kpis: { show: true, onClick: () => {} },
- *     members: { show: true, onClick: () => {} },
  *     generateReport: { show: true, onClick: () => {} },
  *     addSprint: { show: true, projectId: 1, sprintOptions: [], onSprintSaved: () => {}, onSprintDeleted: () => {} },
  *     addTask: { show: true, onAddTask: () => {}, assigneeOptions: [], sprintOptions: [] },
  *   }}
- * />
- *
- * @example
- * // Custom usage - selective buttons
- * <ProjectHeader
- *   projectTitle="My Project"
- *   buttonsConfig={{
- *     kpis: { show: false },
- *     members: { show: true, onClick: () => {} },
- *     addTask: { show: true, onAddTask: () => {}, assigneeOptions: [], sprintOptions: [] },
- *     custom: [
- *       {
- *         label: 'Settings',
- *         icon: Settings,
- *         onClick: () => console.log('Settings'),
- *       }
- *     ]
- *   }}
- *   sectionsConfig={{
- *     progress: { show: false },
- *     subtitle: { show: true, text: 'Custom subtitle' }
- *   }}
+ *   showSidebarToggle={true}
+ *   onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+ *   showProgress={true}
+ *   completedHours={10}
+ *   totalHours={40}
+ *   progressPercentage={25}
  * />
  */
 export function ProjectHeader({
@@ -162,82 +126,62 @@ export function ProjectHeader({
   buttonsConfig,
   sectionsConfig,
   className = '',
+  showSidebarToggle = false,
+  onSidebarToggle,
+  showProgress = false,
 }: ProjectHeaderProps) {
-  // Merge with default config
-  const finalSectionsConfig = { ...DEFAULT_SECTIONS_CONFIG, ...sectionsConfig }
+  // Merge with default config (for backward compatibility)
+  const defaultConfig: ProjectHeaderSectionsConfig = {
+    logo: { show: false },
+    title: { show: false },
+    subtitle: { show: false },
+    progress: { show: false },
+  }
+  const finalSectionsConfig = { ...defaultConfig, ...sectionsConfig }
 
   return (
     <header
-      className={`border-b border-[#2b3542] bg-[#0d1117] px-6 py-4 shadow-[0_0_14px_rgba(0,0,0,0.35)] ${className}`}
+      className={`border-b border-[#2b3542] bg-[#0d1117] px-4 py-2 shadow-[0_0_14px_rgba(0,0,0,0.35)] overflow-hidden ${className}`}
     >
-      <div className="flex items-center justify-between gap-6 flex-wrap">
-        {/* Left Section: Logo + Title */}
-        <div className="flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {/* Logo */}
-            {finalSectionsConfig.logo?.show && (
-              <div className="flex items-center justify-center rounded-xl border border-[#2b3542] bg-[#11161f] p-3 shadow-[0_0_18px_rgba(0,0,0,0.28)]">
-                <Image
-                  src={finalSectionsConfig.logo.src || '/CloudForge.svg'}
-                  alt={finalSectionsConfig.logo.alt || 'CloudForge'}
-                  width={finalSectionsConfig.logo.width || 86}
-                  height={finalSectionsConfig.logo.height || 86}
-                  priority
-                />
-              </div>
-            )}
+      <div className="flex items-center gap-3 h-fit">
+        {/* Left Section: Sidebar Toggle */}
+        {showSidebarToggle && (
+          <Button
+            onClick={onSidebarToggle}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 flex-shrink-0"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        )}
 
-            {/* Title & Subtitle */}
-            <div>
-              {finalSectionsConfig.title?.show && (
-                <h1 className="text-2xl font-bold text-[#e6edf3]">{projectTitle}</h1>
-              )}
-              {finalSectionsConfig.subtitle?.show && (
-                <p className="text-sm text-[#9aa4b2] mt-1">
-                  {finalSectionsConfig.subtitle.text}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Middle Section: Progress */}
-        {finalSectionsConfig.progress?.show && (
-          <div className="flex-1 max-w-md min-w-[240px]">
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-[#9aa4b2]">Progress</span>
-              <span className="font-semibold text-[#e6edf3]">
+        {/* Middle Section: Progress Bar (optional) */}
+        {showProgress && (
+          <div className="flex-1 min-w-0 flex items-center gap-2 py-0.5">
+            <div className="flex items-center gap-1.5 min-w-fit">
+              <span className="text-xs text-[#9aa4b2]">Progress:</span>
+              <span className="text-xs font-semibold text-[#e6edf3] whitespace-nowrap">
                 {completedHours}h / {totalHours}h ({progressPercentage}%)
               </span>
             </div>
-            <Progress value={progressPercentage} className="h-1.5" />
+            <Progress value={progressPercentage} className="h-1 flex-1 max-w-[150px]" />
           </div>
         )}
 
-        {/* Right Section: Action Buttons */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Right Section: Action Buttons (scrollable) */}
+        <div className="flex min-w-0 overflow-x-auto flex items-center gap-2">
           {/* KPIs Button */}
           {buttonsConfig.kpis?.show && (
             <Button
               onClick={buttonsConfig.kpis.onClick}
               variant="outline"
               data-testid="btn-kpis"
-              className="cursor-pointer"
+              className="cursor-pointer whitespace-nowrap flex-shrink-0"
+              size="sm"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3 className="w-4 h-4 mr-1" />
               KPIs
-            </Button>
-          )}
-
-          {/* Members Button */}
-          {buttonsConfig.members?.show && (
-            <Button
-              onClick={buttonsConfig.members.onClick}
-              variant="outline"
-              className="cursor-pointer"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Members
             </Button>
           )}
 
@@ -246,30 +190,35 @@ export function ProjectHeader({
             <Button
               onClick={buttonsConfig.generateReport.onClick}
               variant="outline"
-              className="cursor-pointer"
+              className="cursor-pointer whitespace-nowrap flex-shrink-0"
+              size="sm"
             >
-              <Sparkles className="w-4 h-4 mr-2 text-[#f59e0b] drop-shadow-[0_0_7px_rgba(245,158,11,0.85)]" />
+              <Sparkles className="w-4 h-4 mr-1 text-[#f59e0b] drop-shadow-[0_0_7px_rgba(245,158,11,0.85)]" />
               Generate Report AI
             </Button>
           )}
 
           {/* Add Sprint Dialog */}
           {buttonsConfig.addSprint?.show && (
-            <AddSprintDialog
-              projectId={buttonsConfig.addSprint.projectId}
-              sprintOptions={buttonsConfig.addSprint.sprintOptions}
-              onSprintSaved={buttonsConfig.addSprint.onSprintSaved}
-              onSprintDeleted={buttonsConfig.addSprint.onSprintDeleted}
-            />
+            <div className="flex-shrink-0">
+              <AddSprintDialog
+                projectId={buttonsConfig.addSprint.projectId}
+                sprintOptions={buttonsConfig.addSprint.sprintOptions}
+                onSprintSaved={buttonsConfig.addSprint.onSprintSaved}
+                onSprintDeleted={buttonsConfig.addSprint.onSprintDeleted}
+              />
+            </div>
           )}
 
           {/* Add Task Dialog */}
           {buttonsConfig.addTask?.show && (
-            <AddTaskDialog
-              onAddTask={buttonsConfig.addTask.onAddTask}
-              assigneeOptions={buttonsConfig.addTask.assigneeOptions}
-              sprintOptions={buttonsConfig.addTask.sprintOptions}
-            />
+            <div className="flex-shrink-0">
+              <AddTaskDialog
+                onAddTask={buttonsConfig.addTask.onAddTask}
+                assigneeOptions={buttonsConfig.addTask.assigneeOptions}
+                sprintOptions={buttonsConfig.addTask.sprintOptions}
+              />
+            </div>
           )}
 
           {/* Custom Buttons */}
@@ -281,9 +230,10 @@ export function ProjectHeader({
                 onClick={customButton.onClick}
                 variant={customButton.variant || 'outline'}
                 data-testid={customButton.testId}
-                className="cursor-pointer"
+                className="cursor-pointer whitespace-nowrap flex-shrink-0"
+                size="sm"
               >
-                {CustomIcon && <CustomIcon className="w-4 h-4 mr-2" />}
+                {CustomIcon && <CustomIcon className="w-4 h-4 mr-1" />}
                 {customButton.label}
               </Button>
             )
