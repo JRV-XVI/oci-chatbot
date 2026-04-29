@@ -9,7 +9,7 @@ OCIR_REGION="${OCIR_REGION}"
 OCIR_NAMESPACE="${OCIR_NAMESPACE}"
 OCIR_USERNAME="${OCIR_USERNAME}"
 OCIR_TOKEN="${OCIR_TOKEN}"
-REPO_ROOT="../../.."
+REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 
 # Versión: usa git commit corto si está disponible, sino "latest"
 VERSION=$(git rev-parse --short HEAD 2>/dev/null || echo "latest")
