@@ -36,7 +36,9 @@ mkdir -p "$TEMPLATES_DIR"
 
 export IMAGE_NAME_BACKEND=forgetask
 export IMAGE_NAME_FRONTEND=forgetask-frontend
-export IMAGE_VERSION=0.1
+read -r -p "[deploy.sh][INPUT] Image version: " IMAGE_VERSION
+export IMAGE_VERSION
+echo "Image version set to: ${IMAGE_VERSION}"
 
 # Validaciones de variables necesarias para renderizar el manifiesto.
 if [ -z "$DOCKER_REGISTRY" ]; then
