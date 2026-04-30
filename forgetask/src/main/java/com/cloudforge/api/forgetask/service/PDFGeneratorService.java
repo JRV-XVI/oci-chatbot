@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -108,7 +111,8 @@ public class PDFGeneratorService {
         double real = doubleVal(metrics, "realHours", 0.0);
         double variance = doubleVal(metrics, "timeVariance", real - estimated);
 
-        String generatedAt = LocalDateTime.now().format(DISPLAY_DATE_FORMAT);
+        String generatedAt = ZonedDateTime.now(ZoneId.of("America/Mexico_City"))
+                        .format(DISPLAY_DATE_FORMAT);
         List<Map<String, Object>> safeUserHours = userHours != null ? userHours : List.of();
 
         StringBuilder html = new StringBuilder();
@@ -127,7 +131,7 @@ public class PDFGeneratorService {
             .append(buildExecutiveSummary(reportContent, projectId, sprintId, generatedAt, efficiency))
             .append(buildKpiDashboard(totalTasks, doneTasks, inProgress, review, ready, backlog, efficiency, progress, variance, projectId, sprintId))
             .append(buildTasksTable(safeUserHours, projectId, sprintId))
-            .append(buildHoursTable(safeUserHours, projectId, sprintId))
+            .append(buildHoursTable(safeUserHours, real, projectId, sprintId))
             .append(buildNarrativeSection(reportContent, projectId, sprintId))
             .append(buildDocumentControl(projectId, sprintId, generatedAt))
             .append("</body>")
@@ -147,7 +151,6 @@ public class PDFGeneratorService {
           .append("<div class=\"cover-brand\">CloudForge</div>")
           .append("<div class=\"cover-line\"></div>")
           .append("<h1 class=\"cover-title\">Sprint Performance Assessment Report</h1>")
-          .append("<div class=\"cover-subtitle\">Process Capability Evaluation - ISO/IEC 15504 Aligned</div>")
           .append("<table class=\"cover-meta-table\"><tbody>")
           .append("<tr><td class=\"cover-meta-label\">Project ID</td><td class=\"cover-meta-value\">")
           .append(escapeHtml(String.valueOf(projectId != null ? projectId : "-"))).append("</td></tr>")
@@ -175,34 +178,24 @@ public class PDFGeneratorService {
             executiveBlock = "No executive summary content was provided by the AI narrative.";
         }
 
-        String levelText = capabilityLevel(efficiencyRate);
-        int levelNumeric = capabilityNumber(efficiencyRate);
-        String levelDescription = capabilityDescription(efficiencyRate);
-
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"page page-break-before\">")
           .append(pageHeader(projectId, sprintId))
           .append("<h2 class=\"section-title\">1. EXECUTIVE SUMMARY</h2>")
           .append("<div class=\"section-divider\"></div>")
           .append(formatNarrative(executiveBlock))
-          .append("<h2 class=\"section-title\">2. PROCESS CAPABILITY LEVEL</h2>")
-          .append("<div class=\"section-divider\"></div>")
-          .append("<table class=\"report-table\"><thead><tr>")
-          .append("<th>ATTRIBUTE</th><th>VALUE</th><th>ISO/IEC 15504 RATING</th>")
-          .append("</tr></thead><tbody>")
-          .append("<tr><td>Capability Level</td><td>").append(escapeHtml(levelText)).append("</td><td>")
-          .append(levelNumeric).append("/5</td></tr>")
-          .append("<tr><td>Efficiency Rate</td><td>").append(String.format(Locale.US, "%.1f%%", efficiencyRate)).append("</td><td>")
-          .append(escapeHtml(levelDescription)).append("</td></tr>")
-          .append("<tr><td>Assessment Date</td><td>").append(escapeHtml(generatedAt)).append("</td><td>&#8212;</td></tr>")
-          .append("</tbody></table>")
+                    .append("<table class=\"report-table\"><thead><tr>")
+                    .append("<th>ATTRIBUTE</th><th>VALUE</th>")
+                    .append("</tr></thead><tbody>")
+                    .append("<tr><td>Efficiency Rate</td><td>").append(String.format(Locale.US, "%.1f%%", efficiencyRate)).append("</td></tr>")
+                    .append("<tr><td>Assessment Date</td><td>").append(escapeHtml(generatedAt)).append("</td></tr>")
+                    .append("</tbody></table>")
           .append("<h2 class=\"section-title\">3. DOCUMENT INDEX</h2>")
           .append("<div class=\"section-divider\"></div>")
           .append("<table class=\"report-table\"><thead><tr>")
           .append("<th>SECTION</th><th>DESCRIPTION</th><th>PAGE</th>")
           .append("</tr></thead><tbody>")
           .append("<tr><td>1</td><td>Executive Summary</td><td>2</td></tr>")
-          .append("<tr><td>2</td><td>Process Capability Level</td><td>2</td></tr>")
           .append("<tr><td>3</td><td>Performance Metrics Dashboard</td><td>3</td></tr>")
           .append("<tr><td>4</td><td>Team Metrics - Tasks &#38; Hours</td><td>3-4</td></tr>")
           .append("<tr><td>5</td><td>AI-Generated Process Assessment</td><td>4-6</td></tr>")
@@ -244,7 +237,10 @@ public class PDFGeneratorService {
 
         String efficiencyState = stateText(efficiency, 75d, 60d);
         String progressState = stateText(progress, 75d, 60d);
-        String tasksState = totalTasks > 0 && doneTasks == totalTasks ? "ON TARGET" : (doneTasks > 0 ? "IN PROGRESS" : "BELOW TARGET");
+        double completionRate = totalTasks > 0 ? (doneTasks * 100d / totalTasks) : 0d;
+        String tasksState = completionRate >= 75d ? "ON TARGET" 
+                        : completionRate >= 50d ? "NEAR TARGET" 
+                        : "BELOW TARGET";
 
         String varianceNote;
         if (variance < 0) {
@@ -338,7 +334,7 @@ public class PDFGeneratorService {
     /**
      * Builds comparative table 2: actual worked hours by user.
      */
-    private String buildHoursTable(List<Map<String, Object>> userHours, Integer projectId, Integer sprintId) {
+    private String buildHoursTable(List<Map<String, Object>> userHours, double totalRealHours, Integer projectId, Integer sprintId) {
         List<Map<String, Object>> rows = new ArrayList<>(userHours);
         rows.sort(
             Comparator.comparingDouble((Map<String, Object> row) -> doubleVal(row, "realHours", 0d))
@@ -350,6 +346,7 @@ public class PDFGeneratorService {
         for (Map<String, Object> row : rows) {
             totalHours += doubleVal(row, "realHours", 0d);
         }
+        double totalForPercent = totalHours;
         double avgHours = rows.isEmpty() ? 0d : totalHours / rows.size();
 
         StringBuilder sb = new StringBuilder();
@@ -364,7 +361,7 @@ public class PDFGeneratorService {
             int rank = 1;
             for (Map<String, Object> row : rows) {
                 double hours = doubleVal(row, "realHours", 0d);
-                double contribution = totalHours > 0d ? (hours * 100d / totalHours) : 0d;
+                double contribution = totalForPercent > 0d ? (hours * 100d / totalForPercent) : 0d;
                 double delta = hours - avgHours;
                 String deltaText = String.format(Locale.US, "%+.1fh", delta);
                 String deltaCell = delta > 0d
@@ -380,10 +377,21 @@ public class PDFGeneratorService {
                   .append("</tr>");
                 rank++;
             }
+
+                        double unattributed = totalForPercent - totalHours;
+                        if (unattributed > 0.05d) {
+                                sb.append("<tr>")
+                                    .append("<td>").append(rank).append("</td>")
+                                    .append("<td>Unattributed</td>")
+                                    .append("<td>").append(String.format(Locale.US, "%.1f h", unattributed)).append("</td>")
+                                    .append("<td>").append(String.format(Locale.US, "%.1f%%", (unattributed * 100d / totalForPercent))).append("</td>")
+                                    .append("<td>&#8212;</td>")
+                                    .append("</tr>");
+                        }
         }
 
         sb.append("<tr class=\"total-row\"><td>&#8212;</td><td>TOTAL</td><td>")
-          .append(String.format(Locale.US, "%.1f h", totalHours))
+                    .append(String.format(Locale.US, "%.1f h", totalForPercent))
           .append("</td><td>100.0%</td><td>&#8212;</td></tr>")
           .append("</tbody></table>")
           .append("</div>");
@@ -528,14 +536,18 @@ public class PDFGeneratorService {
         boolean inParagraph = false;
         boolean inUnorderedList = false;
         boolean inOrderedList = false;
+        boolean inListItem = false;
 
-        for (String rawLine : cleaned.split("\\R")) {
-            String line = rawLine.trim();
+        for (String line : normalizeNarrativeLines(cleaned)) {
 
             if (line.isEmpty()) {
                 if (inParagraph) {
                     html.append("</p>");
                     inParagraph = false;
+                }
+                if (inListItem) {
+                    html.append("</li>");
+                    inListItem = false;
                 }
                 if (inUnorderedList) {
                     html.append("</ul>");
@@ -554,6 +566,10 @@ public class PDFGeneratorService {
                     inParagraph = false;
                 }
                 if (inOrderedList) {
+                    if (inListItem) {
+                        html.append("</li>");
+                        inListItem = false;
+                    }
                     html.append("</ol>");
                     inOrderedList = false;
                 }
@@ -561,14 +577,22 @@ public class PDFGeneratorService {
                     html.append("<ul>");
                     inUnorderedList = true;
                 }
+                if (inListItem) {
+                    html.append("</li>");
+                }
                 String item = line.replaceFirst("^[-*]\\s+", "");
-                html.append("<li>").append(formatInline(item)).append("</li>");
+                html.append("<li>").append(formatInline(item));
+                inListItem = true;
             } else if (line.matches("^\\d+\\.\\s+.+")) {
                 if (inParagraph) {
                     html.append("</p>");
                     inParagraph = false;
                 }
                 if (inUnorderedList) {
+                    if (inListItem) {
+                        html.append("</li>");
+                        inListItem = false;
+                    }
                     html.append("</ul>");
                     inUnorderedList = false;
                 }
@@ -576,29 +600,38 @@ public class PDFGeneratorService {
                     html.append("<ol>");
                     inOrderedList = true;
                 }
+                if (inListItem) {
+                    html.append("</li>");
+                }
                 String item = line.replaceFirst("^\\d+\\.\\s+", "");
-                html.append("<li>").append(formatInline(item)).append("</li>");
+                html.append("<li>").append(formatInline(item));
+                inListItem = true;
             } else {
-                if (inUnorderedList) {
-                    html.append("</ul>");
-                    inUnorderedList = false;
-                }
-                if (inOrderedList) {
-                    html.append("</ol>");
-                    inOrderedList = false;
-                }
-                if (!inParagraph) {
-                    html.append("<p class=\"body-text\">");
-                    inParagraph = true;
+                if (inUnorderedList || inOrderedList) {
+                    if (!inListItem) {
+                        html.append("<li>");
+                        inListItem = true;
+                    } else {
+                        html.append("<br/>");
+                    }
+                    html.append(formatInline(line));
                 } else {
-                    html.append("<br/>");
+                    if (!inParagraph) {
+                        html.append("<p class=\"body-text\">");
+                        inParagraph = true;
+                    } else {
+                        html.append("<br/>");
+                    }
+                    html.append(formatInline(line));
                 }
-                html.append(formatInline(line));
             }
         }
 
         if (inParagraph) {
             html.append("</p>");
+        }
+        if (inListItem) {
+            html.append("</li>");
         }
         if (inUnorderedList) {
             html.append("</ul>");
@@ -611,6 +644,100 @@ public class PDFGeneratorService {
             return "<p class=\"body-text\">No analysis available.</p>";
         }
         return html.toString();
+    }
+
+    private List<String> normalizeNarrativeLines(String text) {
+        text = text.replaceAll("(?i)Risk:\\s*Risk:", "Risk:");
+        text = text.replaceAll("(?i)(Risk:[^\n]+)\n+\\s*Mitigation:", "$1 / Mitigation:");
+                
+        List<String> lines = new ArrayList<>();
+        boolean forceOrderedList = false;
+        boolean lastWasListItem = false;
+        String pendingRisk = null;
+
+        for (String rawLine : normalizeBreaks(text).split("\\n")) {
+            String line = rawLine.trim();
+
+            if (line.isBlank()) {
+                if (pendingRisk != null) {
+                    lines.add(pendingRisk.trim());
+                    pendingRisk = null;
+                }
+                lines.add("");
+                forceOrderedList = false;
+                lastWasListItem = false;
+                continue;
+            }
+
+            if (isListPlaceholderLine(line)) {
+                forceOrderedList = true;
+                lastWasListItem = false;
+                continue;
+            }
+
+            if (line.equalsIgnoreCase("Risk:")) {
+                continue;
+            }
+
+            if (line.startsWith("Risk:")) {
+                if (pendingRisk != null) {
+                    lines.add(pendingRisk.trim());
+                }
+                pendingRisk = line;
+                if (pendingRisk.contains("/ Mitigation:")) {
+                    lines.add(pendingRisk.trim());
+                    pendingRisk = null;
+                }
+                lastWasListItem = false;
+                continue;
+            }
+
+            if (pendingRisk != null) {
+                if (line.startsWith("Mitigation:")) {
+                    pendingRisk = pendingRisk + " / " + line;
+                    lines.add(pendingRisk.trim());
+                    pendingRisk = null;
+                } else {
+                    pendingRisk = pendingRisk + " " + line;
+                    if (pendingRisk.contains("/ Mitigation:")) {
+                        lines.add(pendingRisk.trim());
+                        pendingRisk = null;
+                    }
+                }
+                lastWasListItem = false;
+                continue;
+            }
+
+            if (forceOrderedList) {
+                if (lastWasListItem && isContinuationLine(line)) {
+                    lines.add(line);
+                } else {
+                    lines.add("1. " + line);
+                    lastWasListItem = true;
+                }
+                continue;
+            }
+
+            lastWasListItem = line.matches("^[-*]\\s+.+") || line.matches("^\\d+\\.\\s+.+");
+            lines.add(line);
+        }
+
+        if (pendingRisk != null) {
+            lines.add(pendingRisk.trim());
+        }
+        return lines;
+    }
+
+    private boolean isListPlaceholderLine(String line) {
+        return line.matches("^\\d+\\.\\s*$") || line.matches("^[-*]\\s*$");
+    }
+
+    private boolean isContinuationLine(String line) {
+        if (line.isBlank()) {
+            return false;
+        }
+        int first = line.codePointAt(0);
+        return Character.isLowerCase(first);
     }
 
     /**
@@ -1150,12 +1277,12 @@ public class PDFGeneratorService {
 
         .total-row td {
             font-weight: bold;
-            background-color: #1e3a5f;
-            color: #f1f5f9;
+            background-color: #ffffff;
+            color: #1e3a5f;
         }
 
         .total-row td * {
-            color: #f1f5f9;
+            color: #1e3a5f;
         }
 
         .label-cell {
