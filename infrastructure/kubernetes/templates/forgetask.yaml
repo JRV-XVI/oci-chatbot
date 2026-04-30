@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: forgetask-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - port: 8080
       protocol: TCP
@@ -65,6 +65,42 @@ spec:
                 secretKeyRef:
                   name: forgetask-app-secrets
                   key: TELEGRAM_BOT_NAME
+
+            - name: LLM_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_PROVIDER
+
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_API_KEY
+
+            - name: LLM_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_MODEL
+
+            - name: LLM_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_API_URL
+
+            - name: LLM_MAX_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_MAX_TOKENS
+
+            - name: LLM_TEMPERATURE
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_TEMPERATURE
 
           volumeMounts:
             - name: wallet-volume
