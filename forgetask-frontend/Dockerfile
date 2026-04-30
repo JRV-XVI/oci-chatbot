@@ -19,6 +19,9 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+ARG NEXT_PUBLIC_USE_PROXY
+ENV NEXT_PUBLIC_USE_PROXY=$NEXT_PUBLIC_USE_PROXY
+
 RUN npm run build
 
 # ==========================================
