@@ -441,12 +441,48 @@ export function ProjectBoard({
     [tasksForFiltering, filters]
   )
 
-  // Filtrar tareas por estado
-  const backlogTasks = filteredTasks.filter((task) => task.status === 'backlog')
-  const readyTasks = filteredTasks.filter((task) => task.status === 'ready')
-  const inProgressTasks = filteredTasks.filter((task) => task.status === 'in-progress')
-  const reviewTasks = filteredTasks.filter((task) => task.status === 'review')
-  const doneTasks = filteredTasks.filter((task) => task.status === 'done')
+  // Función para ordenar tareas por prioridad, fecha de inicio y fecha de fin
+  const sortTasks = (tasksToSort: Task[]): Task[] => {
+    const priorityOrder: Record<string, number> = {
+      'high': 0,
+      'medium': 1,
+      'low': 2,
+    }
+
+    return [...tasksToSort].sort((a, b) => {
+      // Comparar por prioridad primero
+      const aPriority = priorityOrder[a.priority ?? ''] ?? 3
+      const bPriority = priorityOrder[b.priority ?? ''] ?? 3
+      const priorityDiff = aPriority - bPriority
+      if (priorityDiff !== 0) return priorityDiff
+
+      // Si mismo nivel de prioridad, comparar por fecha de inicio (más reciente primero)
+      if (a.startDate && b.startDate) {
+        const startDateDiff = new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        if (startDateDiff !== 0) return startDateDiff
+      } else if (a.startDate || b.startDate) {
+        // Tareas con fecha de inicio van primero
+        return a.startDate ? -1 : 1
+      }
+
+      // Si mismo nivel de prioridad y fecha de inicio, comparar por fecha de fin (más reciente primero)
+      if (a.endDate && b.endDate) {
+        return new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
+      } else if (a.endDate || b.endDate) {
+        // Tareas con fecha de fin van primero
+        return a.endDate ? -1 : 1
+      }
+
+      return 0
+    })
+  }
+
+  // Filtrar tareas por estado y aplicar orden
+  const backlogTasks = sortTasks(filteredTasks.filter((task) => task.status === 'backlog'))
+  const readyTasks = sortTasks(filteredTasks.filter((task) => task.status === 'ready'))
+  const inProgressTasks = sortTasks(filteredTasks.filter((task) => task.status === 'in-progress'))
+  const reviewTasks = sortTasks(filteredTasks.filter((task) => task.status === 'review'))
+  const doneTasks = sortTasks(filteredTasks.filter((task) => task.status === 'done'))
 
   // Calcular métricas - memoizado
   const totalEstimatedHours = useMemo(
