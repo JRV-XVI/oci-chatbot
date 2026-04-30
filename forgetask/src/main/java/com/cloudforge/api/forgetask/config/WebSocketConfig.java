@@ -62,7 +62,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             .setAllowedOriginPatterns(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
-                "http://host.docker.internal:*"
+                "http://host.docker.internal:*",
+                "http://160.34.209.215",
+                "http://160.34.209.215:*"
             )
             // SockJS es un fallback que proporciona WebSocket emulado si el navegador no lo soporta
             .withSockJS();

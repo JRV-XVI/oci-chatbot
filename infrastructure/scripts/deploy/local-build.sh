@@ -39,7 +39,8 @@ docker build -t "${DOCKER_REGISTRY}/forgetask:${VERSION}" \
 echo -e "${GREEN}[+]${RESET} Backend listo."
 
 echo -e "\n${YELLOW}[+]${RESET} Construyendo frontend... (versión: ${VERSION})"
-docker build -t "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}" \
+docker build --build-arg NEXT_PUBLIC_USE_PROXY=true \
+             -t "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}" \
              -t "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
              "${REPO_ROOT}/forgetask-frontend"
 echo -e "${GREEN}[+]${RESET} Frontend listo."
