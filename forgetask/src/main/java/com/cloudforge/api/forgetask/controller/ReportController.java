@@ -172,7 +172,7 @@ public class ReportController {
             List<Map<String, Object>> userHours = toUserHoursMaps(userHoursRaw);
 
             // 6. AI-generated narrative
-            String narrative = reportGeneratorService.generateManagementReport(projectId, sprintId, tasks);
+            String narrative = reportGeneratorService.generateManagementReport(projectId, sprintId, tasks, userHours);
 
             // 7. Render PDF
             byte[] pdfBytes = pdfGeneratorService.generatePDF(narrative, projectId, sprintId, metricsMap, userHours);

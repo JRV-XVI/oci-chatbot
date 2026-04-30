@@ -5,9 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Service to generate report content
@@ -28,14 +32,27 @@ public class ReportGeneratorService {
      * Generate AI-powered management report for a sprint
      */
     public String generateManagementReport(Integer projectId, Integer sprintId, List<TaskDTO> tasks) throws Exception {
+        return generateManagementReport(projectId, sprintId, tasks, List.of());
+    }
+
+    /**
+     * Generate AI-powered management report for a sprint with per-user metrics.
+     */
+    public String generateManagementReport(
+        Integer projectId,
+        Integer sprintId,
+        List<TaskDTO> tasks,
+        List<Map<String, Object>> userHours
+    ) throws Exception {
         try {
             // Collect data
             String sprintInfo = buildSprintInfo(sprintId);
             String tasksSummary = buildTasksSummary(tasks);
             String kpiAnalysis = buildKPIAnalysis(tasks);
+            String userHoursSummary = buildUserHoursSummary(userHours);
             
             // Build prompt for LLM
-            String prompt = buildReportPrompt(sprintInfo, tasksSummary, kpiAnalysis, projectId, sprintId);
+            String prompt = buildReportPrompt(sprintInfo, tasksSummary, kpiAnalysis, userHoursSummary, projectId, sprintId);
             
             // Generate AI-powered content
             logger.info("Generating AI report for Project: {}, Sprint: {}", projectId, sprintId);
@@ -74,7 +91,10 @@ public class ReportGeneratorService {
             sb.append("Sprint: All sprints (Current)\n");
         }
         
-        sb.append("Report Generated: ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\n\n");
+        sb.append("Report Generated: ")
+        .append(ZonedDateTime.now(ZoneId.of("America/Mexico_City"))
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+        .append("\n\n");
         return sb.toString();
     }
 
@@ -127,7 +147,7 @@ public class ReportGeneratorService {
             if (metrics != null) {
                 // Calculate efficiency: done tasks / total tasks
                 double efficiency = metrics.getTotalTasks() > 0 ? (double) metrics.getDoneCount() / metrics.getTotalTasks() : 0;
-                sb.append("Efficiency Rate: ").append(String.format("%.2f%%", efficiency * 100)).append("\n");
+                sb.append("Efficiency Rate: ").append(String.format(Locale.US, "%.1f%%", efficiency * 100)).append("\n");
                 
                 // Current progress
                 sb.append("Progress: ").append(metrics.getProgressPercentage()).append("%\n");
@@ -157,26 +177,108 @@ public class ReportGeneratorService {
         return sb.toString();
     }
 
+    private String buildUserHoursSummary(List<Map<String, Object>> userHours) {
+        if (userHours == null || userHours.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("TEAM MEMBER METRICS\n");
+        sb.append("===================\n");
+        for (Map<String, Object> row : userHours) {
+            if (row == null) {
+                continue;
+            }
+            String username = String.valueOf(row.getOrDefault("username", "-"));
+            int doneTasks = intFrom(row.get("doneTasks"));
+            double realHours = doubleFrom(row.get("realHours"));
+            sb.append("- ")
+              .append(username)
+              .append(": Tasks Done=")
+              .append(doneTasks)
+              .append(", Real Hours=")
+              .append(String.format(Locale.US, "%.1f", realHours))
+              .append("\n");
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
     /**
      * Build the prompt for AI
      */
-    private String buildReportPrompt(String sprintInfo, String tasksSummary, String kpiAnalysis, 
-                                     Integer projectId, Integer sprintId) {
+    private String buildReportPrompt(String sprintInfo, String tasksSummary,
+                                    String kpiAnalysis, String userHoursSummary,
+                                    Integer projectId, Integer sprintId) {
         return """
             You are a professional project manager generating an executive management report.
-            
-            Based on the following sprint data, provide:
-            1. Executive Summary (2-3 sentences)
-            2. Key Performance Insights (3-4 bullet points)
-            3. Improvement Actions & Recommendations (3-5 actionable items)
-            4. Risk Assessment & Mitigation Strategies
-            
+
+            CRITICAL RULES:
+            1) Use ONLY the data provided. Do not invent numbers, usernames, or metrics not present below.
+            2) The sprint state is FINAL. Treat it as closed.
+            3) Negative time variance = team finished AHEAD of schedule. Never interpret as underutilization.
+            4) Do NOT mention ISO/IEC standards or capability frameworks.
+            5) Do NOT use filler phrases unless directly supported by data.
+            6) Risk statements must be internally consistent. Never flag both underutilization and overload simultaneously.
+            7) Do not claim all tasks are done unless Done equals Total Tasks.
+            8) Higher-complexity work is indicated ONLY when a member has FEWER tasks AND MORE hours than peers. Never flag a member negatively for having fewer tasks.
+            9) Each Key Performance Insight must be a distinct observation. Do not restate the same metric twice.
+            10) FORMATTING: Every list item must be a complete sentence on ONE line. Never put a number alone on its line.
+            11) FORMATTING: Every risk item MUST start with "Risk:" and follow this exact single-line pattern:
+                Risk: [one sentence describing the risk] / Mitigation: [one sentence describing the action]
+                NEVER write "Risk:" twice in one item.
+                NEVER start a risk item without the word "Risk:".
+                NEVER split Risk and Mitigation across separate lines.
+            12) Key Performance Insights must focus on TEAM-LEVEL patterns. Never single out individuals negatively.
+            13) Key Performance Insights must derive conclusions NOT directly readable from the dashboard.
+
             SPRINT DATA:
-            """ + sprintInfo + tasksSummary + kpiAnalysis + """
-            
-            Generate a professional, actionable report in clear English with proper formatting.
-            Focus on actionable insights and strategic recommendations for team improvement.
+            """ + sprintInfo + tasksSummary + kpiAnalysis + userHoursSummary + """
+
+            Generate exactly these 4 sections using these exact headings (no numbers, no extra formatting):
+
+            Executive Summary
+            2-3 sentences: efficiency rate, tasks completed (X of Y), time variance interpretation. No filler conclusions like "satisfactory" or "good indicator".
+
+            Key Performance Insights
+            3-4 bullet points. Each must be an analytical observation derived from ratios or patterns in the data, not a restatement of dashboard numbers.
+
+            Improvement Actions
+            3-5 items. Each on a single complete line. Address: backlog root cause, estimation accuracy, workload distribution by hours-to-tasks ratio.
+
+            Risk Assessment
+            2-3 risks. Each on exactly ONE line starting with "Risk:" in this format: "Risk: [description] / Mitigation: [action]"
+
+            Use these exact section headings without numbers or extra formatting.
             """;
+    }
+
+    private int intFrom(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value instanceof String text) {
+            try {
+                return Integer.parseInt(text.trim());
+            } catch (NumberFormatException ignored) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    private double doubleFrom(Object value) {
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        if (value instanceof String text) {
+            try {
+                return Double.parseDouble(text.trim());
+            } catch (NumberFormatException ignored) {
+                return 0d;
+            }
+        }
+        return 0d;
     }
 
     /**
@@ -199,7 +301,8 @@ public class ReportGeneratorService {
         
         report.append("==============================================================\n");
         report.append("End of Report - Generated at ")
-            .append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+            .append(ZonedDateTime.now(ZoneId.of("America/Mexico_City"))
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .append("\n");
         report.append("==============================================================\n");
         
