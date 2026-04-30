@@ -105,9 +105,17 @@ export const useTaskStore = create<TaskStore>((set) => ({
   addTask: (task: Task) => {
     console.log('✨ Store: Agregando tarea:', task.id)
 
-    set((state) => ({
-      tasks: [...state.tasks, task],
-    }))
+    set((state) => {
+      // Check if task already exists to prevent duplicates
+      const taskExists = state.tasks.some((t) => t.id === task.id)
+      if (taskExists) {
+        console.warn('Store: Tarea con ID', task.id, 'ya existe. Ignorando duplicado.')
+        return state
+      }
+      return {
+        tasks: [...state.tasks, task],
+      }
+    })
   },
 
   /**
