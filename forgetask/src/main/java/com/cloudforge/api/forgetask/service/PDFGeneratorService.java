@@ -1151,11 +1151,11 @@ public class PDFGeneratorService {
         .total-row td {
             font-weight: bold;
             background-color: #1e3a5f;
-            color: #111826;
+            color: #f1f5f9;
         }
 
         .total-row td * {
-            color: #111826;
+            color: #f1f5f9;
         }
 
         .label-cell {
