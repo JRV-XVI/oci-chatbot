@@ -14,13 +14,13 @@ RUN npm ci
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+ARG NEXT_PUBLIC_USE_PROXY
+ENV NEXT_PUBLIC_USE_PROXY=$NEXT_PUBLIC_USE_PROXY
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-
-ARG NEXT_PUBLIC_USE_PROXY
-ENV NEXT_PUBLIC_USE_PROXY=$NEXT_PUBLIC_USE_PROXY
 
 RUN npm run build
 
@@ -32,6 +32,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_USE_PROXY=true
 
 RUN addgroup --system --gid 1001 nodejs \
  && adduser --system --uid 1001 nextjs
