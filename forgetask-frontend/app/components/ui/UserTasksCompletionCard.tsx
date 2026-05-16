@@ -156,7 +156,7 @@ export default function UserTasksCompletionCard({
 
     visibleSprintData.forEach((sprint) => {
       sprint.users.forEach((row) => {
-        const user = normalizeUserLabel(row.username || row.displayName)
+        const user = normalizeUserLabel(row.displayName || row.username)
         const done = Number(row.doneCount ?? 0)
         const safeDone = Number.isFinite(done) && done > 0 ? done : 0
         totals.set(user, (totals.get(user) ?? 0) + safeDone)
@@ -187,7 +187,7 @@ export default function UserTasksCompletionCard({
 
         topUsers.forEach((user) => {
           const sprintUser = sprint.users.find(
-            (entry) => normalizeUserLabel(entry.username || entry.displayName) === user,
+            (entry) => normalizeUserLabel(entry.displayName || entry.username) === user,
           )
           row[user] = sprintUser ? Number(sprintUser.doneCount ?? 0) : 0
         })
