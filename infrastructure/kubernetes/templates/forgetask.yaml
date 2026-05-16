@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgetask-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: forgetask
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgetask-deployment
+spec:
+  selector:
+    matchLabels:
+      app: forgetask
+  replicas: 1 # Ajustar en otro sprint 2 o 3 para alta disponibilidad
+  template:
+    metadata:
+      labels:
+        app: forgetask
+        version: v1
+    spec:
+      containers:
+        - name: forgetask
+          image: "%DOCKER_REGISTRY%/forgetask:%IMAGE_VERSION%"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TNS_ADMIN
+              value: "/app/wallet"
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: DB_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: DB_PASSWORD
+
+            - name: TELEGRAM_BOT_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_ENABLED
+
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_TOKEN
+
+            - name: TELEGRAM_BOT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_NAME
+
+            - name: LLM_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_PROVIDER
+
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_API_KEY
+
+            - name: LLM_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_MODEL
+
+            - name: LLM_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_API_URL
+
+            - name: LLM_MAX_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_MAX_TOKENS
+
+            - name: LLM_TEMPERATURE
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_TEMPERATURE
+
+          volumeMounts:
+            - name: wallet-volume
+              mountPath: /app/wallet
+              readOnly: true
+
+      restartPolicy: Always
+      volumes:
+        - name: wallet-volume
+          secret:
+            secretName: db-wallet-secret
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: forgetask
