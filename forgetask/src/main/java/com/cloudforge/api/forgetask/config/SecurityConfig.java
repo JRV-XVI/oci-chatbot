@@ -61,8 +61,8 @@ public class SecurityConfig {
             "http://localhost:*",
             "http://127.0.0.1:*",
             "http://host.docker.internal:*",
-            "http://160.34.209.215",
-            "http://160.34.209.215:*"
+            "http://160.34.212.184",
+            "http://160.34.212.184:*"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
