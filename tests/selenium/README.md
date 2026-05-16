@@ -4,26 +4,25 @@ This suite contains 4 end-to-end test cases for Delivery 2 quality validation.
 
 # Casos de prueba E2E
 
-## 1. `test_01_create_task_websocket.py`
-- Crea una tarea en la pestaña A (Sprint 4, estimada en 4 horas, backlog, prioridad media).  
-- Verifica que la tarea aparezca en la pestaña B sin necesidad de refrescar manualmente (sincronización vía WebSocket).  
+## 1. `test_01_create_task.py`
+- Crea una tarea (Sprint 4, estimada en 4 horas, backlog, prioridad media).  
+- Verifica que la tarea aparezca en la columna backlog.  
 
 ## 2. `test_02_edit_task_status.py`
 - Crea una tarea (Sprint 4, estimada en 4 horas, prioridad alta).  
 - Abre el diálogo de detalles de la tarea y la mueve a **done** registrando 4 horas reales.  
 - Verifica que la tarea se mueva de backlog a la columna done.  
 
-## 3. `test_03_create_sprint.py`
+## 3. `test_03_delete_task.py`
+- Crea una tarea (Sprint 4, estimada en 4 horas, backlog, prioridad media).  
+- Elimina la tarea desde la tarjeta.  
+- Verifica que la tarea desaparezca de la columna backlog.  
+
+## 4. `test_04_create_sprint.py`
 - Crea el Sprint 5 (`2026-06-13` → `2026-06-20`, objetivo: "Sprint 5 para testear telegram").  
 - Verifica que el sprint aparezca en el selector de sprints.  
 - Intenta crear un sprint que se superpone con las mismas fechas.  
 - Verifica que se muestre un mensaje de error de validación por solapamiento.  
-
-## 4. `test_04_kpis_navigation.py`
-- Crea una tarea (Sprint 4, estimada en 4 horas, prioridad media).  
-- Mueve la tarea a **done** con horas reales coincidentes.  
-- Navega a la página de KPIs y verifica que se actualizaron las gráficas.  
-- Regresa exitosamente a la pagina de incio
 
 ## Prerequisites
 
@@ -47,13 +46,13 @@ pip install -r requirements-test.txt
 ## Run All Tests (local, with visible browser)
 
 ```bash
-pytest tests/selenium/test_01_create_task_websocket.py tests/selenium/test_02_edit_task_status.py tests/selenium/test_03_create_sprint.py tests/selenium/test_04_kpis_navigation.py -v
+pytest tests/selenium/test_01_create_task.py tests/selenium/test_02_edit_task_status.py tests/selenium/test_03_delete_task.py tests/selenium/test_04_create_sprint.py -v
 ```
 
 ## Run One Case
 
 ```bash
-pytest tests/selenium/test_01_create_task_websocket.py -v
+pytest tests/selenium/test_01_create_task.py -v
 ```
 
 ## Useful Env Vars
@@ -66,6 +65,8 @@ pytest tests/selenium/test_01_create_task_websocket.py -v
 | `E2E_HEADLESS` | `false` | Set to `true` to run without opening a window |
 | `E2E_TIMEOUT_SECONDS` | `20` | Global wait timeout in seconds |
 | `E2E_SELENIUM_REMOTE_URL` | _(none)_ | Set to use a remote Selenium Grid instead of local driver |
+| `E2E_LOGIN_EMAIL` | `mario@oci-chatbot.com` | Login email used by the tests |
+| `E2E_LOGIN_PASSWORD` | `Project.taka195` | Login password used by the tests |
 
 ## Failure Artifacts
 

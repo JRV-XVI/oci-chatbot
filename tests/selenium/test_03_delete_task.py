@@ -9,33 +9,30 @@ from tests.selenium.utils.test_data import unique_label
 
 
 @pytest.mark.e2e
-def test_edit_task_changes_column_status(driver, settings: SeleniumSettings):
+def test_delete_task_removes_card(driver, settings: SeleniumSettings):
     login_with_default_user(driver, settings)
 
     board = KanbanPage(driver, settings)
     board.wait_until_loaded()
 
-    task_title = unique_label("E2E-EDIT")
+    task_title = unique_label("E2E-DEL")
 
     try:
         board.create_task(
             title=task_title,
-            description="Task to validate status edition from dialog",
+            description="Task created to validate delete flow",
             status="backlog",
-            priority="high",
+            priority="medium",
             sprint="3",
             estimated_hours="2",
             start_date="2026-05-16",
             end_date="2026-05-17",
-            assigned_to="MarioFengW",   
+            assigned_to="MarioFengW",
         )
     except RuntimeError as exc:
         pytest.skip(str(exc))
 
     board.wait_task_in_column(task_title, "backlog")
 
-    board.open_task_details(task_title)
-    board.update_task_status("done", real_time_hours="4")
-
-    board.wait_task_in_column(task_title, "done")
+    board.delete_task(task_title)
     board.wait_task_removed_from_column(task_title, "backlog")

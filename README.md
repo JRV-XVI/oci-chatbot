@@ -158,10 +158,10 @@ docker stop forgetask-frontend || true
 
 ### Casos incluidos
 
-- `tests/selenium/test_01_create_task_websocket.py`: crear tarea y validar sincronizacion en segunda sesion.
+- `tests/selenium/test_01_create_task.py`: crear tarea y validar presencia en backlog.
 - `tests/selenium/test_02_edit_task_status.py`: editar tarea y validar movimiento de columna.
-- `tests/selenium/test_03_create_sprint.py`: crear sprint y validar regla de solapamiento de fechas.
-- `tests/selenium/test_04_kpis_navigation.py`: navegar a KPIs y volver al Kanban.
+- `tests/selenium/test_03_delete_task.py`: eliminar tarea y validar que desaparezca de la columna.
+- `tests/selenium/test_04_create_sprint.py`: crear sprint y validar regla de solapamiento de fechas.
 
 ### Instalar dependencias de testing
 
@@ -180,7 +180,7 @@ pytest
 ### Ejecutar un caso especifico
 
 ```bash
-pytest tests/selenium/test_01_create_task_websocket.py
+pytest tests/selenium/test_01_create_task.py
 ```
 
 ### Variables de entorno opcionales
