@@ -6,10 +6,10 @@ shell: bash
 env:
   # Secretos desde OCI Vault (referenciar por OCID)
   vaultVariables:
-    OCIR_REGION: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto
-    OCIR_NAMESPACE: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto
-    OCIR_USERNAME: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto
-    OCIR_TOKEN: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto (SENSIBLE)
+    OCIR_REGION: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiae6geztxgzbvt52jj6zsfh6tkkdzi4py23zw3grimh2pa"
+    OCIR_NAMESPACE: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia46b7hp5p46gzn3u6xgl7mkzmbkle4xwxexie54uex3kq"  
+    OCIR_USERNAME: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aianyxgjmjngc4p5fcrxgcdayn3ih72zcktvgmqfxll7cta"
+    OCIR_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiakkhd57aevfl4yf7szk4xn7lr7z5l577od3lilipjrbwa"
 
 steps:
   - displayName: "Validar variables requeridas"
