@@ -38,6 +38,8 @@ spec:
           env:
             - name: NEXT_PUBLIC_USE_PROXY
               value: "true"
+            - name: BACKEND_INTERNAL_URL
+              value: "http://forgetask-service.mtdrworkshop.svc.cluster.local:8080"
       restartPolicy: Always
       topologySpreadConstraints:
         - maxSkew: 1
