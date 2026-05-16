@@ -27,13 +27,15 @@ public class KPIService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-        /**
-         * Aggregate users that have tasks and compute done metrics by username.
-         * If sprintId is provided, results are scoped to that sprint only.
-         */
+    /**
+     * Aggregate users that have tasks and compute done metrics by username.
+     * If sprintId is provided, results are scoped to that sprint only.
+     */
     public List<RealHoursByUserDTO> getRealHoursByUser(Integer sprintId) {
         String baseSql = """
                 SELECT NVL(ua.USERNAME, 'Sin asignar') AS USERNAME,
+                  ua.FIRST_NAME,
+                  ua.LAST_NAME,
                   NVL(SUM(CASE WHEN LOWER(NVL(ts.STATE, '')) = 'done' THEN NVL(t.REAL_TIME, 0) ELSE 0 END), 0) AS REAL_TOTAL_HOURS,
                   NVL(SUM(CASE WHEN LOWER(NVL(ts.STATE, '')) = 'done' THEN 1 ELSE 0 END), 0) AS DONE_TASKS
                 FROM TASK t
@@ -43,7 +45,7 @@ public class KPIService {
                 """;
 
         String orderAndGroup = """
-                GROUP BY NVL(ua.USERNAME, 'Sin asignar')
+                GROUP BY NVL(ua.USERNAME, 'Sin asignar'), ua.FIRST_NAME, ua.LAST_NAME
                 ORDER BY REAL_TOTAL_HOURS DESC, USERNAME ASC
                 """;
 
@@ -59,11 +61,18 @@ public class KPIService {
 
         return jdbcTemplate.query(
                 sql,
-                (rs, rowNum) -> new RealHoursByUserDTO(
-                        rs.getString("USERNAME"),
-                        rs.getDouble("REAL_TOTAL_HOURS"),
-                        rs.getInt("DONE_TASKS")
-                ),
+                (rs, rowNum) -> {
+                    String username = rs.getString("USERNAME");
+                    String firstName = rs.getString("FIRST_NAME");
+                    String lastName = rs.getString("LAST_NAME");
+                    String displayName = buildDisplayName(firstName, lastName, username);
+                    return new RealHoursByUserDTO(
+                            username,
+                            displayName,
+                            rs.getDouble("REAL_TOTAL_HOURS"),
+                            rs.getInt("DONE_TASKS")
+                    );
+                },
                 params
         );
     }
@@ -85,6 +94,8 @@ public class KPIService {
                        ) AS SPRINT_NUMBER,
                        s.TITLE AS SPRINT_TITLE,
                        NVL(ua.USERNAME, 'Sin asignar') AS USERNAME,
+                       ua.FIRST_NAME,
+                       ua.LAST_NAME,
                        NVL(SUM(CASE WHEN LOWER(NVL(ts.STATE, '')) = 'done' THEN NVL(t.REAL_TIME, 0) ELSE 0 END), 0) AS REAL_TOTAL_HOURS,
                        NVL(SUM(CASE WHEN LOWER(NVL(ts.STATE, '')) = 'done' THEN 1 ELSE 0 END), 0) AS DONE_TASKS
                 FROM TASK t
@@ -95,7 +106,7 @@ public class KPIService {
                 """;
 
         String sprintFilter = sprintId != null ? " AND t.ID_SPRINT = ? " : "";
-        String groupAndOrder = " GROUP BY s.ID_SPRINT, s.TITLE, NVL(ua.USERNAME, 'Sin asignar') ORDER BY SPRINT_NUMBER, s.ID_SPRINT, USERNAME ";
+        String groupAndOrder = " GROUP BY s.ID_SPRINT, s.TITLE, NVL(ua.USERNAME, 'Sin asignar'), ua.FIRST_NAME, ua.LAST_NAME ORDER BY SPRINT_NUMBER, s.ID_SPRINT, USERNAME ";
 
         String sql = baseSql + sprintFilter + groupAndOrder;
 
@@ -103,14 +114,21 @@ public class KPIService {
 
         return jdbcTemplate.query(
                 sql,
-                (rs, rowNum) -> new RealHoursBySprintUserDTO(
-                        rs.getInt("ID_SPRINT"),
-                        rs.getInt("SPRINT_NUMBER"),
-                        rs.getString("SPRINT_TITLE"),
-                        rs.getString("USERNAME"),
-                        rs.getDouble("REAL_TOTAL_HOURS"),
-                        rs.getInt("DONE_TASKS")
-                ),
+                (rs, rowNum) -> {
+                    String username = rs.getString("USERNAME");
+                    String firstName = rs.getString("FIRST_NAME");
+                    String lastName = rs.getString("LAST_NAME");
+                    String displayName = buildDisplayName(firstName, lastName, username);
+                    return new RealHoursBySprintUserDTO(
+                            rs.getInt("ID_SPRINT"),
+                            rs.getInt("SPRINT_NUMBER"),
+                            rs.getString("SPRINT_TITLE"),
+                            username,
+                            displayName,
+                            rs.getDouble("REAL_TOTAL_HOURS"),
+                            rs.getInt("DONE_TASKS")
+                    );
+                },
                 params
         );
     }
@@ -438,5 +456,20 @@ public class KPIService {
             totalDevs,
             avgHoursPerDev, expectedHoursPerDev, sprintRealHours, sprintEstimatedHours
         );
+    }
+
+    /**
+     * Build display name from firstName, lastName, and username.
+     * Returns composed name if available, otherwise username.
+     */
+    private String buildDisplayName(String firstName, String lastName, String username) {
+        String composedName = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
+        if (!composedName.isBlank()) {
+            return composedName;
+        }
+        if (username != null && !username.isBlank()) {
+            return username;
+        }
+        return "Unassigned";
     }
 }
