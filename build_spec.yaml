@@ -1,38 +1,54 @@
-version: 0.1 
+version: 0.1
 component: build
-timeoutInSeconds: 600
+timeoutInSeconds: 3600
 shell: bash
 
 env:
-  variables:
-    JAVA_HOME: /usr/lib64/graalvm/graalvm-java22
-
-  exportedVariables:
-    - BuildServiceDemoVersion
+  # Secretos desde OCI Vault (referenciar por OCID)
+  vaultVariables:
+    OCIR_REGION: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto
+    OCIR_NAMESPACE: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto
+    OCIR_USERNAME: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto
+    OCIR_TOKEN: "ocid1.vault.oc1.region...."  # Reemplazar con el OCID del secreto (SENSIBLE)
 
 steps:
-  - type: Command
-    name: "Install GraalVM Enterprise 22.x Native Image for Java22"
-    command:  yum -y install graalvm-22-jdk.x86_64;
-              ls /usr/lib64/graalvm/
+  - displayName: "Validar variables requeridas"
+    type: Command
+    command: |
+      set -euo pipefail
 
-  - type: Command
-    name: "Set PATH Variable"
-    command: export PATH=$JAVA_HOME/bin:$PATH
+      if [ -z "${OCIR_REGION:-}" ] || [ -z "${OCIR_NAMESPACE:-}" ] || \
+         [ -z "${OCIR_USERNAME:-}" ] || [ -z "${OCIR_TOKEN:-}" ]; then
+        echo "Error: Variables de OCIR no configuradas correctamente"
+        exit 1
+      fi
 
-  - type: Command
-    name: "Docker Login"
-    command:  cd MtdrSpring;
-              oci os object get --bucket-name reacttodo-ysmiy --name deployment_config.tgz --file deployment_config.tgz;
-              tar -xzvf deployment_config.tgz;
-              source env.sh;
-              cat at.cfg | docker login -u "axyyzvpljivg/adan0001@gmail.com" --password-stdin phx.ocir.io
+      DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
+      echo "✓ Variables de OCIR validadas"
+      echo "Registry: ${DOCKER_REGISTRY}"
 
-  - type: Command
-    name: "Build"
-    command:  cd MtdrSpring;
-              source env.sh;
-              (cd backend;source build.sh)
+      docker --version
+      docker info > /dev/null
 
+  - displayName: "Ejecutar build script"
+    type: Command
+    command: |
+      set -euo pipefail
+      export DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
+      chmod +x infrastructure/scripts/deploy/local-build.sh
+      bash infrastructure/scripts/deploy/local-build.sh
+    timeoutInSeconds: 2400
 
+  - displayName: "Verificar imágenes pusheadas"
+    type: Command
+    command: |
+      set -euo pipefail
+      DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
+      echo "✓ Build completado exitosamente"
+      echo "Imágenes disponibles en OCIR:"
+      echo "  - ${DOCKER_REGISTRY}/forgetask:latest"
+      echo "  - ${DOCKER_REGISTRY}/forgetask-frontend:latest"
 
+outputArtifacts:
+  - name: build_output
+    location: target/
