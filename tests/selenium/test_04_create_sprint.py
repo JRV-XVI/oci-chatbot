@@ -4,12 +4,15 @@ import pytest
 
 from tests.selenium.config import SeleniumSettings
 from tests.selenium.pages.kanban_page import KanbanPage
+from tests.selenium.utils.auth import login_with_default_user
 
 
 @pytest.mark.e2e
 def test_create_sprint_and_validate_overlap_rule(driver, settings: SeleniumSettings):
+    login_with_default_user(driver, settings)
+
     board = KanbanPage(driver, settings)
-    board.open_board()
+    board.wait_until_loaded()
 
     sprint_title = "Sprint 5 - Telegram"
     overlap_sprint_title = "Sprint 6 - Overlap"

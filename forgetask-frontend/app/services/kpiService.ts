@@ -45,6 +45,7 @@ export interface TimeMetricsSummary {
 
 export interface RealHoursByUser {
   username: string;
+  displayName: string;
   realTotalHours: number;
   doneTasks: number;
 }
@@ -60,6 +61,7 @@ export interface RealHoursBySprintUser {
   sprintNumber: number;
   sprintTitle: string;
   username: string;
+  displayName: string;
   realTotalHours: number;
   doneTasks: number;
 }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import Select, WebDriverWait
@@ -15,6 +16,7 @@ class KanbanPage(BasePage):
     NEW_TASK_BUTTON = BasePage.by_test_id("btn-new-task")
     ADD_TASK_DIALOG = BasePage.by_test_id("dialog-add-task")
     SUBMIT_TASK_BUTTON = BasePage.by_test_id("btn-submit-task")
+    SUBMIT_TASK_BUTTON_ALT = BasePage.by_test_id("btn-save-task")
 
     TASK_TITLE_INPUT = BasePage.by_test_id("input-task-title")
     TASK_DESCRIPTION_INPUT = BasePage.by_test_id("input-task-description")
@@ -126,7 +128,10 @@ class KanbanPage(BasePage):
         else:
             self.select_by_value(self.TASK_ASSIGNED_TO_SELECT, assignees[0][0])
 
-        self.click(self.SUBMIT_TASK_BUTTON)
+        try:
+            self.click(self.SUBMIT_TASK_BUTTON)
+        except TimeoutException:
+            self.click(self.SUBMIT_TASK_BUTTON_ALT)
         self.wait_invisible(self.ADD_TASK_DIALOG)
 
     def wait_task_in_column(self, title: str, status: str, timeout: int = 20) -> None:
@@ -153,6 +158,24 @@ class KanbanPage(BasePage):
         self.type_text(self.EDIT_REAL_TIME_INPUT, real_time_hours)
         self.click(self.SAVE_TASK_BUTTON)
         self.wait_invisible(self.TASK_DETAILS_DIALOG)
+
+    def delete_task(self, title: str) -> None:
+        card_locator = (By.XPATH, f"//div[@data-task-title='{title}']")
+        delete_button_locator = (
+            By.XPATH,
+            "//div[@data-task-title='{title}']"
+            "//button[.//span[normalize-space()='Delete']]".format(title=title),
+        )
+
+        card = self.wait_visible(card_locator)
+        ActionChains(self.driver).move_to_element(card).perform()
+        self.click(delete_button_locator)
+
+        try:
+            WebDriverWait(self.driver, 4).until(ec.alert_is_present())
+            self.driver.switch_to.alert.accept()
+        except TimeoutException:
+            pass
 
     def open_sprint_dialog(self) -> None:
         sprint_button = self.wait_visible(self.CHECK_SPRINT_BUTTON)
