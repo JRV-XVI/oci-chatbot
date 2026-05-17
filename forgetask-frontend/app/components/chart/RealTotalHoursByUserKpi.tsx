@@ -47,8 +47,8 @@ function formatHours(value: number): string {
   return `${value.toFixed(2)}h`;
 }
 
-function normalizeUserLabel(username?: string): string {
-  const trimmed = username?.trim();
+function normalizeUserLabel(displayName?: string): string {
+  const trimmed = displayName?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : "Unassigned";
 }
 
@@ -166,7 +166,7 @@ export default function RealTotalHoursByUserKpi({
     const hourTotals = new Map<string, number>();
 
     filteredRows.forEach((row) => {
-      const user = normalizeUserLabel(row.username);
+      const user = normalizeUserLabel(row.displayName);
       const tasksRaw = Number(row.doneTasks ?? 0);
       const safeTasks = Number.isFinite(tasksRaw) && tasksRaw > 0 ? tasksRaw : 0;
       const hoursRaw = Number(row.realTotalHours ?? 0);
@@ -257,7 +257,7 @@ export default function RealTotalHoursByUserKpi({
       const sprintMeta = sprintMetaById.get(sprintId);
       const sprintNumberRaw = Number(sprintMeta?.sprintNumber ?? row.sprintNumber ?? sprintId);
       const sprintNumber = Number.isFinite(sprintNumberRaw) && sprintNumberRaw >= 0 ? sprintNumberRaw : sprintId;
-      const user = normalizeUserLabel(row.username);
+      const user = normalizeUserLabel(row.displayName);
       const hoursRaw = Number(row.realTotalHours ?? 0);
       const safeHours = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 0;
       const tasksRaw = Number(row.doneTasks ?? 0);

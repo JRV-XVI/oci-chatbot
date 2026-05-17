@@ -297,6 +297,7 @@ public class ReportController {
     private List<Map<String, Object>> toUserHoursMaps(List<RealHoursByUserDTO> raw) {
         return raw.stream().map(u -> {
             Map<String, Object> m = new HashMap<>();
+            m.put("displayName", u.getDisplayName());
             m.put("username",  u.getUsername());
             m.put("doneTasks", u.getDoneTasks());
             m.put("realHours", u.getRealTotalHours());

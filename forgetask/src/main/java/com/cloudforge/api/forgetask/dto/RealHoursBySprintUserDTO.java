@@ -8,17 +8,19 @@ public class RealHoursBySprintUserDTO {
     private int sprintNumber;
     private String sprintTitle;
     private String username;
+    private String displayName;
     private double realTotalHours;
     private int doneTasks;
 
     public RealHoursBySprintUserDTO() {
     }
 
-    public RealHoursBySprintUserDTO(int sprintId, int sprintNumber, String sprintTitle, String username, double realTotalHours, int doneTasks) {
+    public RealHoursBySprintUserDTO(int sprintId, int sprintNumber, String sprintTitle, String username, String displayName, double realTotalHours, int doneTasks) {
         this.sprintId = sprintId;
         this.sprintNumber = sprintNumber;
         this.sprintTitle = sprintTitle;
         this.username = username;
+        this.displayName = displayName;
         this.realTotalHours = realTotalHours;
         this.doneTasks = doneTasks;
     }
@@ -53,6 +55,14 @@ public class RealHoursBySprintUserDTO {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public double getRealTotalHours() {
