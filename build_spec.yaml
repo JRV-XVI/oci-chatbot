@@ -31,6 +31,16 @@ steps:
       echo "TOKEN primeros 4 chars: ${OCIR_TOKEN}"
       echo "USERNAME completo para login: [${OCIR_NAMESPACE}/${OCIR_USERNAME}]"
 
+  - displayName: "Debug credenciales"
+    type: Command
+    command: |
+      echo "REGION: [${OCIR_REGION}]"
+      echo "NAMESPACE: [${OCIR_NAMESPACE}]"
+      echo "USERNAME: [${OCIR_USERNAME}]"
+      echo "TOKEN length: ${#OCIR_TOKEN}"
+      echo "TOKEN primeros 4 chars: ${OCIR_TOKEN}"
+      echo "USERNAME completo para login: [${OCIR_NAMESPACE}/${OCIR_USERNAME}]"
+
   - displayName: "CI Build y Push a OCIR"
     type: Command
     command: |
