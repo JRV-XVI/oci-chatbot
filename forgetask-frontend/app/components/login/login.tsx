@@ -78,7 +78,7 @@ export function LoginForm() {
       <aside className="relative hidden min-h-screen overflow-hidden lg:flex">
         <Image
           src="/signup-side.jpg"
-          alt="Panel 200K de control y colaboracion de equipo"
+          alt="Panel de control y colaboracion de equipo"
           fill
           priority
           sizes="(min-width: 1024px) 38vw, 100vw"

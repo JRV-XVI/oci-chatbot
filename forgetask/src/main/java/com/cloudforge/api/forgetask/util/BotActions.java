@@ -108,7 +108,7 @@ public class BotActions {
                 state.setCurrentStep(TaskCreationStep.AWAITING_HOURS);
 
                 BotHelper.sendMessageToTelegram(chatId,
-                        "Completando: 200K*" + task.getTitle() + "*\n"
+                        "Completando: *" + task.getTitle() + "*\n"
                         + "Horas reales actuales: " + safeDouble(task.getRealTime()) + "h\n\n"
                         + "Cuantas horas reales trabajaste en esta tarea? (ej: 2.5)",
                         telegramClient);
