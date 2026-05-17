@@ -36,3 +36,7 @@ outputArtifacts:
   - name: forgetask_frontend_image
     type: DOCKER_IMAGE
     location: mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/mjmnu/forgetask-frontend:${BUILDRUN_HASH}
+
+  - name: forgetask_oke_manifest
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/oci-oke-deployment.yaml
