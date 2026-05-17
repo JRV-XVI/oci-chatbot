@@ -17,10 +17,9 @@ steps:
   - displayName: "Generar BUILDRUN_HASH"
     type: Command
     command: |
-      set -euo pipefail
       BUILDRUN_HASH=$(echo "${OCI_BUILD_RUN_ID}" | tail -c 8 | tr -d '\n')
-      export BUILDRUN_HASH
-      echo "BUILDRUN_HASH=${BUILDRUN_HASH}" | tee -a "${OCI_EXPORT_VARIABLES}"
+      echo "BUILDRUN_HASH=${BUILDRUN_HASH}"
+      echo "BUILDRUN_HASH=${BUILDRUN_HASH}" >> ${OCI_BUILD_EXPORT_VARIABLES_FILE}
 
   - displayName: "CI Build y Push a OCIR"
     type: Command
