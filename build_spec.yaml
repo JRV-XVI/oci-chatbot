@@ -1,7 +1,5 @@
 version: 0.1
-version: 0.1
 component: build
-timeoutInSeconds: 3600
 timeoutInSeconds: 3600
 shell: bash
 
@@ -16,42 +14,18 @@ env:
     - BUILDRUN_HASH
 
 steps:
-  - displayName: "Generar tag único"
+  - displayName: "Generar BUILDRUN_HASH"
     type: Command
     command: |
-      set -euo pipefail
       export BUILDRUN_HASH=$(echo ${OCI_BUILD_RUN_ID} | tail -c 8)
       echo "BUILDRUN_HASH=${BUILDRUN_HASH}"
 
-  - displayName: "Validar variables requeridas"
+  - displayName: "CI Build y Push a OCIR"
     type: Command
     command: |
-      set -euo pipefail
-      if [ -z "${OCIR_REGION:-}" ] || [ -z "${OCIR_NAMESPACE:-}" ] || \
-         [ -z "${OCIR_USERNAME:-}" ] || [ -z "${OCIR_TOKEN:-}" ]; then
-        echo "Error: Variables de OCIR no configuradas"
-        exit 1
-      fi
-      echo "✓ Variables validadas"
-      docker --version
-
-  - displayName: "Ejecutar build script"
-    type: Command
-    command: |
-      set -euo pipefail
-      export DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
-      chmod +x infrastructure/scripts/deploy/local-build.sh
-      bash infrastructure/scripts/deploy/local-build.sh
+      chmod +x ${OCI_PRIMARY_SOURCE_DIR}/infrastructure/scripts/deploy/ci-build.sh
+      bash ${OCI_PRIMARY_SOURCE_DIR}/infrastructure/scripts/deploy/ci-build.sh
     timeoutInSeconds: 2400
-
-  - displayName: "Verificar imágenes"
-    type: Command
-    command: |
-      set -euo pipefail
-      DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
-      echo "Imágenes en OCIR:"
-      echo "  - ${DOCKER_REGISTRY}/forgetask:${BUILDRUN_HASH}"
-      echo "  - ${DOCKER_REGISTRY}/forgetask-frontend:${BUILDRUN_HASH}"
 
 outputArtifacts:
   - name: forgetask_backend_image
