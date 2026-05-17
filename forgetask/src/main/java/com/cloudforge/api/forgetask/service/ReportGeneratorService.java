@@ -189,11 +189,11 @@ public class ReportGeneratorService {
             if (row == null) {
                 continue;
             }
-            String username = String.valueOf(row.getOrDefault("username", "-"));
+            String displayName = String.valueOf(row.getOrDefault("displayName", row.getOrDefault("username", "-")));
             int doneTasks = intFrom(row.get("doneTasks"));
             double realHours = doubleFrom(row.get("realHours"));
             sb.append("- ")
-              .append(username)
+              .append(displayName)
               .append(": Tasks Done=")
               .append(doneTasks)
               .append(", Real Hours=")
