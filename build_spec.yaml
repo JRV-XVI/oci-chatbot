@@ -31,8 +31,8 @@ steps:
 outputArtifacts:
   - name: forgetask_backend_image
     type: DOCKER_IMAGE
-    location: ${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask:${BUILDRUN_HASH}
+    location: mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask:${BUILDRUN_HASH}
 
   - name: forgetask_frontend_image
     type: DOCKER_IMAGE
-    location: ${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask-frontend:${BUILDRUN_HASH}
+    location: mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask-frontend:${BUILDRUN_HASH}
