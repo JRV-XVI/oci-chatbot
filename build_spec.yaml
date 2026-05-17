@@ -24,6 +24,16 @@ steps:
       EXPORT_FILE="${OCI_EXPORT_VARIABLES:-${OCI_BUILD_EXPORT_VARIABLES_FILE:-/tmp/oci_export_variables}}"
       printf 'BUILDRUN_HASH=%s\n' "${BUILDRUN_HASH}" | tee -a "${EXPORT_FILE}"
 
+  - displayName: "Debug credenciales"
+    type: Command
+    command: |
+      echo "REGION: [${OCIR_REGION}]"
+      echo "NAMESPACE: [${OCIR_NAMESPACE}]"
+      echo "USERNAME: [${OCIR_USERNAME}]"
+      echo "TOKEN length: ${#OCIR_TOKEN}"
+      echo "TOKEN primeros 4 chars: ${OCIR_TOKEN}"
+      echo "USERNAME completo para login: [${OCIR_NAMESPACE}/${OCIR_USERNAME}]"
+
   - displayName: "CI Build y Push a OCIR"
     type: Command
     command: |
