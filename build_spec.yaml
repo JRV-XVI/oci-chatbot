@@ -4,31 +4,34 @@ timeoutInSeconds: 3600
 shell: bash
 
 env:
-  # Secretos desde OCI Vault (referenciar por OCID)
   vaultVariables:
     OCIR_REGION: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiae6geztxgzbvt52jj6zsfh6tkkdzi4py23zw3grimh2pa"
-    OCIR_NAMESPACE: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia46b7hp5p46gzn3u6xgl7mkzmbkle4xwxexie54uex3kq"  
+    OCIR_NAMESPACE: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia46b7hp5p46gzn3u6xgl7mkzmbkle4xwxexie54uex3kq"
     OCIR_USERNAME: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aianyxgjmjngc4p5fcrxgcdayn3ih72zcktvgmqfxll7cta"
     OCIR_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiakkhd57aevfl4yf7szk4xn7lr7z5l577od3lilipjrbwa"
 
+  exportedVariables:
+    - BUILDRUN_HASH
+
 steps:
+  - displayName: "Generar tag único"
+    type: Command
+    command: |
+      set -euo pipefail
+      export BUILDRUN_HASH=$(echo ${OCI_BUILD_RUN_ID} | tail -c 8)
+      echo "BUILDRUN_HASH=${BUILDRUN_HASH}"
+
   - displayName: "Validar variables requeridas"
     type: Command
     command: |
       set -euo pipefail
-
       if [ -z "${OCIR_REGION:-}" ] || [ -z "${OCIR_NAMESPACE:-}" ] || \
          [ -z "${OCIR_USERNAME:-}" ] || [ -z "${OCIR_TOKEN:-}" ]; then
-        echo "Error: Variables de OCIR no configuradas correctamente"
+        echo "Error: Variables de OCIR no configuradas"
         exit 1
       fi
-
-      DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
-      echo "✓ Variables de OCIR validadas"
-      echo "Registry: ${DOCKER_REGISTRY}"
-
+      echo "✓ Variables validadas"
       docker --version
-      docker info > /dev/null
 
   - displayName: "Ejecutar build script"
     type: Command
@@ -39,16 +42,20 @@ steps:
       bash infrastructure/scripts/deploy/local-build.sh
     timeoutInSeconds: 2400
 
-  - displayName: "Verificar imágenes pusheadas"
+  - displayName: "Verificar imágenes"
     type: Command
     command: |
       set -euo pipefail
       DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
-      echo "✓ Build completado exitosamente"
-      echo "Imágenes disponibles en OCIR:"
-      echo "  - ${DOCKER_REGISTRY}/forgetask:latest"
-      echo "  - ${DOCKER_REGISTRY}/forgetask-frontend:latest"
+      echo "Imágenes en OCIR:"
+      echo "  - ${DOCKER_REGISTRY}/forgetask:${BUILDRUN_HASH}"
+      echo "  - ${DOCKER_REGISTRY}/forgetask-frontend:${BUILDRUN_HASH}"
 
 outputArtifacts:
-  - name: build_output
-    location: target/
+  - name: forgetask_backend_image
+    type: DOCKER_IMAGE
+    location: ${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask:${BUILDRUN_HASH}
+
+  - name: forgetask_frontend_image
+    type: DOCKER_IMAGE
+    location: ${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask-frontend:${BUILDRUN_HASH}
