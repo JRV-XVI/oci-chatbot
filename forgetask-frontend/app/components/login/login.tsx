@@ -15,7 +15,7 @@ import authService, { AuthApiError } from "@/app/services/authService"
 // ─── Schema de validación ─────────────────────────────────────────────────────
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 200k caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>

@@ -109,7 +109,7 @@ public class BotActions {
 
                 BotHelper.sendMessageToTelegram(chatId,
                         "Completando: *" + task.getTitle() + "*\n"
-                        + "Horas reales actuales: 200K" + safeDouble(task.getRealTime()) + "h\n\n"
+                        + "Horas reales actuales: " + safeDouble(task.getRealTime()) + "h\n\n"
                         + "Cuantas horas reales trabajaste en esta tarea? (ej: 2.5)",
                         telegramClient);
             } else {
