@@ -19,27 +19,7 @@ steps:
     command: |
       BUILDRUN_HASH=$(echo "${OCI_BUILD_RUN_ID}" | tail -c 8 | tr -d '\n')
       echo "BUILDRUN_HASH=${BUILDRUN_HASH}"
-      echo "BUILDRUN_HASH=${BUILDRUN_HASH}" >> ${OCI_BUILD_EXPORT_VARIABLES_FILE}
-
-  - displayName: "Debug credenciales"
-    type: Command
-    command: |
-      echo "REGION: [${OCIR_REGION}]"
-      echo "NAMESPACE: [${OCIR_NAMESPACE}]"
-      echo "USERNAME: [${OCIR_USERNAME}]"
-      echo "TOKEN length: ${#OCIR_TOKEN}"
-      echo "TOKEN primeros 4 chars: ${OCIR_TOKEN}"
-      echo "USERNAME completo para login: [${OCIR_NAMESPACE}/${OCIR_USERNAME}]"
-
-  - displayName: "Debug credenciales"
-    type: Command
-    command: |
-      echo "REGION: [${OCIR_REGION}]"
-      echo "NAMESPACE: [${OCIR_NAMESPACE}]"
-      echo "USERNAME: [${OCIR_USERNAME}]"
-      echo "TOKEN length: ${#OCIR_TOKEN}"
-      echo "TOKEN primeros 4 chars: ${OCIR_TOKEN}"
-      echo "USERNAME completo para login: [${OCIR_NAMESPACE}/${OCIR_USERNAME}]"
+      export BUILDRUN_HASH
 
   - displayName: "CI Build y Push a OCIR"
     type: Command
