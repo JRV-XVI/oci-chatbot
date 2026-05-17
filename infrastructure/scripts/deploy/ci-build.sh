@@ -2,14 +2,13 @@
 # ci-build.sh - Para OCI DevOps Build Runner
 set -euo pipefail
 
-# Variables inyectadas desde build_spec.yaml (vault + exportedVariables)
-: "${BUILDRUN_HASH:?BUILDRUN_HASH not set. Check build_spec export step.}"
+: "${BUILDRUN_HASH:?BUILDRUN_HASH not set}"
 DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
 VERSION="${BUILDRUN_HASH}"
 
 echo "[+] Login en OCIR..."
 echo "${OCIR_TOKEN}" | docker login "${OCIR_REGION}.ocir.io" \
-  --username "${OCIR_NAMESPACE}/${OCIR_USERNAME}" \
+  --username "${OCIR_USERNAME}" \
   --password-stdin
 
 echo "[+] Build backend (${VERSION})..."
