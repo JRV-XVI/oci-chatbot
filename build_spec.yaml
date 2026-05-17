@@ -10,12 +10,17 @@ env:
     OCIR_USERNAME: ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aianyxgjmjngc4p5fcrxgcdayn3ih72zcktvgmqfxll7cta
     OCIR_TOKEN: ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia7g7mpayfp7xbhetiblaowbpu5nzzyhw3rbvez6y5hhyq
 
+  exportedVariables:
+    - BUILDRUN_HASH
+
 steps:
   - displayName: "Generar BUILDRUN_HASH"
     type: Command
     command: |
-      export BUILDRUN_HASH=$(echo ${OCI_BUILD_RUN_ID} | tail -c 8)
-      echo "BUILDRUN_HASH=${BUILDRUN_HASH}"
+      set -euo pipefail
+      BUILDRUN_HASH=$(echo "${OCI_BUILD_RUN_ID}" | tail -c 8 | tr -d '\n')
+      export BUILDRUN_HASH
+      echo "BUILDRUN_HASH=${BUILDRUN_HASH}" | tee -a "${OCI_EXPORT_VARIABLES}"
 
   - displayName: "CI Build y Push a OCIR"
     type: Command

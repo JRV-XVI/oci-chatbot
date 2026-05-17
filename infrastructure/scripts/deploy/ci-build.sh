@@ -3,6 +3,7 @@
 set -euo pipefail
 
 # Variables inyectadas desde build_spec.yaml (vault + exportedVariables)
+: "${BUILDRUN_HASH:?BUILDRUN_HASH not set. Check build_spec export step.}"
 DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
 VERSION="${BUILDRUN_HASH}"
 
