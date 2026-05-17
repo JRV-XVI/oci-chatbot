@@ -3,7 +3,7 @@
 set -euo pipefail
 
 : "${BUILDRUN_HASH:?BUILDRUN_HASH not set}"
-DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}"
+DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu"
 VERSION="${BUILDRUN_HASH}"
 
 echo "[+] Login en OCIR..."
