@@ -1,28 +1,25 @@
 version: 0.1
-version: 0.1
 component: build
-timeoutInSeconds: 3600
 timeoutInSeconds: 3600
 shell: bash
 
 env:
   vaultVariables:
-    OCIR_REGION: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiae6geztxgzbvt52jj6zsfh6tkkdzi4py23zw3grimh2pa"
-    OCIR_NAMESPACE: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia46b7hp5p46gzn3u6xgl7mkzmbkle4xwxexie54uex3kq"
-    OCIR_USERNAME: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aianyxgjmjngc4p5fcrxgcdayn3ih72zcktvgmqfxll7cta"
-    OCIR_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiakkhd57aevfl4yf7szk4xn7lr7z5l577od3lilipjrbwa"
+    OCIR_REGION: ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiae6geztxgzbvt52jj6zsfh6tkkdzi4py23zw3grimh2pa
+    OCIR_NAMESPACE: ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia46b7hp5p46gzn3u6xgl7mkzmbkle4xwxexie54uex3kq
+    OCIR_USERNAME: ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aianyxgjmjngc4p5fcrxgcdayn3ih72zcktvgmqfxll7cta
+    OCIR_TOKEN: ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aia7g7mpayfp7xbhetiblaowbpu5nzzyhw3rbvez6y5hhyq
 
   exportedVariables:
     - BUILDRUN_HASH
 
 steps:
-
   - displayName: "Generar BUILDRUN_HASH"
     type: Command
     command: |
-      export BUILDRUN_HASH=$(echo ${OCI_BUILD_RUN_ID} | tail -c 8)
+      BUILDRUN_HASH=$(echo "${OCI_BUILD_RUN_ID}" | tail -c 8 | tr -d '\n')
       echo "BUILDRUN_HASH=${BUILDRUN_HASH}"
-
+      export BUILDRUN_HASH
 
   - displayName: "CI Build y Push a OCIR"
     type: Command
