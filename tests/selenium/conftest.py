@@ -32,7 +32,7 @@ def driver_factory(settings: SeleniumSettings) -> Callable[[], WebDriver]:
         try:
             driver = build_driver(settings)
         except Exception as exc:
-            remote = settings.selenium_remote_url or "local Edge WebDriver"
+            remote = settings.selenium_remote_url or f"local {settings.browser} WebDriver"
             pytest.skip(f"WebDriver unavailable ({remote}): {exc}")
         created_drivers.append(driver)
         return driver

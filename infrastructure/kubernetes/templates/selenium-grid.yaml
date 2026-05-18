@@ -1,0 +1,168 @@
+# ============================================================
+# ForgeTask — Selenium Grid (interno, sin IP pública)
+# Namespace: mtdrworkshop
+# Acceso interno únicamente via DNS:
+#   http://selenium-hub.mtdrworkshop.svc.cluster.local:4444
+# ============================================================
+
+# ─── Selenium Hub Deployment ─────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-hub
+  namespace: mtdrworkshop
+  labels:
+    app: selenium-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-hub
+  template:
+    metadata:
+      labels:
+        app: selenium-hub
+    spec:
+      containers:
+        - name: selenium-hub
+          image: docker.io/selenium/hub:4.18.1
+          ports:
+            - containerPort: 4442
+              name: publish
+            - containerPort: 4443
+              name: subscribe
+            - containerPort: 4444
+              name: web
+          env:
+            - name: SE_SESSION_REQUEST_TIMEOUT
+              value: "300"
+            - name: SE_SESSION_RETRY_INTERVAL
+              value: "5"
+            - name: SE_HEALTHCHECK_INTERVAL
+              value: "10"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+
+          # startupProbe — da tiempo al Hub para inicializar
+          # antes de que readiness/liveness empiecen a evaluar.
+          # failureThreshold * periodSeconds = tiempo máximo de arranque
+          # 12 * 10s = 120s máximo antes de matar el pod por startup
+          startupProbe:
+            httpGet:
+              path: /status
+              port: 4444
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+
+          # readinessProbe — decide si el pod recibe tráfico.
+          # /status es más consistente en Selenium 4 que /wd/hub/status.
+          # Si falla, validar manualmente:
+          #   kubectl exec -n mtdrworkshop <hub-pod> -- curl -s http://localhost:4444/status
+          # Si ese endpoint no existe en tu build, cambiar a /wd/hub/status
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 4444
+            initialDelaySeconds: 0   # startupProbe ya cubrió el arranque
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+          # livenessProbe — reinicia el pod si el Hub deja de responder.
+          # Más tolerante que readiness para evitar reinicios agresivos.
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 4444
+            initialDelaySeconds: 0   # startupProbe ya cubrió el arranque
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+            successThreshold: 1
+---
+# ─── Selenium Hub Service (ClusterIP — sin IP pública) ───────
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-hub
+  namespace: mtdrworkshop
+  labels:
+    app: selenium-hub
+spec:
+  type: ClusterIP
+  selector:
+    app: selenium-hub
+  ports:
+    - name: web
+      port: 4444
+      targetPort: 4444
+    - name: publish
+      port: 4442
+      targetPort: 4442
+    - name: subscribe
+      port: 4443
+      targetPort: 4443
+---
+# ─── Selenium Chrome Node ────────────────────────────────────
+# Corre Chrome headless dentro del cluster
+# Puede resolver DNS interno: service.namespace.svc.cluster.local
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-chrome-node
+  namespace: mtdrworkshop
+  labels:
+    app: selenium-chrome-node
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-chrome-node
+  template:
+    metadata:
+      labels:
+        app: selenium-chrome-node
+    spec:
+      containers:
+        - name: selenium-chrome-node
+          image: docker.io/selenium/node-chrome:4.18.1
+          env:
+            - name: SE_EVENT_BUS_HOST
+              value: "selenium-hub"
+            - name: SE_EVENT_BUS_PUBLISH_PORT
+              value: "4442"
+            - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+              value: "4443"
+            # 1 sesión por pod — evita flakiness entre tests paralelos
+            - name: SE_NODE_MAX_SESSIONS
+              value: "1"
+            - name: SE_NODE_OVERRIDE_MAX_SESSIONS
+              value: "true"
+            - name: SE_NODE_SESSION_TIMEOUT
+              value: "300"
+            - name: SE_VNC_NO_PASSWORD
+              value: "true"
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        # Evita crashes del browser por memoria compartida insuficiente
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
