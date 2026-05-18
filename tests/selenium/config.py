@@ -7,6 +7,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from dotenv import load_dotenv
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -71,24 +72,36 @@ def load_settings() -> SeleniumSettings:
 
 def build_driver(settings: SeleniumSettings) -> WebDriver:
     browser = settings.browser.strip().lower()
-    if browser != "edge":
-        raise ValueError(f"Unsupported browser '{settings.browser}'. Set E2E_BROWSER=edge.")
 
-    options = EdgeOptions()
+    # Construir opciones según el browser
+    if browser == "chrome":
+        options = ChromeOptions()
+    elif browser == "edge":
+        options = EdgeOptions()
+    else:
+        raise ValueError(
+            f"Unsupported browser '{browser}'. "
+            "Use E2E_BROWSER=chrome (CI/Linux) or E2E_BROWSER=edge (local/Windows)."
+        )
+
     if settings.headless:
         options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
+    # RemoteWebDriver — usado en CI contra Selenium Grid en OKE
     if settings.selenium_remote_url:
         driver = webdriver.Remote(
             command_executor=settings.selenium_remote_url,
             options=options,
         )
-    else:
-        local_driver = ROOT_DIR / "tests" / "edgedriver" / "edgedriver_win64" / "msedgedriver.exe"
+        driver.set_window_size(settings.window_width, settings.window_height)
+        return driver
 
+    # Driver local — solo para desarrollo en Windows con Edge
+    if browser == "edge":
+        local_driver = ROOT_DIR / "tests" / "edgedriver" / "edgedriver_win64" / "msedgedriver.exe"
         if local_driver.exists():
             from selenium.webdriver.edge.service import Service as EdgeService
             service = EdgeService(executable_path=str(local_driver))
@@ -98,6 +111,13 @@ def build_driver(settings: SeleniumSettings) -> WebDriver:
                 f"msedgedriver.exe no encontrado en {local_driver}. "
                 "Descárgalo desde https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/"
             )
+    else:
+        # Chrome local requiere que el usuario tenga Chrome instalado
+        # En CI siempre se usa RemoteWebDriver, nunca llega aquí
+        raise EnvironmentError(
+            "Chrome local no está configurado. "
+            "En CI usa E2E_SELENIUM_REMOTE_URL para apuntar al Selenium Grid."
+        )
 
     driver.set_window_size(settings.window_width, settings.window_height)
     return driver

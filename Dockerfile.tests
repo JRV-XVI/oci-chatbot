@@ -12,12 +12,26 @@ RUN pip install -r requirements-test.txt
 COPY pytest.ini ./pytest.ini
 COPY tests ./tests
 
-# Defaults for containerized execution against Selenium standalone container.
-ENV E2E_BROWSER=edge \
+# CI/OKE: Chrome via Selenium Grid interno del cluster
+# Local/Windows: Edge con msedgedriver.exe local
+ENV E2E_BROWSER=chrome \
     E2E_HEADLESS=true \
-    E2E_BASE_URL=http://host.docker.internal:3000 \
-    E2E_SELENIUM_REMOTE_URL=http://host.docker.internal:4444/wd/hub \
-    E2E_TIMEOUT_SECONDS=25 \
+    E2E_BASE_URL=http://forgetask-frontend-service.ns-green.svc.cluster.local:3000 \
+    E2E_API_BASE_URL=http://forgetask-service.ns-green.svc.cluster.local:8080 \
+    E2E_SELENIUM_REMOTE_URL=http://selenium-hub.mtdrworkshop.svc.cluster.local:4444/wd/hub \
+    E2E_TIMEOUT_SECONDS=30 \
     E2E_ARTIFACTS_DIR=/app/tests/selenium/artifacts
 
-CMD ["sh", "-c", "python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && pytest tests/selenium -m e2e"]
+# TARGET_NAMESPACE se inyecta por el Job YAML (ns-green o ns-blue)
+# Sobreescribe los defaults de E2E_BASE_URL y E2E_API_BASE_URL
+CMD ["sh", "-c", "\
+  if [ -n \"${TARGET_NAMESPACE}\" ]; then \
+    export E2E_BASE_URL=\"http://forgetask-frontend-service.${TARGET_NAMESPACE}.svc.cluster.local:3000\"; \
+    export E2E_API_BASE_URL=\"http://forgetask-service.${TARGET_NAMESPACE}.svc.cluster.local:8080\"; \
+  fi && \
+  python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && \
+  python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && \
+  pytest tests/selenium -m e2e \
+    --json-report \
+    --json-report-file=/tmp/test-report.json \
+    -v"]
