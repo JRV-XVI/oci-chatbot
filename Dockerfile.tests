@@ -35,3 +35,5 @@ CMD ["sh", "-c", "\
     --json-report \
     --json-report-file=/tmp/test-report.json \
     -v"]
+
+CMD ["sh", "-c", "python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && pytest tests/selenium -m e2e --json-report --json-report-file=/tmp/report.json; cat /tmp/report.json"]
