@@ -24,6 +24,13 @@ docker build \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
   "${OCI_PRIMARY_SOURCE_DIR}/forgetask-frontend"
 
+echo "[+] Build tests (${VERSION})..."
+docker build \
+  -f "${OCI_PRIMARY_SOURCE_DIR}/Dockerfile.tests" \
+  -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}" \
+  -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
+  "${OCI_PRIMARY_SOURCE_DIR}"
+
 echo "[+] Push backend..."
 docker push "${DOCKER_REGISTRY}/forgetask:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask:latest"
@@ -31,5 +38,9 @@ docker push "${DOCKER_REGISTRY}/forgetask:latest"
 echo "[+] Push frontend..."
 docker push "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask-frontend:latest"
+
+echo "[+] Push tests..."
+docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}"
+docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest"
 
 echo "[+] Build completo. Version: ${VERSION}"

@@ -37,6 +37,10 @@ outputArtifacts:
     type: DOCKER_IMAGE
     location: mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/mjmnu/forgetask-frontend:${BUILDRUN_HASH}
 
+  - name: forgetask_e2e_tests_image
+    type: DOCKER_IMAGE
+    location: mx-queretaro-1.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu/forgetask-e2e-tests:${BUILDRUN_HASH}
+
   - name: forgetask_oke_manifest
     type: BINARY
     location: ${OCI_PRIMARY_SOURCE_DIR}/oci-oke-deployment.yaml
