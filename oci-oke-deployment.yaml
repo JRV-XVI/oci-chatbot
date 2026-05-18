@@ -10,7 +10,7 @@ spec:
       protocol: TCP
       targetPort: 8080
   selector:
-    app: forgetask3
+    app: forgetask
 ---
 # ─── Backend Deployment ─────────────────────────────────────
 apiVersion: apps/v1
