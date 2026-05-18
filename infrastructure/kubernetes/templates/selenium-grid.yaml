@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: selenium-hub
-          image: selenium/hub:4.18.1
+          image: docker.io/selenium/hub:4.18.1
           ports:
             - containerPort: 4442
               name: publish
@@ -133,7 +133,7 @@ spec:
     spec:
       containers:
         - name: selenium-chrome-node
-          image: selenium/node-chrome:4.18.1
+          image: docker.io/selenium/node-chrome:4.18.1
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-hub"
