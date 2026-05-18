@@ -43,4 +43,8 @@ echo "[+] Push tests..."
 docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest"
 
+echo "[+] Push OCI Function..."
+docker push "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:${VERSION}"
+docker push "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest"
+
 echo "[+] Build completo. Version: ${VERSION}"
