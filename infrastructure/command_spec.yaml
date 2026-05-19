@@ -1,0 +1,315 @@
+version: 0.1
+component: command
+timeoutInSeconds: 3600
+shell: bash
+
+env:
+  variables:
+    JOB_NAMESPACE: "mtdrworkshop"
+    OCIR_REGION: "mx-queretaro-1"
+    OCIR_NAMESPACE: "axpqjhfdooxb"
+    GITHUB_OWNER: "JRV-XVI"
+    GITHUB_REPO: "oci-chatbot"
+    GITHUB_PROJECT_ID: "TU_PROJECT_ID"
+    OKE_ENDPOINT: "https://<tu-endpoint-oke>:6443"
+    E2E_TIMEOUT_SECONDS: "1800"
+    INTERVAL: "15"
+    STANDBY_NAMESPACE: "ns-green"
+  vaultVariables:
+    OKE_SA_TOKEN: "ocid1.vaultsecret.oc1...."
+    GITHUB_TOKEN: "ocid1.vaultsecret.oc1...."
+
+steps:
+  - type: Command
+    name: "Instalar kubectl"
+    timeoutInSeconds: 180
+    command: |
+      set -e
+      KUBECTL_VERSION="$(curl -sL https://dl.k8s.io/release/stable.txt)"
+      curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+      chmod +x kubectl
+      mv kubectl /usr/local/bin/kubectl
+      kubectl version --client --short
+
+  - type: Command
+    name: "Configurar acceso al cluster"
+    timeoutInSeconds: 120
+    command: |
+      set -e
+      kubectl config set-cluster oke-cluster \
+        --server="${OKE_ENDPOINT}" \
+        --insecure-skip-tls-verify=true
+
+      kubectl config set-credentials e2e-runner \
+        --token="${OKE_SA_TOKEN}"
+
+      kubectl config set-context e2e-context \
+        --cluster=oke-cluster \
+        --user=e2e-runner
+
+      kubectl config use-context e2e-context
+      kubectl get namespace "${JOB_NAMESPACE}"
+
+  - type: Command
+    name: "Ejecutar E2E y validar"
+    timeoutInSeconds: 3000
+    command: |
+      set -e
+      TARGET_NAMESPACE="${STANDBY_NAMESPACE:-${TARGET_NAMESPACE:-ns-green}}"
+      export TARGET_NAMESPACE
+      RUN_ID="$(date +%s)"
+      JOB_NAME="forgetask-e2e-${RUN_ID}"
+      IMAGE_TAG="${BUILDRUN_HASH:-latest}"
+      TEST_IMAGE="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu/forgetask-e2e-tests:${IMAGE_TAG}"
+
+      echo "Job: ${JOB_NAME}"
+      echo "Namespace Job: ${JOB_NAMESPACE}"
+      echo "Namespace Target: ${TARGET_NAMESPACE}"
+      echo "Image: ${TEST_IMAGE}"
+
+      cat <<JOBEOF | kubectl apply -n "${JOB_NAMESPACE}" -f -
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: ${JOB_NAME}
+        namespace: ${JOB_NAMESPACE}
+        labels:
+          app: forgetask-e2e
+          component: test-runner
+      spec:
+        backoffLimit: 0
+        ttlSecondsAfterFinished: 3600
+        activeDeadlineSeconds: 2700
+        template:
+          metadata:
+            labels:
+              app: forgetask-e2e
+              component: test-runner
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: pytest-runner
+                image: ${TEST_IMAGE}
+                imagePullPolicy: Always
+                env:
+                  - name: E2E_BROWSER
+                    value: "chrome"
+                  - name: E2E_HEADLESS
+                    value: "true"
+                  - name: E2E_TIMEOUT_SECONDS
+                    value: "${E2E_TIMEOUT_SECONDS}"
+                  - name: E2E_ARTIFACTS_DIR
+                    value: "/app/tests/selenium/artifacts"
+                  - name: TARGET_NAMESPACE
+                    value: "${TARGET_NAMESPACE}"
+                  - name: E2E_BASE_URL
+                    value: "http://forgetask-frontend-service.${TARGET_NAMESPACE}.svc.cluster.local:3000"
+                  - name: E2E_API_BASE_URL
+                    value: "http://forgetask-service.${TARGET_NAMESPACE}.svc.cluster.local:8080"
+                  - name: E2E_SELENIUM_REMOTE_URL
+                    value: "http://selenium-hub.mtdrworkshop.svc.cluster.local:4444/wd/hub"
+                  - name: E2E_LOGIN_EMAIL
+                    valueFrom:
+                      secretKeyRef:
+                        name: forgetask-e2e-secrets
+                        key: E2E_LOGIN_EMAIL
+                  - name: E2E_LOGIN_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: forgetask-e2e-secrets
+                        key: E2E_LOGIN_PASSWORD
+      JOBEOF
+
+      echo "Job creado. Esperando resultado..."
+
+      TIMEOUT=2700
+      ELAPSED=0
+      INTERVAL=15
+
+      while [ "${ELAPSED}" -lt "${TIMEOUT}" ]; do
+        SUCCEEDED="$(kubectl get job "${JOB_NAME}" -n "${JOB_NAMESPACE}" -o jsonpath='{.status.succeeded}' 2>/dev/null || echo "0")"
+        FAILED="$(kubectl get job "${JOB_NAME}" -n "${JOB_NAMESPACE}" -o jsonpath='{.status.failed}' 2>/dev/null || echo "0")"
+
+        echo "[${ELAPSED}s] succeeded=${SUCCEEDED} failed=${FAILED}"
+
+        if [ "${SUCCEEDED}" = "1" ]; then
+          echo "OK: tests pasaron."
+          exit 0
+        fi
+
+        if [ "${FAILED}" = "1" ]; then
+          echo "FAIL: tests fallaron."
+          POD_NAME="$(kubectl get pods -n "${JOB_NAMESPACE}" -l job-name="${JOB_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+          if [ -n "${POD_NAME}" ]; then
+            kubectl logs "${POD_NAME}" -n "${JOB_NAMESPACE}" > /tmp/e2e-logs.txt || true
+            tail -n 200 /tmp/e2e-logs.txt || true
+          fi
+
+          if [ -s /tmp/e2e-logs.txt ]; then
+            python - <<'PY'
+import json
+import os
+import sys
+import urllib.request
+
+log_path = "/tmp/e2e-logs.txt"
+with open(log_path, "r", encoding="utf-8", errors="ignore") as fh:
+    logs = fh.read()
+
+idx = logs.rfind('{"created":')
+if idx == -1:
+    print("No se encontro JSON de pytest en los logs.")
+    sys.exit(0)
+
+report = json.loads(logs[idx:])
+
+
+def _post_json(url, payload, headers):
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return resp.read().decode("utf-8"), resp.getcode()
+
+
+def create_issue(test_nodeid, error_msg, target_namespace, image_tag):
+    gh_token = os.environ["GITHUB_TOKEN"]
+    owner = os.environ["GITHUB_OWNER"]
+    repo = os.environ["GITHUB_REPO"]
+    project_id = os.environ["GITHUB_PROJECT_ID"]
+
+    headers = {
+        "Authorization": f"Bearer {gh_token}",
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
+    }
+
+    title = f"[E2E Fallido] {test_nodeid.split('::')[-1]} en {target_namespace}"
+    body = (
+        f"**Namespace:** {target_namespace}\n"
+        f"**Imagen:** `{image_tag}`\n\n"
+        f"**Error:**\n```python\n{error_msg[:3000]}\n```"
+    )
+
+    res_body, status = _post_json(
+        f"https://api.github.com/repos/{owner}/{repo}/issues",
+        {"title": title, "body": body, "labels": ["bug"]},
+        headers,
+    )
+    if status != 201:
+        print(f"Fallo al crear Issue: status={status} body={res_body[:500]}")
+        return
+
+    issue_node_id = json.loads(res_body)["node_id"]
+
+    query = """
+    mutation($projectId: ID!, $contentId: ID!) {
+      addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) { item { id } }
+    }
+    """
+    gql_body, gql_status = _post_json(
+        "https://api.github.com/graphql",
+        {"query": query, "variables": {"projectId": project_id, "contentId": issue_node_id}},
+        headers,
+    )
+    print(f"GraphQL addProjectV2ItemById status={gql_status}")
+
+    gql_data = json.loads(gql_body) if gql_body else {}
+    project_item_id = (
+        gql_data.get("data", {})
+        .get("addProjectV2ItemById", {})
+        .get("item", {})
+        .get("id")
+    )
+    if not project_item_id:
+        print("No se pudo obtener item id del Project V2 para setear status.")
+        return
+
+    fields_query = """
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          fields(first: 50) {
+            nodes {
+              ... on ProjectV2SingleSelectField {
+                id
+                name
+                options { id name }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    fields_body, _ = _post_json(
+        "https://api.github.com/graphql",
+        {"query": fields_query, "variables": {"projectId": project_id}},
+        headers,
+    )
+    fields_data = json.loads(fields_body) if fields_body else {}
+    nodes = (
+        fields_data.get("data", {})
+        .get("node", {})
+        .get("fields", {})
+        .get("nodes", [])
+    )
+    status_field = next((n for n in nodes if n and n.get("name") == "status"), None)
+    if not status_field:
+        print("No se encontro el field 'status' en Project V2.")
+        return
+
+    backlog_option = next(
+        (o for o in (status_field.get("options") or []) if o and o.get("name") == "Backlog"),
+        None,
+    )
+    if not backlog_option:
+        print("No se encontro la opcion 'Backlog' en el field 'status'.")
+        return
+
+    update_mutation = """
+    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+      updateProjectV2ItemFieldValue(
+        input: {
+          projectId: $projectId
+          itemId: $itemId
+          fieldId: $fieldId
+          value: { singleSelectOptionId: $optionId }
+        }
+      ) { projectV2Item { id } }
+    }
+    """
+    update_body, update_status = _post_json(
+        "https://api.github.com/graphql",
+        {
+            "query": update_mutation,
+            "variables": {
+                "projectId": project_id,
+                "itemId": project_item_id,
+                "fieldId": status_field.get("id"),
+                "optionId": backlog_option.get("id"),
+            },
+        },
+        headers,
+    )
+    print(f"GraphQL status update status={update_status} body={update_body[:200]}")
+
+
+target_namespace = os.environ.get("TARGET_NAMESPACE", "n/a")
+image_tag = os.environ.get("BUILDRUN_HASH", "latest")
+
+for test in report.get("tests", []):
+    if test.get("outcome") == "failed":
+        error_msg = test.get("call", {}).get("crash", {}).get("message", "Error desconocido")
+        create_issue(test.get("nodeid"), error_msg, target_namespace, image_tag)
+PY
+          fi
+
+          exit 1
+        fi
+
+        sleep "${INTERVAL}"
+        ELAPSED=$((ELAPSED + INTERVAL))
+      done
+
+      echo "Timeout esperando el Job."
+      exit 1
