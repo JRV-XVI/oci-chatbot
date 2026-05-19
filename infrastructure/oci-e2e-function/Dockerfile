@@ -1,4 +1,4 @@
-FROM fnproject/python:3.11-dev as build-stage
+FROM --platform=linux/amd64 fnproject/python:3.11-dev as build-stage
 
 WORKDIR /function
 
@@ -10,7 +10,7 @@ RUN pip3 install --target /python/ --no-cache --no-cache-dir -r requirements.txt
 ADD . /function/
 RUN chmod -R o+r /function
 
-FROM fnproject/python:3.11
+FROM --platform=linux/amd64 fnproject/python:3.11
 
 WORKDIR /function
 
