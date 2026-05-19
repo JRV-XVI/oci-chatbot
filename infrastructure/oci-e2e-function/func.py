@@ -2,14 +2,16 @@ import io
 import json
 import time
 import os
-import logging
 import requests
 import yaml
 from fdk import response
 from kubernetes import client, config
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+
+def _log(msg, run_id=None):
+    ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    rid = run_id if run_id else "n/a"
+    print(f"[OCI-FN] {ts} run={rid} {msg}", flush=True)
 
 # Embebemos la plantilla aquí porque la función no clona tu repositorio git
 JOB_TEMPLATE = """
@@ -63,8 +65,9 @@ def get_k8s_client():
     client.Configuration.set_default(configuration)
     return client.BatchV1Api(), client.CoreV1Api()
 
-def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
+def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag, run_id=None):
     """Crea el issue vía REST y lo asigna al Project V2 vía GraphQL."""
+    _log(f"Inicio create_github_issue: nodeid={test_nodeid} namespace={target_namespace} image={image_tag}", run_id)
     gh_token = os.environ["GITHUB_TOKEN"]
     owner = os.environ["GITHUB_OWNER"]
     repo = os.environ["GITHUB_REPO"]
@@ -85,7 +88,8 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
       json={"title": title, "body": body, "labels": ["Bug"]},
     )
     if res.status_code != 201:
-        logger.error(f"Fallo al crear Issue: {res.text}")
+        _log(f"Fallo al crear Issue: {res.text}", run_id)
+        _log(f"Error creando issue: status={res.status_code} body={res.text[:500]}", run_id)
         return
         
     issue_node_id = res.json()["node_id"]
@@ -101,7 +105,8 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
         headers=headers, 
         json={"query": query, "variables": {"projectId": project_id, "contentId": issue_node_id}}
     )
-    logger.info(f"GraphQL Response: {gql_res.text}")
+    _log(f"GraphQL Response: {gql_res.text}", run_id)
+    _log(f"GraphQL addProjectV2ItemById status={gql_res.status_code}", run_id)
 
     try:
         gql_data = gql_res.json()
@@ -112,7 +117,7 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
             .get("id")
         )
         if not project_item_id:
-            logger.error("No se pudo obtener el item id del Project V2 para setear State.")
+            _log("No se pudo obtener el item id del Project V2 para setear State.", run_id)
             return
 
         # 3. Setear State = Backlog en Project V2
@@ -141,6 +146,7 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
             headers=headers,
             json={"query": fields_query, "variables": {"projectId": project_id}},
         )
+        _log(f"GraphQL fields status={fields_res.status_code}", run_id)
         fields_data = fields_res.json()
 
         nodes = (
@@ -151,7 +157,7 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
         )
         state_field = next((n for n in nodes if n and n.get("name") == "State"), None)
         if not state_field:
-            logger.error("No se encontró el field 'State' en el Project V2.")
+            _log("No se encontró el field 'State' en el Project V2.", run_id)
             return
 
         backlog_option = next(
@@ -159,7 +165,7 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
             None,
         )
         if not backlog_option:
-            logger.error("No se encontró la opción 'Backlog' en el field 'State'.")
+            _log("No se encontró la opción 'Backlog' en el field 'State'.", run_id)
             return
 
         update_mutation = """
@@ -189,11 +195,13 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag):
                 },
             },
         )
-        logger.info(f"GraphQL State Update Response: {update_res.text}")
+        _log(f"GraphQL State Update Response: {update_res.text}", run_id)
+        _log(f"GraphQL state update status={update_res.status_code}", run_id)
     except Exception as e:
-        logger.error(f"No se pudo setear State=Backlog en el Project V2: {str(e)}")
+        _log(f"No se pudo setear State=Backlog en el Project V2: {str(e)}", run_id)
+        _log(f"Excepcion creando issue: {type(e).__name__}: {e}", run_id)
 
-def parse_logs_and_create_issues(logs, target_namespace, image_tag):
+def parse_logs_and_create_issues(logs, target_namespace, image_tag, run_id=None):
     """Busca el JSON impreso al final del log de pytest."""
     try:
         # Extraer solo la parte JSON (ignorar prints anteriores del bash/python)
@@ -201,24 +209,34 @@ def parse_logs_and_create_issues(logs, target_namespace, image_tag):
         report = json.loads(json_str)
         
         for test in report.get("tests", []):
+            _log(f"Resultado test: nodeid={test.get('nodeid')} outcome={test.get('outcome')}", run_id)
             if test.get("outcome") == "failed":
                 error_msg = test.get("call", {}).get("crash", {}).get("message", "Error desconocido")
-                create_github_issue(test.get("nodeid"), error_msg, target_namespace, image_tag)
+                _log(f"Antes de crear issue: nodeid={test.get('nodeid')} namespace={target_namespace} image={image_tag}", run_id)
+                create_github_issue(test.get("nodeid"), error_msg, target_namespace, image_tag, run_id)
     except Exception as e:
-        logger.error(f"No se pudo parsear el reporte JSON: {str(e)}")
+        _log(f"No se pudo parsear el reporte JSON: {str(e)}", run_id)
+        _log(f"Excepcion parseando logs: {type(e).__name__}: {e}", run_id)
 
 def handler(ctx, data: io.BytesIO = None):
     try:
+        _log("Inicio handler")
         body = json.loads(data.getvalue().decode("utf-8")) if data else {}
         target_namespace = body.get("targetNamespace")
         image_tag = body.get("imageTag")
-        
+
+        _log(f"Namespace recibido: {target_namespace}")
+
         if not target_namespace or not image_tag:
+            _log("Request invalida: faltan targetNamespace o imageTag")
             return response.RawResponse(ctx, response_data="false", status_code=200)
 
         run_id = str(int(time.time()))
         job_name = f"forgetask-e2e-{run_id}"
         test_image = f"mx-queretaro-1.ocir.io/{os.environ['OCIR_NAMESPACE']}/forgetask/mjmnu/forgetask-e2e-tests:{image_tag}"
+
+        _log(f"URL objetivo: http://forgetask-frontend-service.{target_namespace}.svc.cluster.local:3000", run_id)
+        _log("Antes de llamar a Selenium (lanzar Job con Grid remoto)", run_id)
 
         # Renderizar Job YAML
         yaml_str = JOB_TEMPLATE.replace("__RUN_ID__", run_id)\
@@ -227,29 +245,35 @@ def handler(ctx, data: io.BytesIO = None):
         job_manifest = yaml.safe_load(yaml_str)
 
         batch_api, core_api = get_k8s_client()
-        
+        _log(f"K8s client inicializado. Job={job_name}", run_id)
+
         # Lanzar Job
-        logger.info(f"Creando Job {job_name}...")
+        _log(f"Creando Job {job_name}...", run_id)
         batch_api.create_namespaced_job(namespace="mtdrworkshop", body=job_manifest)
+        _log(f"Job creado: {job_name}", run_id)
 
         # Esperar resultado
         while True:
             time.sleep(10)
             job = batch_api.read_namespaced_job_status(name=job_name, namespace="mtdrworkshop")
             if job.status.succeeded:
-                logger.info("Tests exitosos.")
+                _log("Tests exitosos", run_id)
                 return response.RawResponse(ctx, response_data="true", headers={"Content-Type": "text/plain"}, status_code=200)
-            
+
             if job.status.failed:
-                logger.warning("Tests fallidos. Recuperando logs...")
+                _log("Tests fallidos. Recuperando logs...", run_id)
                 pods = core_api.list_namespaced_pod(namespace="mtdrworkshop", label_selector=f"job-name={job_name}")
                 if pods.items:
                     pod_name = pods.items[0].metadata.name
+                    _log(f"Pod encontrado: {pod_name}", run_id)
                     logs = core_api.read_namespaced_pod_log(name=pod_name, namespace="mtdrworkshop")
-                    parse_logs_and_create_issues(logs, target_namespace, image_tag)
-                
+                    parse_logs_and_create_issues(logs, target_namespace, image_tag, run_id)
+                else:
+                    _log("No se encontraron pods para el Job", run_id)
+
                 return response.RawResponse(ctx, response_data="false", headers={"Content-Type": "text/plain"}, status_code=200)
 
     except Exception as e:
-        logger.exception("Fallo en la ejecución de la función.")
+        _log("Fallo en la ejecución de la función.")
+        _log(f"Excepcion en handler: {type(e).__name__}: {e}")
         return response.RawResponse(ctx, response_data="false", headers={"Content-Type": "text/plain"}, status_code=200)
