@@ -1,5 +1,5 @@
 #!/bin/bash
-# ci-build.sh - Para OCI DevOps Build Runner (optimizado)
+# ci-build.sh - Para OCI DevOps Build Runner (builds paralelos + cache)
 set -euo pipefail
 
 : "${BUILDRUN_HASH:?BUILDRUN_HASH not set}"
@@ -11,25 +11,18 @@ echo "${OCIR_TOKEN}" | docker login "${OCIR_REGION}.ocir.io" \
   --username "${OCIR_USERNAME}" \
   --password-stdin
 
-# ─── Pull cache (ignorar si no existe aún) ───────────────────
-echo "[+] Pulling cache layers..."
-docker pull "${DOCKER_REGISTRY}/forgetask:latest"                    || true
-docker pull "${DOCKER_REGISTRY}/forgetask-frontend:latest"           || true
-docker pull "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest"          || true
-docker pull "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" || true
-
-# ─── Builds en paralelo ──────────────────────────────────────
+# ─── Builds en paralelo con cache ────────────────────────────
 echo "[+] Iniciando builds en paralelo..."
 
 docker build \
-  --cache-from "${DOCKER_REGISTRY}/forgetask:latest" \
+  --cache-from "${DOCKER_REGISTRY}/forgetask" \
   -t "${DOCKER_REGISTRY}/forgetask:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask:latest" \
   "${OCI_PRIMARY_SOURCE_DIR}/forgetask" &
 PID_BACKEND=$!
 
 docker build \
-  --cache-from "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
+  --cache-from "${DOCKER_REGISTRY}/forgetask-frontend" \
   --build-arg NEXT_PUBLIC_USE_PROXY=true \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
@@ -37,7 +30,7 @@ docker build \
 PID_FRONTEND=$!
 
 docker build \
-  --cache-from "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
+  --cache-from "${DOCKER_REGISTRY}/forgetask-e2e-tests" \
   -f "${OCI_PRIMARY_SOURCE_DIR}/Dockerfile.tests" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
@@ -45,7 +38,7 @@ docker build \
 PID_TESTS=$!
 
 docker build \
-  --cache-from "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" \
+  --cache-from "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn" \
   -f "${OCI_PRIMARY_SOURCE_DIR}/infrastructure/oci-e2e-function/Dockerfile" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" \
