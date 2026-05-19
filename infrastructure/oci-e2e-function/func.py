@@ -85,7 +85,7 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag, run
     res = requests.post(
       f"https://api.github.com/repos/{owner}/{repo}/issues",
       headers=headers,
-      json={"title": title, "body": body, "labels": ["Bug"]},
+      json={"title": title, "body": body, "labels": ["bug"]},
     )
     if res.status_code != 201:
         _log(f"Fallo al crear Issue: {res.text}", run_id)
@@ -117,10 +117,10 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag, run
             .get("id")
         )
         if not project_item_id:
-            _log("No se pudo obtener el item id del Project V2 para setear State.", run_id)
+            logger.error("No se pudo obtener el item id del Project V2 para setear status.")
             return
 
-        # 3. Setear State = Backlog en Project V2
+        # 3. Setear status = Backlog en Project V2
         fields_query = """
         query($projectId: ID!) {
           node(id: $projectId) {
@@ -155,17 +155,17 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag, run
             .get("fields", {})
             .get("nodes", [])
         )
-        state_field = next((n for n in nodes if n and n.get("name") == "State"), None)
-        if not state_field:
-            _log("No se encontró el field 'State' en el Project V2.", run_id)
+        status_field = next((n for n in nodes if n and n.get("name") == "status"), None)
+        if not status_field:
+            logger.error("No se encontró el field 'status' en el Project V2.")
             return
 
         backlog_option = next(
-            (o for o in (state_field.get("options") or []) if o and o.get("name") == "Backlog"),
+            (o for o in (status_field.get("options") or []) if o and o.get("name") == "Backlog"),
             None,
         )
         if not backlog_option:
-            _log("No se encontró la opción 'Backlog' en el field 'State'.", run_id)
+            logger.error("No se encontró la opción 'Backlog' en el field 'status'.")
             return
 
         update_mutation = """
@@ -190,16 +190,14 @@ def create_github_issue(test_nodeid, error_msg, target_namespace, image_tag, run
                 "variables": {
                     "projectId": project_id,
                     "itemId": project_item_id,
-                    "fieldId": state_field.get("id"),
+                    "fieldId": status_field.get("id"),
                     "optionId": backlog_option.get("id"),
                 },
             },
         )
-        _log(f"GraphQL State Update Response: {update_res.text}", run_id)
-        _log(f"GraphQL state update status={update_res.status_code}", run_id)
+        logger.info(f"GraphQL status Update Response: {update_res.text}")
     except Exception as e:
-        _log(f"No se pudo setear State=Backlog en el Project V2: {str(e)}", run_id)
-        _log(f"Excepcion creando issue: {type(e).__name__}: {e}", run_id)
+        logger.error(f"No se pudo setear status=Backlog en el Project V2: {str(e)}")
 
 def parse_logs_and_create_issues(logs, target_namespace, image_tag, run_id=None):
     """Busca el JSON impreso al final del log de pytest."""
