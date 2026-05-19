@@ -11,7 +11,9 @@ import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import authService, { AuthApiError } from "@/app/services/authService"
-import { getApiBaseUrl } from "@/app/services/apiBaseUrl"import healthService, { HealthResponse } from "@/app/services/healthService"
+import { getApiBaseUrl } from "@/app/services/apiBaseUrl"
+import healthService, { HealthResponse } from "@/app/services/healthService"
+
 // ─── Schema de validación ─────────
 const signupSchema = z
   .object({
