@@ -10,14 +10,14 @@ env:
     OCIR_NAMESPACE: "axpqjhfdooxb"
     GITHUB_OWNER: "JRV-XVI"
     GITHUB_REPO: "oci-chatbot"
-    GITHUB_PROJECT_ID: "TU_PROJECT_ID"
-    OKE_ENDPOINT: "https://<tu-endpoint-oke>:6443"
+    GITHUB_PROJECT_ID: "5"
+    OKE_ENDPOINT: "https://159.54.150.206:6443"
     E2E_TIMEOUT_SECONDS: "1800"
     INTERVAL: "15"
     STANDBY_NAMESPACE: "ns-green"
   vaultVariables:
-    OKE_SA_TOKEN: "ocid1.vaultsecret.oc1...."
-    GITHUB_TOKEN: "ocid1.vaultsecret.oc1...."
+    OKE_SA_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiao3ai7nhgak5rmeykaccjrhxvt4b3uo32f3ivlzll7gna"
+    GITHUB_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiagb5n22fmepwuiarxnconu6nu5lxwqmho6bcfawesdejq"
 
 steps:
   - type: Command
