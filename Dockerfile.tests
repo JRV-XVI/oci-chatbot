@@ -31,13 +31,11 @@ CMD ["sh", "-c", "\
   fi && \
   python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && \
   python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && \
-
-  # MODIFY TO RUN ALL TESTS OR SPECIFIC TESTS CASES
-  # pytest tests/selenium -m e2e \
-  pytest tests/selenium/test_01_create_task.py -m e2e \
+  pytest tests/selenium -m e2e \
     --json-report \
-    --json-report-file=/tmp/test-report.json \
-    -v"]
-
-CMD ["sh", "-c", "python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && pytest tests/selenium -m e2e --json-report --json-report-file=/tmp/report.json; cat /tmp/report.json"]
+    --json-report-file=/tmp/report.json \
+    -v; \
+  status=$?; \
+  cat /tmp/report.json; \
+  exit $status"]
 
