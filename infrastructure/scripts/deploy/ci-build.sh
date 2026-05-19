@@ -14,14 +14,15 @@ echo "${OCIR_TOKEN}" | docker login "${OCIR_REGION}.ocir.io" \
 # ─── Setup Buildx ────────────────────────────────────────────
 echo "[+] Configurando Docker Buildx..."
 docker buildx rm oci-builder >/dev/null 2>&1 || true
-docker buildx create --use --name oci-builder --driver docker-container
-docker buildx inspect --bootstrap
+docker buildx create --name oci-builder --driver docker-container
+docker buildx inspect oci-builder --bootstrap
 
 # ─── Builds secuenciales (Recomendado para 2 OCPU / 8GB RAM) ──────────────────
 echo "[+] Iniciando builds de forma secuencial..."
 
 echo "[1/4] Construyendo Backend..."
 docker buildx build \
+  --builder oci-builder \
   --push \
   --platform linux/amd64 \
   --provenance=false \
@@ -34,6 +35,7 @@ docker buildx build \
 
 echo "[2/4] Construyendo Frontend..."
 docker buildx build \
+  --builder oci-builder \
   --push \
   --platform linux/amd64 \
   --provenance=false \
@@ -47,6 +49,7 @@ docker buildx build \
 
 echo "[3/4] Construyendo Tests..."
 docker buildx build \
+  --builder oci-builder \
   --push \
   --platform linux/amd64 \
   --provenance=false \
@@ -60,6 +63,7 @@ docker buildx build \
 
 echo "[4/4] Construyendo Function..."
 docker buildx build \
+  --builder oci-builder \
   --push \
   --platform linux/amd64 \
   --provenance=false \
