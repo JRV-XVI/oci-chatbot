@@ -31,6 +31,13 @@ docker build \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
   "${OCI_PRIMARY_SOURCE_DIR}"
 
+echo "[+] Build OCI Function (${VERSION})..."
+docker build \
+  -f "${OCI_PRIMARY_SOURCE_DIR}/infrastructure/oci-e2e-function/Dockerfile" \
+  -t "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:${VERSION}" \
+  -t "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" \
+  "${OCI_PRIMARY_SOURCE_DIR}/infrastructure/oci-e2e-function"
+
 echo "[+] Push backend..."
 docker push "${DOCKER_REGISTRY}/forgetask:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask:latest"
