@@ -16,9 +16,7 @@ echo "${OCIR_TOKEN}" | docker login "${OCIR_REGION}.ocir.io" \
 echo "[+] Iniciando builds de forma secuencial..."
 
 echo "[1/4] Construyendo Backend..."
-docker pull "${DOCKER_REGISTRY}/forgetask:latest" || true
 docker build \
-  --cache-from "${DOCKER_REGISTRY}/forgetask:latest" \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   -t "${DOCKER_REGISTRY}/forgetask:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask:latest" \
@@ -27,11 +25,9 @@ docker push "${DOCKER_REGISTRY}/forgetask:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask:latest"
 
 echo "[2/4] Construyendo Frontend..."
-docker pull "${DOCKER_REGISTRY}/forgetask-frontend:latest" || true
 docker build \
   --build-arg NEXT_PUBLIC_USE_PROXY=true \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
   "${OCI_PRIMARY_SOURCE_DIR}/forgetask-frontend"
@@ -39,10 +35,8 @@ docker push "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask-frontend:latest"
 
 echo "[3/4] Construyendo Tests..."
-docker pull "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" || true
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
   -f "${OCI_PRIMARY_SOURCE_DIR}/Dockerfile.tests" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
@@ -51,10 +45,8 @@ docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest"
 
 echo "[4/4] Construyendo Function..."
-docker pull "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" || true
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" \
   -f "${OCI_PRIMARY_SOURCE_DIR}/infrastructure/oci-e2e-function/Dockerfile" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-orchestrator-fn:latest" \
