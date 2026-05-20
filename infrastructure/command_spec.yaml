@@ -14,6 +14,7 @@ env:
     OKE_ENDPOINT: "https://159.54.150.206:6443"
     E2E_TIMEOUT_SECONDS: "1800"
     INTERVAL: "15"
+    BUILDRUN_HASH: "${BUILDRUN_HASH}"
   vaultVariables:
     OKE_SA_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiao3ai7nhgak5rmeykaccjrhxvt4b3uo32f3ivlzll7gna"
     GITHUB_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiagb5n22fmepwuiarxnconu6nu5lxwqmho6bcfawesdejq"
