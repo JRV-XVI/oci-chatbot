@@ -15,7 +15,7 @@ public class HealthController {
     @Value("${APP_VERSION:unknown-version}")
     private String version;
 
-    @GetMapping({"/health", "/"})
+    @GetMapping({"/health", "/", "/api/health"})
     public Map<String, Object> health() {
         return Map.of(
                 "status", "ok",
