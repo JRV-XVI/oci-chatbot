@@ -21,7 +21,7 @@ public class HealthController {
                 "status", "ok",
                 "service", "forgetask",
                 "namespace", namespace,
-                "version test", version
+                "version", version
         );
     }
 }
