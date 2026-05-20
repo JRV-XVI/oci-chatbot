@@ -3,22 +3,6 @@ component: command
 timeoutInSeconds: 3600
 shell: bash
 
-env:
-  variables:
-    BUILDRUN_HASH: "${BUILDRUN_HASH}"
-    JOB_NAMESPACE: "mtdrworkshop"
-    OCIR_REGION: "mx-queretaro-1"
-    OCIR_NAMESPACE: "axpqjhfdooxb"
-    GITHUB_OWNER: "JRV-XVI"
-    GITHUB_REPO: "oci-chatbot"
-    GITHUB_PROJECT_ID: "5"
-    OKE_ENDPOINT: "https://159.54.150.206:6443"
-    E2E_TIMEOUT_SECONDS: "1800"
-    INTERVAL: "15"
-  vaultVariables:
-    OKE_SA_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiao3ai7nhgak5rmeykaccjrhxvt4b3uo32f3ivlzll7gna"
-    GITHUB_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiagb5n22fmepwuiarxnconu6nu5lxwqmho6bcfawesdejq"
-
 inputArtifacts:
   - name: shell-assets
     type: GENERIC_ARTIFACT
@@ -35,7 +19,7 @@ steps:
     command: |
       set -e
       KUBECTL_VERSION="$(curl -sL https://dl.k8s.io/release/stable.txt)"
-      curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+      curl -LO "https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl"
       chmod +x kubectl
       mv kubectl /usr/local/bin/kubectl
       kubectl version --client
@@ -46,18 +30,18 @@ steps:
     command: |
       set -e
       kubectl config set-cluster oke-cluster \
-        --server="${OKE_ENDPOINT}" \
+        --server="$OKE_ENDPOINT" \
         --insecure-skip-tls-verify=true
 
       kubectl config set-credentials e2e-runner \
-        --token="${OKE_SA_TOKEN}"
+        --token="$OKE_SA_TOKEN"
 
       kubectl config set-context e2e-context \
         --cluster=oke-cluster \
         --user=e2e-runner
 
       kubectl config use-context e2e-context
-      kubectl get namespace "${JOB_NAMESPACE}"
+      kubectl get namespace "$JOB_NAMESPACE"
 
   - type: Command
     name: "Preparar scripts"
@@ -103,6 +87,15 @@ steps:
     timeoutInSeconds: 3000
     command: |
       set -e
+      export BUILDRUN_HASH="${BUILDRUN_HASH}"
+      export JOB_NAMESPACE="mtdrworkshop"
+      export OCIR_REGION="mx-queretaro-1"
+      export OCIR_NAMESPACE="axpqjhfdooxb"
+      export GITHUB_OWNER="JRV-XVI"
+      export GITHUB_REPO="oci-chatbot"
+      export GITHUB_PROJECT_ID="5"
+      export E2E_TIMEOUT_SECONDS="1800"
+      export INTERVAL="15"
       echo "Iniciando ejecución principal del orquestador e2e-run.sh..."
       if ! /workspace/shell-assets/scripts/e2e-run.sh; then
         echo "========================================================="
