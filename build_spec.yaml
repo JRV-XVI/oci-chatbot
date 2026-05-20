@@ -35,9 +35,23 @@ steps:
       zip -r ../../shell-assets.zip .
       cd ${OCI_PRIMARY_SOURCE_DIR}
 
-  - displayName: "Publicar shell-assets como latest"
+- displayName: "Publicar shell-assets como latest"
     type: Command
     command: |
+      # Borrar la versión latest existente si existe
+      EXISTING=$(oci artifacts generic artifact list \
+        --repository-id "ocid1.artifactrepository.oc1.mx-queretaro-1.0.amaaaaaa35eq2aia546qxfysx6kquaozdtfsbaui2ktxmzflu7nkuovnyhrq" \
+        --artifact-path "shell-assets.zip" \
+        --compartment-id "ocid1.compartment.oc1..aaaaaaaanic2e7sewrc36tj7mrakkmk2nct2icng7kkuw4qvyktieegxz33a" \
+        --query 'data.items[?version==`latest`].id | [0]' \
+        --raw-output 2>/dev/null || true)
+
+      if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
+        echo "Borrando latest existente: $EXISTING"
+        oci artifacts generic artifact delete \
+          --artifact-id "$EXISTING" --force
+      fi
+
       oci artifacts generic artifact upload-by-path \
         --repository-id "ocid1.artifactrepository.oc1.mx-queretaro-1.0.amaaaaaa35eq2aia546qxfysx6kquaozdtfsbaui2ktxmzflu7nkuovnyhrq" \
         --artifact-path "shell-assets.zip" \
@@ -64,7 +78,3 @@ outputArtifacts:
   - name: forgetask_shell_command_spec
     type: BINARY
     location: ${OCI_PRIMARY_SOURCE_DIR}/infrastructure/command_spec.yaml
-
-  - name: forgetask_shell_assets
-    type: BINARY
-    location: ${OCI_PRIMARY_SOURCE_DIR}/shell-assets.zip
