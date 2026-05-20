@@ -28,7 +28,7 @@ steps:
       curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
       chmod +x kubectl
       mv kubectl /usr/local/bin/kubectl
-      kubectl version --client --short
+      kubectl version --client
 
   - type: Command
     name: "Configurar acceso al cluster"
