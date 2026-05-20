@@ -14,7 +14,17 @@ env:
     OKE_ENDPOINT: "https://159.54.150.206:6443"
     E2E_TIMEOUT_SECONDS: "1800"
     INTERVAL: "15"
-    BUILDRUN_HASH: "${BUILDRUN_HASH}"
+
+    BLUE_NAMESPACE: "ns-blue"
+    GREEN_NAMESPACE: "ns-green"
+
+    INGRESS_NAME: "forgetask-bg-ingress"
+
+    BACKEND_DEPLOYMENT_NAME: "forgetask-deployment"
+    FRONTEND_DEPLOYMENT_NAME: "forgetask-frontend-deployment"
+    BACKEND_SERVICE_NAME: "forgetask-service"
+    FRONTEND_SERVICE_NAME: "forgetask-frontend-service"
+
   vaultVariables:
     OKE_SA_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiao3ai7nhgak5rmeykaccjrhxvt4b3uo32f3ivlzll7gna"
     GITHUB_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiagb5n22fmepwuiarxnconu6nu5lxwqmho6bcfawesdejq"
@@ -96,6 +106,16 @@ steps:
       chmod +x /workspace/shell-assets/scripts/e2e-run.sh
       echo "Assets preparados correctamente:"
       ls -l /workspace/shell-assets/scripts/
+
+  - type: Command
+    name: "Inspeccionar Ingress Blue/Green"
+    timeoutInSeconds: 120
+    command: |
+      set -e
+      echo "=> Buscando ingress ${INGRESS_NAME} en namespace ${BLUE_NAMESPACE}"
+      kubectl get ingress "${INGRESS_NAME}" -n "${BLUE_NAMESPACE}" -o yaml || true
+      echo "=> Buscando ingress ${INGRESS_NAME} en namespace ${GREEN_NAMESPACE}"
+      kubectl get ingress "${INGRESS_NAME}" -n "${GREEN_NAMESPACE}" -o yaml || true
 
   - type: Command
     name: "Ejecutar E2E y validar"
