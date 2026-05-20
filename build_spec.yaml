@@ -35,22 +35,6 @@ steps:
       zip -r ../../shell-assets.zip .
       cd ${OCI_PRIMARY_SOURCE_DIR}
 
-  - displayName: "Trigger Deployment Pipeline"
-    type: Command
-    command: |
-      if ! command -v oci &>/dev/null; then
-        echo "Instalando OCI CLI..."
-        curl -sL https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | \
-          bash -s -- --accept-all-defaults
-        export PATH="$HOME/bin:$PATH"
-      fi
-
-      echo "Disparando deployment con BUILDRUN_HASH=${BUILDRUN_HASH}..."
-      oci devops deployment create-pipeline-deployment \
-        --pipeline-id "ocid1.devopsdeploypipeline.oc1.mx-queretaro-1.amaaaaaa35eq2aiaxk3uw4h3op2zp62gprn6ynt45d5ph6pcujjtul5ekuka" \
-        --deployment-arguments "{\"items\":[{\"name\":\"BUILDRUN_HASH\",\"value\":\"${BUILDRUN_HASH}\"}]}" \
-        --display-name "deploy-${BUILDRUN_HASH}"
-
 outputArtifacts:
   - name: forgetask_backend_image
     type: DOCKER_IMAGE
