@@ -5,7 +5,7 @@ shell: bash
 
 env:
   variables:
-    BUILDRUN_HASH: "${BUILDRUN_HASH}"
+    BUILDRUN_HASH: "latest"
     JOB_NAMESPACE: "mtdrworkshop"
     OCIR_REGION: "mx-queretaro-1"
     OCIR_NAMESPACE: "axpqjhfdooxb"
@@ -24,10 +24,34 @@ inputArtifacts:
     type: GENERIC_ARTIFACT
     registryId: "ocid1.artifactrepository.oc1.mx-queretaro-1.0.amaaaaaa35eq2aia546qxfysx6kquaozdtfsbaui2ktxmzflu7nkuovnyhrq"
     path: "shell-assets.zip"
-    version: "${BUILDRUN_HASH}"
+    version: "latest"
     location: "/workspace/shell-assets.zip"
 
 steps:
+  - type: Command
+    name: "Resolver BUILDRUN_HASH"
+    timeoutInSeconds: 60
+    command: |
+      set -e
+      echo "Resolviendo BUILDRUN_HASH desde Artifact Registry..."
+      BUILDRUN_HASH=$(oci artifacts generic artifact list \
+        --repository-id "ocid1.artifactrepository.oc1.mx-queretaro-1.0.amaaaaaa35eq2aia546qxfysx6kquaozdtfsbaui2ktxmzflu7nkuovnyhrq" \
+        --artifact-path "shell-assets.zip" \
+        --compartment-id "ocid1.compartment.oc1..aaaaaaaanic2e7sewrc36tj7mrakkmk2nct2icng7kkuw4qvyktieegxz33a" \
+        --sort-by timeCreated \
+        --sort-order DESC \
+        --limit 1 \
+        --query 'data.items[0].version' \
+        --raw-output 2>/dev/null)
+
+      if [ -z "$BUILDRUN_HASH" ]; then
+        echo "ERROR: No se pudo resolver BUILDRUN_HASH"
+        exit 1
+      fi
+
+      export BUILDRUN_HASH
+      echo "BUILDRUN_HASH resuelto: ${BUILDRUN_HASH}"
+
   - type: Command
     name: "Instalar kubectl"
     timeoutInSeconds: 180
@@ -47,14 +71,11 @@ steps:
       kubectl config set-cluster oke-cluster \
         --server="$OKE_ENDPOINT" \
         --insecure-skip-tls-verify=true
-
       kubectl config set-credentials e2e-runner \
         --token="$OKE_SA_TOKEN"
-
       kubectl config set-context e2e-context \
         --cluster=oke-cluster \
         --user=e2e-runner
-
       kubectl config use-context e2e-context
       kubectl get namespace "$JOB_NAMESPACE"
 
@@ -62,39 +83,19 @@ steps:
     name: "Preparar scripts"
     command: |
       set -e
-      echo "=> Directorio actual de ejecución (pwd):"
-      pwd
-      
-      echo "=> Explorando contenido inicial de /workspace:"
-      ls -la /workspace 2>/dev/null || echo "Directorio /workspace no está disponible"
-      
-      echo "Buscando assets CI/CD (shell-assets.zip)..."
-      
-      # Buscar el archivo en el entorno de ejecución como fichero
       ZIP_PATH=$(find /workspace -type f -name "shell-assets.zip" 2>/dev/null | head -n 1)
-      
       if [ -z "$ZIP_PATH" ]; then
-        echo "No se encontró en /workspace. Búsqueda exhaustiva segura (omitiendo proc/sys/dev)..."
-        ZIP_PATH=$(find / -type f -name "shell-assets.zip" -not -path "/proc/*" -not -path "/sys/*" -not -path "/dev/*" 2>/dev/null | head -n 1)
+        ZIP_PATH=$(find / -type f -name "shell-assets.zip" \
+          -not -path "/proc/*" -not -path "/sys/*" -not -path "/dev/*" \
+          2>/dev/null | head -n 1)
       fi
-
       if [ -z "$ZIP_PATH" ]; then
-        echo "========================================================="
-        echo " ERROR CRÍTICO: No se encontró shell-assets.zip."
-        echo "========================================================="
-        echo "Para solucionar esto, ve a la consola de OCI DevOps:"
-        echo "1. Edita el 'Shell Stage' en tu Deployment Pipeline."
-        echo "2. En la sección 'Input Artifacts', agrega el artefacto forgetask_shell_assets."
-        echo "3. Asegúrate de mapear el nombre (Download location) a 'shell-assets.zip'."
+        echo "ERROR: No se encontró shell-assets.zip"
         exit 1
       fi
-      
-      echo " Archivo encontrado, ruta real: $ZIP_PATH"
-      echo "Descomprimiendo mediante ruta absoluta..."
       mkdir -p /workspace/shell-assets
       unzip -o "$ZIP_PATH" -d /workspace/shell-assets
       chmod +x /workspace/shell-assets/scripts/e2e-run.sh
-      echo "Assets preparados correctamente:"
       ls -l /workspace/shell-assets/scripts/
 
   - type: Command
@@ -104,9 +105,7 @@ steps:
       set -e
       echo "Iniciando ejecución principal del orquestador e2e-run.sh..."
       if ! /workspace/shell-assets/scripts/e2e-run.sh; then
-        echo "========================================================="
-        echo " ERROR CRÍTICO: La validación E2E ha fallado dentro del OCI Pipeline."
-        echo "========================================================="
+        echo "ERROR CRÍTICO: La validación E2E ha fallado."
         exit 1
       fi
-      echo " Validación finalizada correctamente."
+      echo "Validación finalizada correctamente."
