@@ -64,7 +64,9 @@ export JOB_NAME
 export TEST_IMAGE
 
 if command -v envsubst >/dev/null 2>&1; then
-    envsubst < "${WORK_DIR}/templates/e2e-job.yaml.tpl" | kubectl apply -n "${JOB_NAMESPACE}" -f -
+    envsubst '${JOB_NAME} ${JOB_NAMESPACE} ${TEST_IMAGE} ${E2E_TIMEOUT_SECONDS} ${E2E_SELENIUM_TIMEOUT} ${TARGET_NAMESPACE} ${GITHUB_OWNER} ${GITHUB_REPO} ${GITHUB_PROJECT_ID}' \
+        < "${WORK_DIR}/templates/e2e-job.yaml.tpl" \
+        | kubectl apply -n "${JOB_NAMESPACE}" -f -
 else
     eval "cat <<EOF
 $(cat "${WORK_DIR}/templates/e2e-job.yaml.tpl")
