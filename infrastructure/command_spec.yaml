@@ -22,7 +22,6 @@ env:
 inputArtifacts:
   - name: shell-assets
     type: GENERIC_ARTIFACT
-    artifactId: "ocid1.genericartifact.oc1.mx-queretaro-1.0.amaaaaaa35eq2aiasmp35lz6z73zw3pr56ggttmm4wdt5psfbx7ciatxsgjq"
     registryId: "ocid1.artifactrepository.oc1.mx-queretaro-1.0.amaaaaaa35eq2aia546qxfysx6kquaozdtfsbaui2ktxmzflu7nkuovnyhrq"
     path: "shell-assets.zip"
     version: "${BUILDRUN_HASH}"
