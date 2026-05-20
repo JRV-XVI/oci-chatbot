@@ -27,7 +27,7 @@ docker push "${DOCKER_REGISTRY}/forgetask:latest"
 echo "[2/3] Construyendo Frontend..."
 docker build \
   --build-arg NEXT_PUBLIC_USE_PROXY=true \
-  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --no-cache \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-frontend:latest" \
   "${OCI_PRIMARY_SOURCE_DIR}/forgetask-frontend"
