@@ -73,17 +73,17 @@ steps:
     command: |
       set -e
       
-      echo "export OCIR_REGION=\"${OCIR_REGION:-mx-queretaro-1}\"" >> /workspace/env_vars.sh
-      echo "export OCIR_NAMESPACE=\"${OCIR_NAMESPACE:-axpqjhfdooxb}\"" >> /workspace/env_vars.sh
-      echo "export JOB_NAMESPACE=\"${JOB_NAMESPACE:-mtdrworkshop}\"" >> /workspace/env_vars.sh
-      echo "export E2E_TIMEOUT_SECONDS=\"${E2E_TIMEOUT_SECONDS:-2700}\"" >> /workspace/env_vars.sh
-      echo "export BLUE_NAMESPACE=\"${BLUE_NAMESPACE:-ns-blue}\"" >> /workspace/env_vars.sh
-      echo "export GREEN_NAMESPACE=\"${GREEN_NAMESPACE:-ns-green}\"" >> /workspace/env_vars.sh
-      echo "export INGRESS_NAME=\"${INGRESS_NAME:-forgetask-bg-ingress}\"" >> /workspace/env_vars.sh
-      echo "export BACKEND_DEPLOYMENT_NAME=\"${BACKEND_DEPLOYMENT_NAME:-forgetask-deployment}\"" >> /workspace/env_vars.sh
-      echo "export FRONTEND_DEPLOYMENT_NAME=\"${FRONTEND_DEPLOYMENT_NAME:-forgetask-frontend-deployment}\"" >> /workspace/env_vars.sh
-      echo "export BACKEND_SERVICE_NAME=\"${BACKEND_SERVICE_NAME:-forgetask-service}\"" >> /workspace/env_vars.sh
-      echo "export FRONTEND_SERVICE_NAME=\"${FRONTEND_SERVICE_NAME:-forgetask-frontend-service}\"" >> /workspace/env_vars.sh
+      echo "export OCIR_REGION=\"$OCIR_REGION\"" >> /workspace/env_vars.sh
+      echo "export OCIR_NAMESPACE=\"$OCIR_NAMESPACE\"" >> /workspace/env_vars.sh
+      echo "export JOB_NAMESPACE=\"$JOB_NAMESPACE\"" >> /workspace/env_vars.sh
+      echo "export E2E_TIMEOUT_SECONDS=\"$E2E_TIMEOUT_SECONDS\"" >> /workspace/env_vars.sh
+      echo "export BLUE_NAMESPACE=\"$BLUE_NAMESPACE\"" >> /workspace/env_vars.sh
+      echo "export GREEN_NAMESPACE=\"$GREEN_NAMESPACE\"" >> /workspace/env_vars.sh
+      echo "export INGRESS_NAME=\"$INGRESS_NAME\"" >> /workspace/env_vars.sh
+      echo "export BACKEND_DEPLOYMENT_NAME=\"$BACKEND_DEPLOYMENT_NAME\"" >> /workspace/env_vars.sh
+      echo "export FRONTEND_DEPLOYMENT_NAME=\"$FRONTEND_DEPLOYMENT_NAME\"" >> /workspace/env_vars.sh
+      echo "export BACKEND_SERVICE_NAME=\"$BACKEND_SERVICE_NAME\"" >> /workspace/env_vars.sh
+      echo "export FRONTEND_SERVICE_NAME=\"$FRONTEND_SERVICE_NAME\"" >> /workspace/env_vars.sh
 
       echo "=> Directorio actual de ejecución (pwd):"
       pwd
