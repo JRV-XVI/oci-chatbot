@@ -28,6 +28,8 @@ spec:
               value: "true"
             - name: E2E_TIMEOUT_SECONDS
               value: "${E2E_TIMEOUT_SECONDS}"
+            - name: E2E_SELENIUM_TIMEOUT
+              value: "${E2E_SELENIUM_TIMEOUT}"
             - name: E2E_ARTIFACTS_DIR
               value: "/app/tests/selenium/artifacts"
             - name: TARGET_NAMESPACE

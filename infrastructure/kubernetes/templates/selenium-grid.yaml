@@ -148,9 +148,6 @@ spec:
               value: "true"
             - name: SE_NODE_SESSION_TIMEOUT
               value: "300"
-            # Kubernetes: el nodo se drena al terminar la suite para volver limpio
-            - name: SE_NODE_DRAIN_AFTER_SESSION_COUNT
-              value: "0"
             - name: SE_VNC_NO_PASSWORD
               value: "true"
           resources:
