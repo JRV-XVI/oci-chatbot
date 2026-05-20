@@ -28,7 +28,7 @@ public class InviteService {
         if (inviteRepo.existsByEmailAndIdProjectAndStatus(
                 request.getEmail(), request.getIdProject(), "PENDING")) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Ya existe una invitación pendiente para ese correo en este proyecto.");
+                    " una invitación pendiente para ese correo en este proyecto.");
         }
 
         String token = UUID.randomUUID().toString();
