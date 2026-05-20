@@ -48,3 +48,14 @@ spec:
                 secretKeyRef:
                   name: forgetask-e2e-secrets
                   key: E2E_LOGIN_PASSWORD
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: token
+            - name: GITHUB_OWNER
+              value: "${GITHUB_OWNER}"
+            - name: GITHUB_REPO
+              value: "${GITHUB_REPO}"
+            - name: GITHUB_PROJECT_ID
+              value: "${GITHUB_PROJECT_ID}"
