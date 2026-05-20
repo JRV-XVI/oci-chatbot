@@ -28,6 +28,13 @@ steps:
       bash ${OCI_PRIMARY_SOURCE_DIR}/infrastructure/scripts/deploy/ci-build.sh
     timeoutInSeconds: 2400
 
+  - displayName: "Empaquetar scripts de E2E"
+    type: Command
+    command: |
+      cd ${OCI_PRIMARY_SOURCE_DIR}/infrastructure/shell
+      zip -r ../../shell-assets.zip .
+      cd ${OCI_PRIMARY_SOURCE_DIR}
+
 outputArtifacts:
   - name: forgetask_backend_image
     type: DOCKER_IMAGE
@@ -48,3 +55,7 @@ outputArtifacts:
   - name: forgetask_shell_command_spec
     type: BINARY
     location: ${OCI_PRIMARY_SOURCE_DIR}/infrastructure/command_spec.yaml
+
+  - name: forgetask_shell_assets
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/shell-assets.zip
