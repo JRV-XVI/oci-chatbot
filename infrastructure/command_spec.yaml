@@ -58,8 +58,10 @@ steps:
         --server="$OKE_ENDPOINT" \
         --insecure-skip-tls-verify=true
 
+      # TEST DE DIAGNOSTICO: Token hardcodeado directo (reemplaza AQUI_PEGA_TU_TOKEN con tu JWT)
+      # kubectl config set-credentials e2e-runner --token="$OKE_SA_TOKEN"
       kubectl config set-credentials e2e-runner \
-        --token="$OKE_SA_TOKEN"
+        --token="eyJhbGciOiJSUzI1NiIsImtpZCI6IkZManJVSFpTSi1pOFhzWnlLaEs3STQ0dnhUVHNNM0E3V2pSODZaOTZVTDgifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJvY2ktZGV2b3BzLXJ1bm5lci10b2tlbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJvY2ktZGV2b3BzLXJ1bm5lciIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjczMGI4M2IxLWVmZGQtNDVmZS1iNzY0LTAyNmVkNTc0ZjM1ZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlLXN5c3RlbTpvY2ktZGV2b3BzLXJ1bm5lciJ9.THe7gVT7zXaLvBiayyWMocOzOn9BSi4HOWhhOOzXaqDxuuG5-uqcFM58aIwE8N0xoufjojd-CrqyckqGEpxlasbrUuFO17iTH5MvceStkTVgjwCXusss5VkhuZU8m_4H-jy5NXlekzCHQb6x5mbCBiN8jMttU8ZhXt2PRe1_ZLdsCchm7qTSBNnfcIkwKEIszYpdAFBnmkvuZeq-FZhmtZdfByKs2GxzvYBVlHYh2frqZXJDJWI7Eofulj1IYytb_gZfV5xbcklNpDhAPjzX3TWOfmYQuo1OOSx6cVXuVJhYA0Z_xLcR8D--QKydjFEyvpB_q9i_IxabpZi_0FE9IQ"
 
       kubectl config set-context e2e-context \
         --cluster=oke-cluster \
