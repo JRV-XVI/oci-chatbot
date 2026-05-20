@@ -151,7 +151,7 @@ export function LoginForm() {
               Bienvenido de nuevo
             </h1>
             <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Retoma el control de tus proyectos.
+              Retoma el control de tus proyectos. - tests
             </p>
           </div>
 

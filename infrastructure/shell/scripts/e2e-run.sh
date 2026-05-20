@@ -1,66 +1,59 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORK_DIR="$(dirname "$DIR")"
 
-BLUE_NS="ns-blue"
-GREEN_NS="ns-green"
-IMAGE_TAG="${BUILDRUN_HASH:-latest}"
+BLUE_NS="${BLUE_NAMESPACE:-ns-blue}"
+GREEN_NS="${GREEN_NAMESPACE:-ns-green}"
+
+INGRESS_NAME="${INGRESS_NAME:-forgetask-bg-ingress}"
+
+TARGET_NAMESPACE=""
+ACTIVE_NAMESPACE=""
+
+BACKEND_DEPLOYMENT_NAME="${BACKEND_DEPLOYMENT_NAME:-forgetask-deployment}"
+FRONTEND_DEPLOYMENT_NAME="${FRONTEND_DEPLOYMENT_NAME:-forgetask-frontend-deployment}"
+BACKEND_SERVICE_NAME="${BACKEND_SERVICE_NAME:-forgetask-service}"
+FRONTEND_SERVICE_NAME="${FRONTEND_SERVICE_NAME:-forgetask-frontend-service}"
 
 echo ">> DEBUG: Variables de entorno actuales:"
-env | grep -E "BUILDRUN|OCIR|GITHUB|OKE|JOB" | sort
+env | grep -E "OCIR|GITHUB|OKE|JOB|INGRESS|BLUE|GREEN|NAMESPACE|DEPLOYMENT|SERVICE" | sort || true
 echo ">> Fin DEBUG"
 
-# Regresamos los || echo "" para que el script no muera por el 'set -e' si jsonpath falla
-BLUE_FRONT_IMAGE="$(kubectl get deploy forgetask-frontend-deployment -n "${BLUE_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")"
-GREEN_FRONT_IMAGE="$(kubectl get deploy forgetask-frontend-deployment -n "${GREEN_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")"
-BLUE_BACK_IMAGE="$(kubectl get deploy forgetask-deployment -n "${BLUE_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")"
-GREEN_BACK_IMAGE="$(kubectl get deploy forgetask-deployment -n "${GREEN_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "")"
+echo ">> Inspeccionando Ingress ${INGRESS_NAME} en Blue/Green namespaces para determinar el entorno..."
 
-echo "BUILDRUN_HASH esperado: ${IMAGE_TAG}"
-echo "BLUE frontend image:  ${BLUE_FRONT_IMAGE}"
-echo "GREEN frontend image: ${GREEN_FRONT_IMAGE}"
-echo "BLUE backend image:   ${BLUE_BACK_IMAGE}"
-echo "GREEN backend image:  ${GREEN_BACK_IMAGE}"
+CANARY_BLUE=$(kubectl get ingress "${INGRESS_NAME}" -n "${BLUE_NS}" -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/canary}' 2>/dev/null || echo "false")
+CANARY_GREEN=$(kubectl get ingress "${INGRESS_NAME}" -n "${GREEN_NS}" -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/canary}' 2>/dev/null || echo "false")
 
-BLUE_MATCH="false"
-GREEN_MATCH="false"
+echo "Target Canary Annotation en Blue (${BLUE_NS}): ${CANARY_BLUE}"
+echo "Target Canary Annotation en Green (${GREEN_NS}): ${CANARY_GREEN}"
 
-if echo "${BLUE_FRONT_IMAGE}" | grep -q ":${IMAGE_TAG}$" && \
-   echo "${BLUE_BACK_IMAGE}"  | grep -q ":${IMAGE_TAG}$"; then
-  BLUE_MATCH="true"
-fi
-
-if echo "${GREEN_FRONT_IMAGE}" | grep -q ":${IMAGE_TAG}$" && \
-   echo "${GREEN_BACK_IMAGE}"  | grep -q ":${IMAGE_TAG}$"; then
-  GREEN_MATCH="true"
-fi
-
-if [ "${BLUE_MATCH}" = "true" ] && [ "${GREEN_MATCH}" = "false" ]; then
+if [ "${CANARY_BLUE}" = "true" ] && [ "${CANARY_GREEN}" != "true" ]; then
   TARGET_NAMESPACE="${BLUE_NS}"
-elif [ "${BLUE_MATCH}" = "false" ] && [ "${GREEN_MATCH}" = "true" ]; then
+  ACTIVE_NAMESPACE="${GREEN_NS}"
+elif [ "${CANARY_GREEN}" = "true" ] && [ "${CANARY_BLUE}" != "true" ]; then
   TARGET_NAMESPACE="${GREEN_NS}"
-elif [ "${BLUE_MATCH}" = "true" ] && [ "${GREEN_MATCH}" = "true" ]; then
-  echo "Ambiguo: ambos namespaces tienen la imagen ${IMAGE_TAG}."
-  exit 1
+  ACTIVE_NAMESPACE="${BLUE_NS}"
 else
-  echo "No pude inferir el namespace objetivo por imagen desplegada."
-  echo "Verifica que el Blue/Green stage ya haya desplegado backend y frontend con el tag ${IMAGE_TAG}."
+  echo "ERROR: Configuración anómala de Ingress de OCI. Ninguno o ambos están marcados como Canary."
   exit 1
 fi
 
 export TARGET_NAMESPACE
 
+echo "Namespace activo (Producción) detectado: ${ACTIVE_NAMESPACE}"
+echo "Namespace target (Idle/Nuevo) detectado: ${TARGET_NAMESPACE}"
+
 kubectl get namespace "${TARGET_NAMESPACE}"
-kubectl rollout status deployment/forgetask-deployment -n "${TARGET_NAMESPACE}" --timeout=300s
-kubectl rollout status deployment/forgetask-frontend-deployment -n "${TARGET_NAMESPACE}" --timeout=300s
-kubectl get svc forgetask-service -n "${TARGET_NAMESPACE}"
-kubectl get svc forgetask-frontend-service -n "${TARGET_NAMESPACE}"
+kubectl rollout status deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${TARGET_NAMESPACE}" --timeout=300s
+kubectl rollout status deployment/"${FRONTEND_DEPLOYMENT_NAME}" -n "${TARGET_NAMESPACE}" --timeout=300s
+kubectl get svc "${BACKEND_SERVICE_NAME}" -n "${TARGET_NAMESPACE}"
+kubectl get svc "${FRONTEND_SERVICE_NAME}" -n "${TARGET_NAMESPACE}"
 
 RUN_ID="$(date +%s)"
 JOB_NAME="forgetask-e2e-${RUN_ID}"
-TEST_IMAGE="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu/forgetask-e2e-tests:${IMAGE_TAG}"
+TEST_IMAGE="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu/forgetask-e2e-tests:${BUILDRUN_HASH:-latest}"
 
 echo "Namespace Target detectado: ${TARGET_NAMESPACE}"
 echo "Job: ${JOB_NAME}"
