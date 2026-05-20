@@ -69,9 +69,22 @@ steps:
       kubectl get namespace "$JOB_NAMESPACE"
 
   - type: Command
-    name: "Preparar scripts"
+    name: "Preparar scripts y variables"
     command: |
       set -e
+      
+      echo "export OCIR_REGION=\"${OCIR_REGION:-mx-queretaro-1}\"" >> /workspace/env_vars.sh
+      echo "export OCIR_NAMESPACE=\"${OCIR_NAMESPACE:-axpqjhfdooxb}\"" >> /workspace/env_vars.sh
+      echo "export JOB_NAMESPACE=\"${JOB_NAMESPACE:-mtdrworkshop}\"" >> /workspace/env_vars.sh
+      echo "export E2E_TIMEOUT_SECONDS=\"${E2E_TIMEOUT_SECONDS:-2700}\"" >> /workspace/env_vars.sh
+      echo "export BLUE_NAMESPACE=\"${BLUE_NAMESPACE:-ns-blue}\"" >> /workspace/env_vars.sh
+      echo "export GREEN_NAMESPACE=\"${GREEN_NAMESPACE:-ns-green}\"" >> /workspace/env_vars.sh
+      echo "export INGRESS_NAME=\"${INGRESS_NAME:-forgetask-bg-ingress}\"" >> /workspace/env_vars.sh
+      echo "export BACKEND_DEPLOYMENT_NAME=\"${BACKEND_DEPLOYMENT_NAME:-forgetask-deployment}\"" >> /workspace/env_vars.sh
+      echo "export FRONTEND_DEPLOYMENT_NAME=\"${FRONTEND_DEPLOYMENT_NAME:-forgetask-frontend-deployment}\"" >> /workspace/env_vars.sh
+      echo "export BACKEND_SERVICE_NAME=\"${BACKEND_SERVICE_NAME:-forgetask-service}\"" >> /workspace/env_vars.sh
+      echo "export FRONTEND_SERVICE_NAME=\"${FRONTEND_SERVICE_NAME:-forgetask-frontend-service}\"" >> /workspace/env_vars.sh
+
       echo "=> Directorio actual de ejecución (pwd):"
       pwd
       
@@ -112,10 +125,10 @@ steps:
     timeoutInSeconds: 120
     command: |
       set -e
-      echo "=> Buscando ingress ${INGRESS_NAME} en namespace ${BLUE_NAMESPACE}"
-      kubectl get ingress "${INGRESS_NAME}" -n "${BLUE_NAMESPACE}" -o yaml || true
-      echo "=> Buscando ingress ${INGRESS_NAME} en namespace ${GREEN_NAMESPACE}"
-      kubectl get ingress "${INGRESS_NAME}" -n "${GREEN_NAMESPACE}" -o yaml || true
+      echo "=> Buscando ingress $INGRESS_NAME en namespace $BLUE_NAMESPACE"
+      kubectl get ingress "$INGRESS_NAME" -n "$BLUE_NAMESPACE" -o yaml || true
+      echo "=> Buscando ingress $INGRESS_NAME en namespace $GREEN_NAMESPACE"
+      kubectl get ingress "$INGRESS_NAME" -n "$GREEN_NAMESPACE" -o yaml || true
 
   - type: Command
     name: "Ejecutar E2E y validar"
@@ -123,6 +136,9 @@ steps:
     command: |
       set -e
       echo "Iniciando ejecución principal del orquestador e2e-run.sh..."
+      
+      source /workspace/env_vars.sh
+      
       if ! /workspace/shell-assets/scripts/e2e-run.sh; then
         echo "========================================================="
         echo " ERROR CRÍTICO: La validación E2E ha fallado dentro del OCI Pipeline."
