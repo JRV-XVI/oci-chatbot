@@ -8,10 +8,11 @@ BLUE_NS="ns-blue"
 GREEN_NS="ns-green"
 IMAGE_TAG="${BUILDRUN_HASH:-latest}"
 
-BLUE_FRONT_IMAGE="$(kubectl get deploy forgetask-frontend-deployment -n "${BLUE_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "")"
-GREEN_FRONT_IMAGE="$(kubectl get deploy forgetask-frontend-deployment -n "${GREEN_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "")"
-BLUE_BACK_IMAGE="$(kubectl get deploy forgetask-deployment -n "${BLUE_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "")"
-GREEN_BACK_IMAGE="$(kubectl get deploy forgetask-deployment -n "${GREEN_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}' || echo "")"
+# Se quitaron los '|| echo ""' para forzar que el pipeline se caiga y nos imprima si hay error "Forbidden" (RBAC)
+BLUE_FRONT_IMAGE="$(kubectl get deploy forgetask-frontend-deployment -n "${BLUE_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+GREEN_FRONT_IMAGE="$(kubectl get deploy forgetask-frontend-deployment -n "${GREEN_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+BLUE_BACK_IMAGE="$(kubectl get deploy forgetask-deployment -n "${BLUE_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+GREEN_BACK_IMAGE="$(kubectl get deploy forgetask-deployment -n "${GREEN_NS}" -o jsonpath='{.spec.template.spec.containers[0].image}')"
 
 echo "BUILDRUN_HASH esperado: ${IMAGE_TAG}"
 echo "BLUE frontend image:  ${BLUE_FRONT_IMAGE}"
