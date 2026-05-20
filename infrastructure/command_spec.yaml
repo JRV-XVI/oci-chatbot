@@ -18,6 +18,15 @@ env:
     OKE_SA_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiao3ai7nhgak5rmeykaccjrhxvt4b3uo32f3ivlzll7gna"
     GITHUB_TOKEN: "ocid1.vaultsecret.oc1.mx-queretaro-1.amaaaaaa35eq2aiagb5n22fmepwuiarxnconu6nu5lxwqmho6bcfawesdejq"
 
+inputArtifacts:
+  - name: shell-assets
+    type: GENERIC_ARTIFACT
+    artifactId: "artifactid:ocid1.devopsdeployartifact.oc1.mx-queretaro-1.amaaaaaa35eq2aia2mqcvhscmjgj2ghhlbxfh7ljikooru6jdqfhape2ypwq"
+    registryId: "registryid:ocid1.artifactrepository.oc1.mx-queretaro-1.0.amaaaaaa35eq2aia546qxfysx6kquaozdtfsbaui2ktxmzflu7nkuovnyhrq"
+    path: "shell-assets.zip"
+    version: "${BUILDRUN_HASH}"
+    location: "/workspace/shell-assets.zip"
+
 steps:
   - type: Command
     name: "Instalar kubectl"
