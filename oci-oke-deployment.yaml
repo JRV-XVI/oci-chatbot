@@ -181,7 +181,7 @@ spec:
             - name: NEXT_PUBLIC_USE_PROXY
               value: "true"
             - name: BACKEND_INTERNAL_URL
-              value: "http://forgetask-service.${NAMESPACE}.svc.cluster.local:8080"
+              value: "http://forgetask-service:8080"
           resources:
             requests:
               cpu: "100m"
