@@ -124,6 +124,8 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
           volumeMounts:
             - name: wallet-volume
               mountPath: /app/wallet
@@ -208,6 +210,8 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
       restartPolicy: Always
       topologySpreadConstraints:
         - maxSkew: 1
