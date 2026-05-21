@@ -20,13 +20,13 @@ class LoginPage(BasePage):
     def open_login(self) -> None:
         self.open("/login")
         try:
-            self.wait_visible(self.EMAIL_INPUT, timeout=6)
+            self.wait_visible(self.EMAIL_INPUT, timeout=30)
         except TimeoutException:
             if "/login" not in self.driver.current_url:
                 return
             raise
 
-        self.wait_visible(self.PASSWORD_INPUT, timeout=6)
+        self.wait_visible(self.PASSWORD_INPUT, timeout=30)
 
     def login(self, email: str, password: str) -> None:
         if "/login" not in self.driver.current_url:

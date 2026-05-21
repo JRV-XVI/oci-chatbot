@@ -80,6 +80,7 @@ steps:
       echo "export GITHUB_OWNER=\"$GITHUB_OWNER\"" >> /workspace/env_vars.sh
       echo "export GITHUB_REPO=\"$GITHUB_REPO\"" >> /workspace/env_vars.sh
       echo "export GITHUB_PROJECT_ID=\"$GITHUB_PROJECT_ID\"" >> /workspace/env_vars.sh
+      echo "export GITHUB_TOKEN=\"$GITHUB_TOKEN\"" >> /workspace/env_vars.sh
       echo "export JOB_NAMESPACE=\"$JOB_NAMESPACE\"" >> /workspace/env_vars.sh
       echo "export E2E_TIMEOUT_SECONDS=\"$E2E_TIMEOUT_SECONDS\"" >> /workspace/env_vars.sh
       echo "export INTERVAL=\"$INTERVAL\"" >> /workspace/env_vars.sh
