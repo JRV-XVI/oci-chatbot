@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build & Extract Layers
 # ==========================================
-FROM mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/base/maven:3.9.9-eclipse-temurin-21 AS build
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 COPY pom.xml ./
@@ -16,7 +16,7 @@ RUN java -Djarmode=layertools -jar /app/target/*.jar extract
 # ==========================================
 # Stage 2: Production Runtime
 # ==========================================
-FROM mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/base/eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 appgroup \
@@ -28,6 +28,7 @@ COPY --from=build --chown=appuser:appgroup /app/extracted/snapshot-dependencies/
 COPY --from=build --chown=appuser:appgroup /app/extracted/application/ ./
 
 USER appuser
+
 EXPOSE 8080
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport \
