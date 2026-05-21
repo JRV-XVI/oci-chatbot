@@ -150,6 +150,6 @@ target_namespace = os.environ.get("TARGET_NAMESPACE", "n/a")
 image_tag = os.environ.get("BUILDRUN_HASH", "latest")
 
 for test in report.get("tests", []):
-    if test.get("outcome") == "failed":
+    if test.get("outcome") in ("failed", "error"):
         error_msg = test.get("call", {}).get("crash", {}).get("message", "Error desconocido")
         create_issue(test.get("nodeid"), error_msg, target_namespace, image_tag)

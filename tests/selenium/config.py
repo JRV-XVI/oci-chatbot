@@ -53,7 +53,7 @@ def load_settings() -> SeleniumSettings:
     headless = _as_bool(os.getenv("E2E_HEADLESS"), default=False)
     width = int(os.getenv("E2E_WINDOW_WIDTH", "1600"))
     height = int(os.getenv("E2E_WINDOW_HEIGHT", "900"))
-    timeout_seconds = int(os.getenv("E2E_SELENIUM_TIMEOUT", "30"))
+    timeout_seconds = int(os.getenv("E2E_SELENIUM_TIMEOUT") or "30")
     artifacts_dir = Path(os.getenv("E2E_ARTIFACTS_DIR", str(DEFAULT_ARTIFACTS_DIR)))
     selenium_remote_url = os.getenv("E2E_SELENIUM_REMOTE_URL")
 

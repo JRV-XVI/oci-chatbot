@@ -21,22 +21,26 @@ echo ">> DEBUG: Variables de entorno actuales:"
 env | grep -E "OCIR|GITHUB|OKE|JOB|INGRESS|BLUE|GREEN|NAMESPACE|DEPLOYMENT|SERVICE" | sort || true
 echo ">> Fin DEBUG"
 
-echo ">> Inspeccionando Ingress ${INGRESS_NAME} en Blue/Green namespaces para determinar el entorno..."
+echo ">> Determinando namespace target por deployment más reciente..."
 
-CANARY_BLUE=$(kubectl get ingress "${INGRESS_NAME}" -n "${BLUE_NS}" -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/canary}' 2>/dev/null || echo "false")
-CANARY_GREEN=$(kubectl get ingress "${INGRESS_NAME}" -n "${GREEN_NS}" -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/canary}' 2>/dev/null || echo "false")
+BLUE_UPDATED=$(kubectl get deployment "${BACKEND_DEPLOYMENT_NAME}" -n "${BLUE_NS}" \
+  -o jsonpath='{.status.conditions[?(@.type=="Progressing")].lastUpdateTime}' 2>/dev/null || echo "")
+GREEN_UPDATED=$(kubectl get deployment "${BACKEND_DEPLOYMENT_NAME}" -n "${GREEN_NS}" \
+  -o jsonpath='{.status.conditions[?(@.type=="Progressing")].lastUpdateTime}' 2>/dev/null || echo "")
 
-echo "Target Canary Annotation en Blue (${BLUE_NS}): ${CANARY_BLUE}"
-echo "Target Canary Annotation en Green (${GREEN_NS}): ${CANARY_GREEN}"
+echo "Blue (${BLUE_NS}) último update: ${BLUE_UPDATED}"
+echo "Green (${GREEN_NS}) último update: ${GREEN_UPDATED}"
 
-if [ "${CANARY_BLUE}" = "true" ] && [ "${CANARY_GREEN}" != "true" ]; then
-  TARGET_NAMESPACE="${BLUE_NS}"
-  ACTIVE_NAMESPACE="${GREEN_NS}"
-elif [ "${CANARY_GREEN}" = "true" ] && [ "${CANARY_BLUE}" != "true" ]; then
+if [[ "${GREEN_UPDATED}" > "${BLUE_UPDATED}" ]]; then
   TARGET_NAMESPACE="${GREEN_NS}"
   ACTIVE_NAMESPACE="${BLUE_NS}"
+elif [[ "${BLUE_UPDATED}" > "${GREEN_UPDATED}" ]]; then
+  TARGET_NAMESPACE="${BLUE_NS}"
+  ACTIVE_NAMESPACE="${GREEN_NS}"
 else
-  echo "ERROR: Configuración anómala de Ingress de OCI. Ninguno o ambos están marcados como Canary."
+  echo "ERROR: No se puede determinar el namespace target. Timestamps iguales o vacíos."
+  echo "  Blue:  '${BLUE_UPDATED}'"
+  echo "  Green: '${GREEN_UPDATED}'"
   exit 1
 fi
 
