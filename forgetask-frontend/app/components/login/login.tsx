@@ -279,8 +279,8 @@ export function LoginForm() {
         </div>
 
         {/* ── Environment Info ── */}
-        {healthInfo && (
-          <div className="fixed bottom-4 right-4 z-50 rounded-md px-3 py-1.5 text-xs font-medium bg-black/40 border border-white/10 backdrop-blur-md" style={{ color: "var(--muted-foreground)" }}>
+        {healthInfo && healthInfo.version && (
+          <div className="fixed bottom-4 right-4 z-50 ...">
             v{healthInfo.version.slice(0,7)} • {healthInfo.namespace}
           </div>
         )}
