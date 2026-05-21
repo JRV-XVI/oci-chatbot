@@ -5,6 +5,7 @@ shell: bash
 
 env:
   variables:
+    BUILDRUN_HASH: "${BUILDRUN_HASH}"
     JOB_NAMESPACE: "mtdrworkshop"
     OCIR_REGION: "mx-queretaro-1"
     OCIR_NAMESPACE: "axpqjhfdooxb"

@@ -20,7 +20,8 @@ FRONTEND_SERVICE_NAME="${FRONTEND_SERVICE_NAME:-forgetask-frontend-service}"
 echo ">> DEBUG: Variables de entorno actuales:"
 env | grep -E "OCIR|GITHUB|OKE|JOB|INGRESS|BLUE|GREEN|NAMESPACE|DEPLOYMENT|SERVICE|BUILDRUN" | sort || true
 echo ">> Fin DEBUG"
-
+echo ">> BUILDRUN_HASH: '${BUILDRUN_HASH:-VACIO}'"
+echo ">> TEST_IMAGE: ...forgetask-e2e-tests:${BUILDRUN_HASH:-latest}"
 echo ">> Determinando namespace target por deployment más reciente..."
 
 BLUE_UPDATED=$(kubectl get deployment "${BACKEND_DEPLOYMENT_NAME}" -n "${BLUE_NS}" \
