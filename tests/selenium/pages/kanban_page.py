@@ -163,8 +163,8 @@ class KanbanPage(BasePage):
         card_locator = (By.XPATH, f"//div[@data-task-title='{title}']")
         delete_button_locator = (
             By.XPATH,
-            "//div[@data-task-title='{title}']"
-            "//button[.//span[normalize-space()='Delete']]".format(title=title),
+            f"//div[@data-task-title='{title}']"
+            f"//button[.//span[normalize-space()='Delete']]",
         )
 
         card = self.wait_visible(card_locator)
