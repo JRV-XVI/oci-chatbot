@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/base/python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -12,8 +12,6 @@ RUN pip install -r requirements-test.txt
 COPY pytest.ini ./pytest.ini
 COPY tests ./tests
 
-# CI/OKE: Chrome via Selenium Grid interno del cluster
-# Local/Windows: Edge con msedgedriver.exe local
 ENV E2E_BROWSER=chrome \
     E2E_HEADLESS=true \
     E2E_BASE_URL=http://forgetask-frontend-service.ns-green.svc.cluster.local:3000 \
@@ -22,8 +20,6 @@ ENV E2E_BROWSER=chrome \
     E2E_TIMEOUT_SECONDS=30 \
     E2E_ARTIFACTS_DIR=/app/tests/selenium/artifacts
 
-# TARGET_NAMESPACE se inyecta por el Job YAML (ns-green o ns-blue)
-# Sobreescribe los defaults de E2E_BASE_URL y E2E_API_BASE_URL
 CMD ["sh", "-c", "\
   if [ -n \"${TARGET_NAMESPACE}\" ]; then \
     export E2E_BASE_URL=\"http://forgetask-frontend-service.${TARGET_NAMESPACE}.svc.cluster.local:3000\"; \
@@ -38,4 +34,3 @@ CMD ["sh", "-c", "\
   status=$?; \
   cat /tmp/report.json; \
   exit $status"]
-

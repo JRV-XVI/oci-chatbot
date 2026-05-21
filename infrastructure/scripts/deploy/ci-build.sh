@@ -5,6 +5,7 @@ export DOCKER_BUILDKIT=1
 
 : "${BUILDRUN_HASH:?BUILDRUN_HASH not set}"
 DOCKER_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu"
+BASE_REGISTRY="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/base"
 VERSION="${BUILDRUN_HASH}"
 
 echo "[+] Login en OCIR..."
@@ -12,7 +13,30 @@ echo "${OCIR_TOKEN}" | docker login "${OCIR_REGION}.ocir.io" \
   --username "${OCIR_USERNAME}" \
   --password-stdin
 
-# ─── Builds secuenciales (Recomendado para 2 OCPU / 8GB RAM) ──────────────────
+# ─── Mirror de imágenes base en OCIR (evita Docker Hub rate limit) ────────────
+mirror_base_image() {
+  local SOURCE_IMAGE="$1"
+  local TARGET_IMAGE="$2"
+
+  if docker manifest inspect "${TARGET_IMAGE}" >/dev/null 2>&1; then
+    echo "  [mirror] Ya existe en OCIR: ${TARGET_IMAGE}, saltando pull."
+    return 0
+  fi
+
+  echo "  [mirror] Pulling ${SOURCE_IMAGE} y pushing a OCIR..."
+  docker pull "${SOURCE_IMAGE}"
+  docker tag "${SOURCE_IMAGE}" "${TARGET_IMAGE}"
+  docker push "${TARGET_IMAGE}"
+  echo "  [mirror] OK: ${TARGET_IMAGE}"
+}
+
+echo "[+] Verificando imágenes base en OCIR..."
+mirror_base_image "maven:3.9.9-eclipse-temurin-21"   "${BASE_REGISTRY}/maven:3.9.9-eclipse-temurin-21"
+mirror_base_image "eclipse-temurin:21-jre-alpine"    "${BASE_REGISTRY}/eclipse-temurin:21-jre-alpine"
+mirror_base_image "node:20-alpine"                   "${BASE_REGISTRY}/node:20-alpine"
+mirror_base_image "python:3.13-slim"                 "${BASE_REGISTRY}/python:3.13-slim"
+
+# ─── Builds secuenciales ──────────────────────────────────────────────────────
 echo "[+] Iniciando builds de forma secuencial..."
 
 echo "[1/3] Construyendo Backend..."
