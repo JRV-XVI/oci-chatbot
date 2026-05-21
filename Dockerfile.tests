@@ -31,6 +31,21 @@ CMD ["sh", "-c", "\
   fi && \
   python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && \
   python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && \
+  python -c \"\
+import sys; sys.path.insert(0, '/app'); \
+from tests.selenium.config import load_settings, build_driver; \
+s = load_settings(); \
+d = build_driver(s); \
+d.get(s.base_url + '/login'); \
+import time; time.sleep(3); \
+print('URL:', d.current_url); \
+print('TITLE:', d.title); \
+src = d.page_source; \
+print('HAS EMAIL INPUT:', 'id=\\\"email\\\"' in src or 'id=email' in src); \
+print('PAGE LENGTH:', len(src)); \
+print('FIRST 2000 CHARS:', src[:2000]); \
+d.quit() \
+\" && \
   pytest tests/selenium -m e2e \
     --json-report \
     --json-report-file=/tmp/report.json \

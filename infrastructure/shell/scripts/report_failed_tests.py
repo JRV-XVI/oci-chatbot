@@ -106,7 +106,7 @@ def create_issue(test_nodeid, error_msg, target_namespace, image_tag):
         .get("fields", {})
         .get("nodes", [])
     )
-    status_field = next((n for n in nodes if n and n.get("name") == "status"), None)
+    status_field = next((n for n in nodes if n and n.get("name", "").lower() == "status"), None)
     if not status_field:
         print("No se encontro el field 'status' en Project V2.")
         return
