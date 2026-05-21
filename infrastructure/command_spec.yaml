@@ -91,6 +91,7 @@ steps:
       echo "export FRONTEND_DEPLOYMENT_NAME=\"$FRONTEND_DEPLOYMENT_NAME\"" >> /workspace/env_vars.sh
       echo "export BACKEND_SERVICE_NAME=\"$BACKEND_SERVICE_NAME\"" >> /workspace/env_vars.sh
       echo "export FRONTEND_SERVICE_NAME=\"$FRONTEND_SERVICE_NAME\"" >> /workspace/env_vars.sh
+      echo "export BUILDRUN_HASH=\"${BUILDRUN_HASH:-}\"" >> /workspace/env_vars.sh
 
       echo "=> Directorio actual de ejecución (pwd):"
       pwd

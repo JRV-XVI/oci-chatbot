@@ -18,7 +18,7 @@ BACKEND_SERVICE_NAME="${BACKEND_SERVICE_NAME:-forgetask-service}"
 FRONTEND_SERVICE_NAME="${FRONTEND_SERVICE_NAME:-forgetask-frontend-service}"
 
 echo ">> DEBUG: Variables de entorno actuales:"
-env | grep -E "OCIR|GITHUB|OKE|JOB|INGRESS|BLUE|GREEN|NAMESPACE|DEPLOYMENT|SERVICE" | sort || true
+env | grep -E "OCIR|GITHUB|OKE|JOB|INGRESS|BLUE|GREEN|NAMESPACE|DEPLOYMENT|SERVICE|BUILDRUN" | sort || true
 echo ">> Fin DEBUG"
 
 echo ">> Determinando namespace target por deployment más reciente..."
