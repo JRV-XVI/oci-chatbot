@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -11,6 +11,7 @@ import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import authService, { AuthApiError } from "@/app/services/authService"
+import healthService, { HealthResponse } from "@/app/services/healthService"
 
 // ─── Schema de validación ─────────────────────────────────────────────────────
 const loginSchema = z.object({
@@ -26,6 +27,15 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [healthInfo, setHealthInfo] = useState<HealthResponse | null>(null)
+
+  useEffect(() => {
+    let isActive = true;
+    healthService.getHealth()
+      .then(data => { if (isActive) setHealthInfo(data); })
+      .catch(() => {}); // silenciar errores si el backend no responde
+    return () => { isActive = false; };
+  }, [])
 
   const {
     register,
@@ -141,7 +151,7 @@ export function LoginForm() {
               Bienvenido de nuevo
             </h1>
             <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Retoma el control de tus proyectos.
+              Retoma el control de tus proyectos. - tests
             </p>
           </div>
 
@@ -267,6 +277,13 @@ export function LoginForm() {
             </a>
           </p>
         </div>
+
+        {/* ── Environment Info ── */}
+        {healthInfo && healthInfo.version && (
+          <div className="fixed bottom-4 right-4 z-50 ...">
+            v{healthInfo.version.slice(0,7)} • {healthInfo.namespace}
+          </div>
+        )}
       </section>
     </div>
   )

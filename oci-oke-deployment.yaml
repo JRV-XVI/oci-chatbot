@@ -35,6 +35,12 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: APP_VERSION
+              value: "${BUILDRUN_HASH}"
             - name: TNS_ADMIN
               value: "/app/wallet"
             - name: DB_USER
@@ -92,6 +98,34 @@ spec:
                 secretKeyRef:
                   name: forgetask-app-secrets
                   key: LLM_TEMPERATURE
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
           volumeMounts:
             - name: wallet-volume
               mountPath: /app/wallet
@@ -149,7 +183,35 @@ spec:
             - name: NEXT_PUBLIC_USE_PROXY
               value: "true"
             - name: BACKEND_INTERNAL_URL
-              value: "http://forgetask-service.${NAMESPACE}.svc.cluster.local:8080"
+              value: "http://forgetask-service:8080"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "384Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
       restartPolicy: Always
       topologySpreadConstraints:
         - maxSkew: 1

@@ -53,7 +53,7 @@ def load_settings() -> SeleniumSettings:
     headless = _as_bool(os.getenv("E2E_HEADLESS"), default=False)
     width = int(os.getenv("E2E_WINDOW_WIDTH", "1600"))
     height = int(os.getenv("E2E_WINDOW_HEIGHT", "900"))
-    timeout_seconds = int(os.getenv("E2E_TIMEOUT_SECONDS", "20"))
+    timeout_seconds = int(os.getenv("E2E_SELENIUM_TIMEOUT") or "30")
     artifacts_dir = Path(os.getenv("E2E_ARTIFACTS_DIR", str(DEFAULT_ARTIFACTS_DIR)))
     selenium_remote_url = os.getenv("E2E_SELENIUM_REMOTE_URL")
 
@@ -89,6 +89,12 @@ def build_driver(settings: SeleniumSettings) -> WebDriver:
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-software-rasterizer")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--window-size=1600,900")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument("--disable-setuid-sandbox")
+    options.add_argument("--disable-web-security")
 
     # RemoteWebDriver — usado en CI contra Selenium Grid en OKE
     if settings.selenium_remote_url:

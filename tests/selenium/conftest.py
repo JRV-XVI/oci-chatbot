@@ -48,7 +48,9 @@ def driver_factory(settings: SeleniumSettings) -> Callable[[], WebDriver]:
 
 @pytest.fixture
 def driver(driver_factory: Callable[[], WebDriver]) -> WebDriver:
-    return driver_factory()
+    d = driver_factory()
+    d.delete_all_cookies() 
+    return d
 
 
 @pytest.fixture(autouse=True)

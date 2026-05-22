@@ -33,6 +33,13 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: APP_VERSION
+              value: "%IMAGE_VERSION%"
+
             - name: TNS_ADMIN
               value: "/app/wallet"
 
