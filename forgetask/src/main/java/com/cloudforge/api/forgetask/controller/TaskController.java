@@ -281,7 +281,7 @@ public class TaskController {
 
         int idUser = assignee.userId();
         int idProject = assignee.projectId();
-        Integer idSprint = resolveSprintIdStrict(task.getSprintId(), idProject);
+        Integer idSprint = resolveSprintIdStrict(task.getSprintId(), defaultProject);
         if (task.getSprintId() != null && idSprint == null) {
             return ResponseEntity.badRequest().build();
         }
