@@ -1,29 +1,21 @@
 const USER_SERIES_COLORS = [
-  "#5C2A72", // aubergine
-  "#4169E1", // royal blue
-  "#30C9B0", // turquoise green
-  "#E5A823", // marigold
-  "#8B1E2D", // deep red
+  "#5C2A72",
+  "#0084ff",  
+  "#30C9B0", 
+  "#E5A823", 
+  "#c20000",
+  "#4169E1",
+  "#ffffff", 
+  "#d400ff"
 ];
 
-const USER_COLOR_OVERRIDES: Record<string, string> = {
-  mariofengw: "#5C2A72", // Mario -> aubergine
-};
-
-export function getUserSeriesColor(username: string): string {
-  const normalizedUsername = username.trim().toLowerCase();
-  const override = USER_COLOR_OVERRIDES[normalizedUsername];
-
-  if (override) {
-    return override;
-  }
-
-  let hash = 0;
-
-  for (let index = 0; index < username.length; index += 1) {
-    hash = (hash * 31 + username.charCodeAt(index)) | 0;
-  }
-
-  const normalized = Math.abs(hash);
-  return USER_SERIES_COLORS[normalized % USER_SERIES_COLORS.length];
+/**
+ * Get color by index in the palette.
+ * Each user is assigned a color in order, cycling through the palette if needed.
+ * This ensures no color collisions for multiple users.
+ * @param index The index of the user in the sorted list
+ * @returns The hex color code for this index
+ */
+export function getUserSeriesColorByIndex(index: number): string {
+  return USER_SERIES_COLORS[index % USER_SERIES_COLORS.length];
 }
