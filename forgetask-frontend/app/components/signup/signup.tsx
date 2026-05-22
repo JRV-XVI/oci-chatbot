@@ -116,20 +116,20 @@ export function SignupForm() {
   })
 
   useEffect(() => {
-    if (!inviteToken) return
-
     let isActive = true
 
-    fetch(`${getApiBaseUrl()}/api/invites/validate/${encodeURIComponent(inviteToken)}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isActive && data?.email) {
-          setValue("email", data.email)
-        }
-      })
-      .catch(() => {
-        // Silencioso: la validación definitiva sucede al enviar el signup
-      })
+    if (inviteToken) {
+      fetch(`${getApiBaseUrl()}/api/invites/validate/${encodeURIComponent(inviteToken)}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (isActive && data?.email) {
+            setValue("email", data.email)
+          }
+        })
+        .catch(() => {
+          // Silencioso: la validación definitiva sucede al enviar el signup
+        })
+    }
 
     healthService.getHealth()
       .then(data => { if (isActive) setHealthInfo(data); })
@@ -493,9 +493,9 @@ export function SignupForm() {
 
         {/* ── Environment Info ── */}
         {healthInfo && (
-          <div className="fixed bottom-4 right-4 z-50 rounded-md px-3 py-1.5 text-xs font-medium bg-black/40 border border-white/10 backdrop-blur-md" style={{ color: "var(--muted-foreground)" }}>
-            v{healthInfo.version.slice(0,7)} • {healthInfo.namespace}
-          </div>
+          <p className="fixed bottom-4 right-4 z-50 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            v{healthInfo.version.slice(0, 7)} • {healthInfo.namespace}
+          </p>
         )}
       </section>
     </div>

@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HealthController {
 
-    @Value("${POD_NAMESPACE:unknown-namespace}")
+    private static final String DEFAULT_NAMESPACE = "no-consultado";
+    private static final String DEFAULT_VERSION = "unknown-version";
+
+    @Value("${POD_NAMESPACE:}")
     private String namespace;
 
-    @Value("${APP_VERSION:unknown-version}")
+    @Value("${APP_VERSION:}")
     private String version;
 
     @GetMapping({"/health", "/", "/api/health"})
@@ -20,8 +23,17 @@ public class HealthController {
         return Map.of(
                 "status", "ok",
                 "service", "forgetask",
-                "namespace", namespace,
-                "version test", version
+                "namespace", defaultIfBlank(namespace, DEFAULT_NAMESPACE),
+                "version", defaultIfBlank(version, DEFAULT_VERSION)
         );
+    }
+
+    private String defaultIfBlank(String value, String defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+
+        String normalized = value.trim();
+        return normalized.isEmpty() ? defaultValue : normalized;
     }
 }

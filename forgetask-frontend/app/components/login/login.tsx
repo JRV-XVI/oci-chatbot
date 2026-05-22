@@ -151,7 +151,7 @@ export function LoginForm() {
               Bienvenido de nuevo
             </h1>
             <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Retoma el control de tus proyectos. - tests
+              Retoma el control de tus proyectos.
             </p>
           </div>
 
@@ -280,9 +280,9 @@ export function LoginForm() {
 
         {/* ── Environment Info ── */}
         {healthInfo && healthInfo.version && (
-          <div className="fixed bottom-4 right-4 z-50 ...">
-            v{healthInfo.version.slice(0,7)} • {healthInfo.namespace}
-          </div>
+          <p className="fixed bottom-4 right-4 z-50 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            v{healthInfo.version.slice(0, 7)} • {healthInfo.namespace}
+          </p>
         )}
       </section>
     </div>
