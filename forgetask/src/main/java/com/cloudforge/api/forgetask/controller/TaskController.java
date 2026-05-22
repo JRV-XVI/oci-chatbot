@@ -37,44 +37,17 @@ public class TaskController {
     private static final String SELECT_TASKS_SQL = """
             SELECT t.ID_TASK,
                    t.ID_USER,
-                                     t.ID_PROJECT,
-               t.ID_SPRINT,
-                   t.TITLE,
-                   t.DESCRIPTION,
-                                     t.START_DATE,
-                                     t.END_DATE,
-                                         TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
-                                         TO_CHAR(t.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
-                   t.ESTIMATED_TIME,
-                   t.REAL_TIME,
-                                     ts.STATE,
-                                     pt.PRIORITY,
-                                     ua.FIRST_NAME,
-                                     ua.LAST_NAME,
-                                     ua.USERNAME,
-                                     ur.ROLE
-            FROM TASK t
-            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
-                        LEFT JOIN (
-                                SELECT ID_TASK,
-                                             MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
-                                FROM TASK_TAG
-                                GROUP BY ID_TASK
-                        ) pt ON pt.ID_TASK = t.ID_TASK
-                        LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
-                        LEFT JOIN (
-                                SELECT ID_USER, MIN(ROLE) AS ROLE
-                                FROM USER_ROLE
-                                GROUP BY ID_USER
-                        ) ur ON ur.ID_USER = t.ID_USER
-            ORDER BY t.ID_TASK
-            """;
-
-    private static final String SELECT_TASKS_BY_PROJECT_AND_SPRINT_SQL = """
-            SELECT t.ID_TASK,
-                   t.ID_USER,
                    t.ID_PROJECT,
                    t.ID_SPRINT,
+                   COALESCE(
+                       CASE
+                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                           ELSE NULL
+                       END,
+                       ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+                   ) AS SPRINT_NUMBER,
+                   NVL(s.TITLE, '') AS SPRINT_TITLE,
                    t.TITLE,
                    t.DESCRIPTION,
                    t.START_DATE,
@@ -90,6 +63,53 @@ public class TaskController {
                    ua.USERNAME,
                    ur.ROLE
             FROM TASK t
+            LEFT JOIN SPRINT s ON s.ID_SPRINT = t.ID_SPRINT
+            LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+            LEFT JOIN (
+                SELECT ID_TASK,
+                       MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
+                FROM TASK_TAG
+                GROUP BY ID_TASK
+            ) pt ON pt.ID_TASK = t.ID_TASK
+            LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
+            LEFT JOIN (
+                SELECT ID_USER, MIN(ROLE) AS ROLE
+                FROM USER_ROLE
+                GROUP BY ID_USER
+            ) ur ON ur.ID_USER = t.ID_USER
+            ORDER BY t.ID_TASK
+            """;
+
+    private static final String SELECT_TASKS_BY_PROJECT_AND_SPRINT_SQL = """
+            SELECT t.ID_TASK,
+                   t.ID_USER,
+                   t.ID_PROJECT,
+                   t.ID_SPRINT,
+                   COALESCE(
+                       CASE
+                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                           ELSE NULL
+                       END,
+                       ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+                   ) AS SPRINT_NUMBER,
+                   NVL(s.TITLE, '') AS SPRINT_TITLE,
+                   t.TITLE,
+                   t.DESCRIPTION,
+                   t.START_DATE,
+                   t.END_DATE,
+                   TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+                   TO_CHAR(t.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
+                   t.ESTIMATED_TIME,
+                   t.REAL_TIME,
+                   ts.STATE,
+                   pt.PRIORITY,
+                   ua.FIRST_NAME,
+                   ua.LAST_NAME,
+                   ua.USERNAME,
+                   ur.ROLE
+            FROM TASK t
+            LEFT JOIN SPRINT s ON s.ID_SPRINT = t.ID_SPRINT
             LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
             LEFT JOIN (
                 SELECT ID_TASK,
@@ -113,6 +133,15 @@ public class TaskController {
                t.ID_USER,
                t.ID_PROJECT,
                t.ID_SPRINT,
+               COALESCE(
+                   CASE
+                       WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                           THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                       ELSE NULL
+                   END,
+                   ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+               ) AS SPRINT_NUMBER,
+               NVL(s.TITLE, '') AS SPRINT_TITLE,
                t.TITLE,
                t.DESCRIPTION,
                t.START_DATE,
@@ -128,6 +157,7 @@ public class TaskController {
                ua.USERNAME,
                ur.ROLE
         FROM TASK t
+        LEFT JOIN SPRINT s ON s.ID_SPRINT = t.ID_SPRINT
         LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
         LEFT JOIN (
             SELECT ID_TASK,
@@ -161,7 +191,9 @@ public class TaskController {
                 rs.getInt("ID_TASK"),
                 rs.getObject("ID_USER"),
                 rs.getObject("ID_PROJECT"),
-            rs.getObject("ID_SPRINT"),
+                rs.getObject("ID_SPRINT"),
+                rs.getObject("SPRINT_NUMBER"),
+                rs.getString("SPRINT_TITLE"),
                 rs.getString("TITLE"),
                 rs.getString("DESCRIPTION"),
                 rs.getObject("START_DATE"),
@@ -196,6 +228,8 @@ public class TaskController {
                 rs.getObject("ID_USER"),
                 rs.getObject("ID_PROJECT"),
                 rs.getObject("ID_SPRINT"),
+                rs.getObject("SPRINT_NUMBER"),
+                rs.getString("SPRINT_TITLE"),
                 rs.getString("TITLE"),
                 rs.getString("DESCRIPTION"),
                 rs.getObject("START_DATE"),
@@ -239,6 +273,8 @@ public class TaskController {
                 rs.getObject("ID_USER"),
                 rs.getObject("ID_PROJECT"),
                 rs.getObject("ID_SPRINT"),
+                rs.getObject("SPRINT_NUMBER"),
+                rs.getString("SPRINT_TITLE"),
                 rs.getString("TITLE"),
                 rs.getString("DESCRIPTION"),
                 rs.getObject("START_DATE"),
@@ -336,16 +372,21 @@ public class TaskController {
         ResolvedAssignee assignee = resolveAssignee(task.getAssignedTo(), existingTask.idProject(), existingTask.idUser());
         int idUser = assignee.userId();
         int idProject = assignee.projectId();
-        Integer requestedSprintId = task.getSprintId();
+        
+        // CRITICAL FIX: Only update sprint if explicitly provided. Otherwise, preserve existing value
         Integer resolvedSprintId;
-        if (requestedSprintId == null) {
-            resolvedSprintId = null;
-        } else {
+        Integer requestedSprintId = task.getSprintId();
+        if (requestedSprintId != null) {
+            // Sprint was explicitly provided in request
             resolvedSprintId = resolveSprintIdStrict(requestedSprintId, idProject);
             if (resolvedSprintId == null) {
                 return ResponseEntity.badRequest().build();
             }
+        } else {
+            // Sprint was NOT provided in request - preserve the existing sprint
+            resolvedSprintId = existingTask.idSprint();
         }
+        
         String title = normalizeText(task.getTitle(), existingTask.title());
         String description = normalizeText(task.getDescription(), existingTask.description());
         Timestamp startTime = parseDateOrFallback(task.getStartDate(), existingTask.startTime());
@@ -466,28 +507,38 @@ public class TaskController {
                        t.ID_USER,
                        t.ID_PROJECT,
                        t.ID_SPRINT,
+                       COALESCE(
+                           CASE
+                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                               ELSE NULL
+                           END,
+                           ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+                       ) AS SPRINT_NUMBER,
+                       NVL(s.TITLE, '') AS SPRINT_TITLE,
                        t.TITLE,
                        t.DESCRIPTION,
                        t.START_DATE,
                        t.END_DATE,
-                      TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
-                      TO_CHAR(t.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
+                       TO_CHAR(t.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+                       TO_CHAR(t.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
                        t.ESTIMATED_TIME,
                        t.REAL_TIME,
                        ts.STATE,
-                      pt.PRIORITY,
+                       pt.PRIORITY,
                        ua.FIRST_NAME,
                        ua.LAST_NAME,
                        ua.USERNAME,
                        ur.ROLE
                 FROM TASK t
+                LEFT JOIN SPRINT s ON s.ID_SPRINT = t.ID_SPRINT
                 LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
-                  LEFT JOIN (
-                      SELECT ID_TASK,
-                          MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
-                      FROM TASK_TAG
-                      GROUP BY ID_TASK
-                  ) pt ON pt.ID_TASK = t.ID_TASK
+                LEFT JOIN (
+                    SELECT ID_TASK,
+                        MAX(CASE WHEN LOWER(TAG) IN ('low', 'medium', 'high') THEN LOWER(TAG) END) AS PRIORITY
+                    FROM TASK_TAG
+                    GROUP BY ID_TASK
+                ) pt ON pt.ID_TASK = t.ID_TASK
                 LEFT JOIN USER_ACCOUNT ua ON ua.ID_USER = t.ID_USER AND ua.ID_PROJECT = t.ID_PROJECT
                 LEFT JOIN (
                     SELECT ID_USER, MIN(ROLE) AS ROLE
@@ -499,8 +550,10 @@ public class TaskController {
                 (rs, rowNum) -> mapRowToTask(
                         rs.getInt("ID_TASK"),
                         rs.getObject("ID_USER"),
-                    rs.getObject("ID_PROJECT"),
-                    rs.getObject("ID_SPRINT"),
+                        rs.getObject("ID_PROJECT"),
+                        rs.getObject("ID_SPRINT"),
+                        rs.getObject("SPRINT_NUMBER"),
+                        rs.getString("SPRINT_TITLE"),
                         rs.getString("TITLE"),
                         rs.getString("DESCRIPTION"),
                         rs.getObject("START_DATE"),
@@ -674,6 +727,8 @@ public class TaskController {
             Object idUser,
             Object idProject,
             Object idSprint,
+            Object sprintNumber,
+            String sprintTitle,
             String title,
             String description,
             Object startTime,
@@ -692,6 +747,8 @@ public class TaskController {
         TaskDTO task = new TaskDTO();
         task.setId(String.valueOf(id));
         task.setSprintId(idSprint instanceof Number number ? number.intValue() : null);
+        task.setSprintNumber(sprintNumber instanceof Number number ? number.intValue() : null);
+        task.setSprintTitle(sprintTitle != null && !sprintTitle.isBlank() ? sprintTitle : null);
 
         String resolvedTitle = (title != null && !title.isBlank()) ? title : description;
         task.setTitle(resolvedTitle != null ? resolvedTitle : "Untitled task");
