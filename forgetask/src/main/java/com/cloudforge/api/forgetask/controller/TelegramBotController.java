@@ -9,6 +9,7 @@ import com.cloudforge.api.forgetask.util.ConversationalTaskCreator;
 import com.cloudforge.api.forgetask.util.TaskCreationStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.BotSession;
@@ -31,16 +32,19 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 	private final TelegramBotConfig telegramBotConfig;
 	private final ConversationManager conversationManager;
 	private final TelegramReportService telegramReportService;
+	private final String podNamespace;
 
 	public TelegramBotController(TelegramBotConfig telegramBotConfig, TaskController taskController,
 	                             SprintController sprintController, TelegramClient telegramClient,
-	                             ConversationManager conversationManager, TelegramReportService telegramReportService) {
+	                             ConversationManager conversationManager, TelegramReportService telegramReportService,
+	                             @Value("${POD_NAMESPACE:unknown}") String podNamespace) {
 		this.telegramBotConfig = telegramBotConfig;
 		this.taskController = taskController;
 		this.sprintController = sprintController;
 		this.telegramClient = telegramClient;
 		this.conversationManager = conversationManager;
 		this.telegramReportService = telegramReportService;
+		this.podNamespace = podNamespace;
 	}
 
 	@Override
@@ -111,6 +115,10 @@ public class TelegramBotController implements SpringLongPollingBot, LongPollingS
 
 	@AfterBotRegistration
 	public void afterRegistration(BotSession botSession) {
-		logger.info("Telegram bot registered and running state is: {}", botSession.isRunning());
+		logger.info("Telegram bot registered (namespace={}, botName={}) and running state is: {}",
+				podNamespace,
+				telegramBotConfig.getName(),
+				botSession.isRunning());
+		logger.info("If you see Telegram 409 conflicts, ensure only ONE namespace/pod is running long polling for this bot token (common in blue/green).");
 	}
 }

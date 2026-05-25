@@ -189,6 +189,24 @@ DELETE FROM TASK WHERE ID_TASK = ?
 - Verifica la conexión a Oracle ATP: `curl http://localhost:8080/health`
 - Revisa que la BD tiene datos: `SELECT COUNT(*) FROM TASK;` en SQL*Plus
 
+### Error 409 `TelegramApiErrorResponseException` (Blue/Green en OKE)
+
+Si ves en logs algo como:
+
+- `Caused by: 409: ... TelegramApiErrorResponseException`
+- `Error received from Telegram GetUpdates Request...`
+
+Significa casi siempre que **hay 2 instancias (pods) intentando hacer long polling con el mismo token**.
+
+En Blue/Green (ej. `ns-blue` y `ns-green`) esto ocurre cuando ambos namespaces tienen `TELEGRAM_BOT_ENABLED=true`.
+
+**Fix recomendado:** habilitar el bot solo en el namespace activo.
+
+- Namespace activo: `TELEGRAM_BOT_ENABLED=true`
+- Namespace standby: `TELEGRAM_BOT_ENABLED=false`
+
+En el cutover, invierte los valores.
+
 ## Integración con el Kanban Web
 
 El bot de Telegram y el Kanban web comparten la **misma base de datos**:
