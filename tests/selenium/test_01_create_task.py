@@ -22,7 +22,7 @@ def test_create_task_is_visible_in_backlog(driver, settings: SeleniumSettings):
         board.create_task(
             title=task_title,
             description=description,
-            status="backlog",
+            status="backlog1",
             priority="medium",
             sprint="3",
             estimated_hours="3",
