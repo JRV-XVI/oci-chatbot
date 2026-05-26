@@ -20,7 +20,7 @@ def _post_json(url, payload, headers):
     with urllib.request.urlopen(req, timeout=30) as resp:
         return resp.read().decode("utf-8"), resp.getcode()
 
-def create_issue(test_nodeid, error_msg, target_namespace, image_tag):
+def create_issue(test_nodeid, stage_data, target_namespace, image_tag):
     gh_token = os.environ.get("GITHUB_TOKEN")
     owner = os.environ.get("GITHUB_OWNER")
     repo = os.environ.get("GITHUB_REPO")
@@ -36,11 +36,28 @@ def create_issue(test_nodeid, error_msg, target_namespace, image_tag):
         "Content-Type": "application/json",
     }
 
-    title = f"[E2E Fallido] {test_nodeid.split('::')[-1]} en {target_namespace}"
+    test_name = test_nodeid.split('::')[-1]
+    test_file = test_nodeid.split('::')[0]
+    
+    error_msg = stage_data.get("crash", {}).get("message", "Error desconocido")
+    long_repr = str(stage_data.get("longrepr", "No stacktrace available."))
+
+    title = f"[E2E] Fallo en {test_name}"
     body = (
-        f"**Namespace:** {target_namespace}\n"
-        f"**Imagen:** `{image_tag}`\n\n"
-        f"**Error:**\n```python\n{error_msg[:3000]}\n```"
+        f"### Fallo Test E2E: `{test_name}`\n"
+        f"**Archivo:** `{test_file}`\n"
+        f"**Entorno (Namespace):** `{target_namespace}`\n"
+        f"**Imagen Desplegada:** `{image_tag}`\n\n"
+        f"#### Mensaje de Error\n"
+        f"```text\n"
+        f"{error_msg}\n"
+        f"```\n\n"
+        f"<details>\n"
+        f"<summary><strong>Ver Stack Trace (Haz clic para expandir)</strong></summary>\n\n"
+        f"```python\n"
+        f"{long_repr[:60000]}\n"
+        f"```\n\n"
+        f"</details>"
     )
 
     res_body, status = _post_json(
@@ -151,5 +168,7 @@ image_tag = os.environ.get("BUILDRUN_HASH", "latest")
 
 for test in report.get("tests", []):
     if test.get("outcome") in ("failed", "error"):
-        error_msg = test.get("call", {}).get("crash", {}).get("message", "Error desconocido")
-        create_issue(test.get("nodeid"), error_msg, target_namespace, image_tag)
+        stage_data = test.get("call", {})
+        if not stage_data:
+            stage_data = test.get("setup", {})
+        create_issue(test.get("nodeid"), stage_data, target_namespace, image_tag)
