@@ -16,8 +16,8 @@ COPY tests ./tests
 # Local/Windows: Edge con msedgedriver.exe local
 ENV E2E_BROWSER=chrome \
     E2E_HEADLESS=true \
-    E2E_BASE_URL=http://forgetask-frontend-service.ns-green.svc.cluster.local:3000 \
-    E2E_API_BASE_URL=http://forgetask-service.ns-green.svc.cluster.local:8080 \
+    E2E_BASE_URL="" \
+    E2E_API_BASE_URL="" \
     E2E_SELENIUM_REMOTE_URL=http://selenium-hub.mtdrworkshop.svc.cluster.local:4444/wd/hub \
     E2E_TIMEOUT_SECONDS=30 \
     E2E_ARTIFACTS_DIR=/app/tests/selenium/artifacts

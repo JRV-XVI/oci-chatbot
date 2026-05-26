@@ -34,10 +34,6 @@ spec:
               value: "/app/tests/selenium/artifacts"
             - name: TARGET_NAMESPACE
               value: "${TARGET_NAMESPACE}"
-            - name: E2E_BASE_URL
-              value: "http://10.244.1.100:3000"
-            - name: E2E_API_BASE_URL
-              value: "http://forgetask-service.${TARGET_NAMESPACE}.svc.cluster.local:8080"
             - name: E2E_SELENIUM_REMOTE_URL
               value: "http://selenium-hub.mtdrworkshop.svc.cluster.local:4444/wd/hub"
             - name: E2E_LOGIN_EMAIL
