@@ -18,17 +18,12 @@ ENV E2E_BROWSER=chrome \
     E2E_HEADLESS=true \
     E2E_BASE_URL="" \
     E2E_API_BASE_URL="" \
-    E2E_SELENIUM_REMOTE_URL=http://selenium-hub.mtdrworkshop.svc.cluster.local:4444/wd/hub \
+    E2E_SELENIUM_REMOTE_URL="" \
     E2E_TIMEOUT_SECONDS=30 \
     E2E_ARTIFACTS_DIR=/app/tests/selenium/artifacts
 
 # TARGET_NAMESPACE se inyecta por el Job YAML (ns-green o ns-blue)
-# Sobreescribe los defaults de E2E_BASE_URL y E2E_API_BASE_URL
 CMD ["sh", "-c", "\
-  if [ -n \"${TARGET_NAMESPACE}\" ]; then \
-    export E2E_BASE_URL=\"http://forgetask-frontend-service.${TARGET_NAMESPACE}.svc.cluster.local:3000\"; \
-    export E2E_API_BASE_URL=\"http://forgetask-service.${TARGET_NAMESPACE}.svc.cluster.local:8080\"; \
-  fi && \
   python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && \
   python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && \
   python -c \"\

@@ -22,20 +22,24 @@ spec:
           image: ${TEST_IMAGE}
           imagePullPolicy: Always
           env:
-            - name: E2E_BROWSER
-              value: "chrome"
-            - name: E2E_HEADLESS
-              value: "true"
+            # --- Variables contextuales para Kubernetes ---
             - name: E2E_TIMEOUT_SECONDS
               value: "${E2E_TIMEOUT_SECONDS}"
             - name: E2E_SELENIUM_TIMEOUT
               value: "${E2E_SELENIUM_TIMEOUT}"
-            - name: E2E_ARTIFACTS_DIR
-              value: "/app/tests/selenium/artifacts"
-            - name: TARGET_NAMESPACE
-              value: "${TARGET_NAMESPACE}"
             - name: E2E_SELENIUM_REMOTE_URL
               value: "http://selenium-hub.mtdrworkshop.svc.cluster.local:4444/wd/hub"
+            
+            # --- URLs dinámicas construidas por K8s/Helm ---
+            - name: E2E_BASE_URL
+              value: "http://forgetask-frontend-service.${TARGET_NAMESPACE}.svc.cluster.local:3000"
+            - name: E2E_API_BASE_URL
+              value: "http://forgetask-service.${TARGET_NAMESPACE}.svc.cluster.local:8080"
+              
+            - name: TARGET_NAMESPACE
+              value: "${TARGET_NAMESPACE}"
+
+            # --- Secretos seguros ---
             - name: E2E_LOGIN_EMAIL
               valueFrom:
                 secretKeyRef:
