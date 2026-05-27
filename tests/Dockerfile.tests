@@ -10,7 +10,7 @@ COPY requirements-test.txt ./requirements-test.txt
 RUN pip install -r requirements-test.txt
 
 COPY pytest.ini ./pytest.ini
-COPY tests ./tests
+COPY . ./tests
 
 # CI/OKE: Chrome via Selenium Grid interno del cluster
 # Local/Windows: Edge con msedgedriver.exe local
