@@ -1,0 +1,248 @@
+# ─── Backend Service ────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgetask-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: forgetask
+---
+# ─── Backend Deployment ─────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgetask-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: forgetask
+  template:
+    metadata:
+      labels:
+        app: forgetask
+        version: v1
+    spec:
+      containers:
+        - name: forgetask
+          image: mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/mjmnu/forgetask:${BUILDRUN_HASH}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: APP_VERSION
+              value: "${BUILDRUN_HASH}"
+            - name: TNS_ADMIN
+              value: "/app/wallet"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: DB_PASSWORD
+            - name: TELEGRAM_BOT_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_ENABLED
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_TOKEN
+            - name: TELEGRAM_BOT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: TELEGRAM_BOT_NAME
+            - name: LLM_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_PROVIDER
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_API_KEY
+            - name: LLM_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_MODEL
+            - name: LLM_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_API_URL
+            - name: LLM_MAX_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_MAX_TOKENS
+            - name: LLM_TEMPERATURE
+              valueFrom:
+                secretKeyRef:
+                  name: forgetask-app-secrets
+                  key: LLM_TEMPERATURE
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+          volumeMounts:
+            - name: wallet-volume
+              mountPath: /app/wallet
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: wallet-volume
+          secret:
+            secretName: db-wallet-secret
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: forgetask
+---
+# ─── Frontend Service ────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgetask-frontend-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: forgetask-frontend
+---
+# ─── Frontend Deployment ─────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgetask-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: forgetask-frontend
+  template:
+    metadata:
+      labels:
+        app: forgetask-frontend
+        version: v1
+    spec:
+      containers:
+        - name: forgetask-frontend
+          image: mx-queretaro-1.ocir.io/axpqjhfdooxb/forgetask/mjmnu/forgetask-frontend:${BUILDRUN_HASH}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_USE_PROXY
+              value: "true"
+            - name: BACKEND_INTERNAL_URL
+              value: "http://forgetask-service:8080"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "384Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+      restartPolicy: Always
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: forgetask-frontend
+---
+# ─── Ingress (blue-green traffic entry point) ────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: forgetask-bg-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: forgetask-service
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: forgetask-frontend-service
+                port:
+                  number: 3000

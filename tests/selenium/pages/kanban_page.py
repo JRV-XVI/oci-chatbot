@@ -163,13 +163,22 @@ class KanbanPage(BasePage):
         card_locator = (By.XPATH, f"//div[@data-task-title='{title}']")
         delete_button_locator = (
             By.XPATH,
-            "//div[@data-task-title='{title}']"
-            "//button[.//span[normalize-space()='Delete']]".format(title=title),
+            f"//div[@data-task-title='{title}']"
+            f"//button[.//span[@class='sr-only' and normalize-space()='Delete']]",
         )
 
         card = self.wait_visible(card_locator)
-        ActionChains(self.driver).move_to_element(card).perform()
-        self.click(delete_button_locator)
+        
+        # Forzar hover via JS para asegurar que Tailwind group-hover aplique
+        self.driver.execute_script(
+            "arguments[0].dispatchEvent(new MouseEvent('mouseover', {bubbles: true}))",
+            card
+        )
+        time.sleep(0.5)
+        
+        # Click via JS para ignorar opacity-0
+        button = self.wait_present(delete_button_locator, timeout=10)
+        self.driver.execute_script("arguments[0].click()", button)
 
         try:
             WebDriverWait(self.driver, 4).until(ec.alert_is_present())

@@ -15,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { getUserSeriesColor } from "@/app/components/chart/userSeriesColor"
+import { getUserSeriesColorByIndex } from "@/app/components/chart/userSeriesColor"
 
 interface SprintTasksByUser {
   sprintId: number
@@ -260,12 +260,12 @@ export default function UserTasksCompletionCard({
                       wrapperStyle={{ color: "#f8fafc", fontSize: "12px" }}
                       formatter={(value) => <span className="text-foreground">{String(value)}</span>}
                     />
-                    {topUsers.map((user) => (
+                    {topUsers.map((user, userIndex) => (
                       <Bar
                         key={user}
                         dataKey={user}
                         name={user}
-                        fill={getUserSeriesColor(user)}
+                        fill={getUserSeriesColorByIndex(userIndex)}
                         radius={[5, 5, 0, 0]}
                         maxBarSize={28}
                       >

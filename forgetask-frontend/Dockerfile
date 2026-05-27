@@ -22,6 +22,9 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Prevenir la persistencia de caché de Next.js entre capas de build de Docker
+RUN rm -rf .next/cache
+
 RUN npm run build
 
 # ==========================================
@@ -41,8 +44,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-
-RUN npm install sharp@latest
 
 USER nextjs
 

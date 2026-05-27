@@ -12,6 +12,7 @@ import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import authService, { AuthApiError } from "@/app/services/authService"
 import { getApiBaseUrl } from "@/app/services/apiBaseUrl"
+import healthService, { HealthResponse } from "@/app/services/healthService"
 
 // ─── Schema de validación ─────────
 const signupSchema = z
@@ -93,6 +94,7 @@ export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [healthInfo, setHealthInfo] = useState<HealthResponse | null>(null)
 
   const {
     register,
@@ -114,20 +116,24 @@ export function SignupForm() {
   })
 
   useEffect(() => {
-    if (!inviteToken) return
-
     let isActive = true
 
-    fetch(`${getApiBaseUrl()}/api/invites/validate/${encodeURIComponent(inviteToken)}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isActive && data?.email) {
-          setValue("email", data.email)
-        }
-      })
-      .catch(() => {
-        // Silencioso: la validación definitiva sucede al enviar el signup
-      })
+    if (inviteToken) {
+      fetch(`${getApiBaseUrl()}/api/invites/validate/${encodeURIComponent(inviteToken)}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (isActive && data?.email) {
+            setValue("email", data.email)
+          }
+        })
+        .catch(() => {
+          // Silencioso: la validación definitiva sucede al enviar el signup
+        })
+    }
+
+    healthService.getHealth()
+      .then(data => { if (isActive) setHealthInfo(data); })
+      .catch(() => {});
 
     return () => {
       isActive = false
@@ -484,6 +490,13 @@ export function SignupForm() {
             </a>
           </p>
         </div>
+
+        {/* ── Environment Info ── */}
+        {healthInfo && (
+          <p className="fixed bottom-4 right-4 z-50 text-xs" style={{ color: "var(--muted-foreground)" }}>
+            v{healthInfo.version.slice(0, 7)} • {healthInfo.namespace}
+          </p>
+        )}
       </section>
     </div>
   )
