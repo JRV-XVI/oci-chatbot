@@ -36,9 +36,11 @@ El bot de Telegram está completamente integrado en la aplicación Spring Boot `
 
 ```properties
 TELEGRAM_BOT_ENABLED=true
-TELEGRAM_BOT_TOKEN=7976550635:AAHdO4CNGdyzMq1EV5LeFWur5CQSOKNLN9s
-TELEGRAM_BOT_NAME=oci_deploy_bot
+TELEGRAM_BOT_TOKEN=<TU_TOKEN_DE_BOTFATHER>
+TELEGRAM_BOT_NAME=<tu_bot_username>
 ```
+
+> Nunca guardes tokens reales en el repo. En OCI/OKE usa OCI Vault y/o Kubernetes Secrets.
 
 ### Clases de Configuración
 
@@ -54,25 +56,25 @@ TELEGRAM_BOT_NAME=oci_deploy_bot
 
 ### Secrets en Kubernetes
 
-En `infrastructure/kubernetes/templates/forgetask.yaml`:
+En OKE, las variables se inyectan desde Kubernetes Secrets. En este repo, el despliegue de backend referencia el secreto `forgetask-app-secrets` (por namespace) y lee estas keys:
 
 ```yaml
 env:
   - name: TELEGRAM_BOT_ENABLED
     valueFrom:
       secretKeyRef:
-        name: telegram-secrets
-        key: bot-enabled
+            name: forgetask-app-secrets
+            key: TELEGRAM_BOT_ENABLED
   - name: TELEGRAM_BOT_TOKEN
     valueFrom:
       secretKeyRef:
-        name: telegram-secrets
-        key: bot-token
+            name: forgetask-app-secrets
+            key: TELEGRAM_BOT_TOKEN
   - name: TELEGRAM_BOT_NAME
     valueFrom:
       secretKeyRef:
-        name: telegram-secrets
-        key: bot-name
+            name: forgetask-app-secrets
+            key: TELEGRAM_BOT_NAME
 ```
 
 ---
@@ -444,9 +446,16 @@ docker compose logs -f backend
 
 ### ⚠️ Consideraciones
 
-- **Token en `.env`**: Archivo visible en el repositorio (rotación antes de producción recomendada)
+- **Token en `.env`**: Nunca debe commitearse. Usa `.env.example` como plantilla y crea tu `.env` solo en local.
 - **Long Polling**: Menos seguro que WebHooks, requiere validación adicional en producción
+- **Blue/Green en OKE (ns-blue/ns-green)**: con long polling, **solo puede existir 1 consumidor activo de `getUpdates` por token**. Si ambos namespaces levantan el bot con el mismo token, Telegram responderá **409 (conflict)**.
 - **Permisos de Usuario**: No hay validación de permisos en el bot (TODO)
+
+#### Mitigación recomendada para Blue/Green
+
+- Mantén `TELEGRAM_BOT_ENABLED=true` solo en el namespace activo.
+- En el namespace standby déjalo en `false` para evitar el 409.
+- En el cutover (swap) invierte los valores (habilitar nuevo / deshabilitar anterior).
 
 ### Recomendaciones
 

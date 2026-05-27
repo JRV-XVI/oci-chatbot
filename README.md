@@ -36,6 +36,8 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_BOT_NAME=
 ```
 
+Nota para despliegues **Blue/Green en OKE**: si usas **long polling** con Telegram, no puedes tener `TELEGRAM_BOT_ENABLED=true` en `ns-blue` y `ns-green` al mismo tiempo usando el mismo token (Telegram responde **409 conflict**). Mantén el bot habilitado solo en el namespace activo.
+
 Puedes usar `.env.example` como referencia:
 
 ```bash
