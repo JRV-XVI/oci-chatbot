@@ -42,10 +42,10 @@ docker push "${DOCKER_REGISTRY}/forgetask-frontend:latest"
 echo "[3/3] Construyendo Tests..."
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  -f "${OCI_PRIMARY_SOURCE_DIR}/Dockerfile.tests" \
+  -f "${OCI_PRIMARY_SOURCE_DIR}/tests/Dockerfile.tests" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}" \
   -t "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest" \
-  "${OCI_PRIMARY_SOURCE_DIR}"
+  "${OCI_PRIMARY_SOURCE_DIR}/tests"
 docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:${VERSION}"
 docker push "${DOCKER_REGISTRY}/forgetask-e2e-tests:latest"
 

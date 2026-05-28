@@ -1,0 +1,51 @@
+FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+COPY requirements-test.txt ./requirements-test.txt
+RUN pip install -r requirements-test.txt
+
+COPY pytest.ini ./pytest.ini
+COPY . ./tests
+
+# CI/OKE: Chrome via Selenium Grid interno del cluster
+# Local/Windows: Edge con msedgedriver.exe local
+ENV E2E_BROWSER=chrome \
+    E2E_HEADLESS=true \
+    E2E_BASE_URL="" \
+    E2E_API_BASE_URL="" \
+    E2E_SELENIUM_REMOTE_URL="" \
+    E2E_TIMEOUT_SECONDS=30 \
+    E2E_ARTIFACTS_DIR=/app/tests/selenium/artifacts
+
+# TARGET_NAMESPACE se inyecta por el Job YAML (ns-green o ns-blue)
+CMD ["sh", "-c", "\
+  python tests/selenium/utils/wait_for_url.py \"${E2E_SELENIUM_REMOTE_URL}\" 120 && \
+  python tests/selenium/utils/wait_for_url.py \"${E2E_BASE_URL}\" 120 && \
+  python -c \"\
+import sys; sys.path.insert(0, '/app'); \
+from tests.selenium.config import load_settings, build_driver; \
+s = load_settings(); \
+d = build_driver(s); \
+d.get(s.base_url + '/login'); \
+import time; time.sleep(3); \
+print('URL:', d.current_url); \
+print('TITLE:', d.title); \
+src = d.page_source; \
+print('HAS EMAIL INPUT:', 'id=\\\"email\\\"' in src or 'id=email' in src); \
+print('PAGE LENGTH:', len(src)); \
+print('FIRST 2000 CHARS:', src[:2000]); \
+d.quit() \
+\" && \
+  pytest tests/selenium -m e2e \
+    --json-report \
+    --json-report-file=/tmp/report.json \
+    -v; \
+  status=$?; \
+  cat /tmp/report.json; \
+  exit $status"]
+
