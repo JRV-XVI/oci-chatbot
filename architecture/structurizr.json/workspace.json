@@ -1,0 +1,1843 @@
+{
+  "configuration" : {
+    "scope" : "SoftwareSystem"
+  },
+  "description" : "Basado en model-1.md — Actions/Actors Approach",
+  "documentation" : { },
+  "id" : 0,
+  "model" : {
+    "deploymentNodes" : [ {
+      "children" : [ {
+        "containerInstances" : [ {
+          "containerId" : "8",
+          "environment" : "Local",
+          "id" : "101",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.17e257c0-f478-4052-aa68-b80bab25dcda.54421ea8-5a1c-40ac-8046-9adc351e3994.3732a3f6-c142-4c95-8869-c264cec23d0f"
+          },
+          "relationships" : [ {
+            "description" : "HTTP REST",
+            "destinationId" : "102",
+            "id" : "103",
+            "linkedRelationshipId" : "36",
+            "sourceId" : "101"
+          }, {
+            "description" : "WebSocket",
+            "destinationId" : "104",
+            "id" : "105",
+            "linkedRelationshipId" : "37",
+            "sourceId" : "101"
+          } ],
+          "tags" : "Container Instance"
+        }, {
+          "containerId" : "12",
+          "environment" : "Local",
+          "id" : "102",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.17e257c0-f478-4052-aa68-b80bab25dcda.54421ea8-5a1c-40ac-8046-9adc351e3994.0582ab1a-7e89-4741-b4f3-e85378302a31"
+          },
+          "tags" : "Container Instance"
+        }, {
+          "containerId" : "27",
+          "environment" : "Local",
+          "id" : "104",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.17e257c0-f478-4052-aa68-b80bab25dcda.54421ea8-5a1c-40ac-8046-9adc351e3994.35b5c3a5-938b-4601-8c2a-6ef666a5b0db"
+          },
+          "tags" : "Container Instance"
+        } ],
+        "description" : "Motor de contenedores local",
+        "environment" : "Local",
+        "id" : "100",
+        "instances" : "1",
+        "name" : "Docker Engine",
+        "properties" : {
+          "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.17e257c0-f478-4052-aa68-b80bab25dcda.54421ea8-5a1c-40ac-8046-9adc351e3994"
+        },
+        "tags" : "Element,Deployment Node",
+        "technology" : "Docker"
+      } ],
+      "description" : "Máquina local de desarrollo",
+      "environment" : "Local",
+      "id" : "99",
+      "instances" : "1",
+      "name" : "Developer Laptop",
+      "properties" : {
+        "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.17e257c0-f478-4052-aa68-b80bab25dcda"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "Windows / Docker Desktop"
+    }, {
+      "description" : "Base de datos para desarrollo",
+      "environment" : "Local",
+      "id" : "106",
+      "infrastructureNodes" : [ {
+        "description" : "Instancia de base de datos",
+        "environment" : "Local",
+        "id" : "107",
+        "name" : "Oracle DB Instance",
+        "properties" : {
+          "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.32c2ae9d-40fa-4017-8473-536fa3679b43.ad8e9db4-ef02-4919-b4d2-5bc4237e2168"
+        },
+        "tags" : "Element,Infrastructure Node"
+      } ],
+      "instances" : "1",
+      "name" : "Oracle DB Local",
+      "properties" : {
+        "structurizr.dsl.identifier" : "681397ca-2ec2-4056-b1db-13f1091ba101.32c2ae9d-40fa-4017-8473-536fa3679b43"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "Oracle DB"
+    }, {
+      "description" : "Registro de imagenes Docker",
+      "environment" : "Produccion",
+      "id" : "108",
+      "infrastructureNodes" : [ {
+        "description" : "Almacena imagenes del frontend y backend",
+        "environment" : "Produccion",
+        "id" : "109",
+        "name" : "Image Registry",
+        "properties" : {
+          "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.5590f625-1a7f-47c4-9b86-f6220a4b758b.c215b54a-a060-48cc-8dad-b53ce3664b31"
+        },
+        "tags" : "Element,Infrastructure Node"
+      } ],
+      "instances" : "1",
+      "name" : "OCI Container Registry",
+      "properties" : {
+        "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.5590f625-1a7f-47c4-9b86-f6220a4b758b"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "Oracle Cloud"
+    }, {
+      "children" : [ {
+        "containerInstances" : [ {
+          "containerId" : "8",
+          "environment" : "Produccion",
+          "id" : "112",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.2547bb77-34e6-463a-9ffe-5fff61576558.18bc0a49-9b51-47f9-85a3-306787bb5971.86a29c0e-2bc6-4b76-b611-27ba957d615b"
+          },
+          "relationships" : [ {
+            "description" : "HTTP REST",
+            "destinationId" : "113",
+            "id" : "114",
+            "linkedRelationshipId" : "36",
+            "sourceId" : "112"
+          }, {
+            "description" : "WebSocket",
+            "destinationId" : "115",
+            "id" : "116",
+            "linkedRelationshipId" : "37",
+            "sourceId" : "112"
+          } ],
+          "tags" : "Container Instance"
+        }, {
+          "containerId" : "12",
+          "environment" : "Produccion",
+          "id" : "113",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.2547bb77-34e6-463a-9ffe-5fff61576558.18bc0a49-9b51-47f9-85a3-306787bb5971.55ee594f-4395-41ee-a4b2-ed2f84f7165e"
+          },
+          "tags" : "Container Instance"
+        }, {
+          "containerId" : "27",
+          "environment" : "Produccion",
+          "id" : "115",
+          "instanceId" : 1,
+          "properties" : {
+            "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.2547bb77-34e6-463a-9ffe-5fff61576558.18bc0a49-9b51-47f9-85a3-306787bb5971.1c3e2d00-786f-467f-baf7-07f00739602e"
+          },
+          "tags" : "Container Instance"
+        } ],
+        "description" : "Nodo de computo del cluster",
+        "environment" : "Produccion",
+        "id" : "111",
+        "instances" : "1",
+        "name" : "Worker Node",
+        "properties" : {
+          "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.2547bb77-34e6-463a-9ffe-5fff61576558.18bc0a49-9b51-47f9-85a3-306787bb5971"
+        },
+        "tags" : "Element,Deployment Node",
+        "technology" : "VM Standard"
+      } ],
+      "description" : "Cluster Kubernetes gestionado",
+      "environment" : "Produccion",
+      "id" : "110",
+      "instances" : "1",
+      "name" : "OCI Container Engine",
+      "properties" : {
+        "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.2547bb77-34e6-463a-9ffe-5fff61576558"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "OKE"
+    }, {
+      "description" : "Base de datos gestionada en produccion",
+      "environment" : "Produccion",
+      "id" : "117",
+      "infrastructureNodes" : [ {
+        "description" : "Instancia de base de datos en produccion",
+        "environment" : "Produccion",
+        "id" : "118",
+        "name" : "Oracle DB Prod",
+        "properties" : {
+          "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.fe10dc06-f190-4d03-ad9f-2bd163ca911d.195013d8-468b-4455-a7be-bdf0ba339e15"
+        },
+        "tags" : "Element,Infrastructure Node"
+      } ],
+      "instances" : "1",
+      "name" : "Oracle Cloud DB",
+      "properties" : {
+        "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.fe10dc06-f190-4d03-ad9f-2bd163ca911d"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "Oracle DB Cloud"
+    }, {
+      "description" : "Pipeline CI/CD",
+      "environment" : "Produccion",
+      "id" : "119",
+      "infrastructureNodes" : [ {
+        "description" : "Build, test y push de imagenes al registry",
+        "environment" : "Produccion",
+        "id" : "120",
+        "name" : "CI Pipeline",
+        "properties" : {
+          "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.5b326fef-cf6f-4ce0-b817-f7d098568e90.b531ae05-08cf-4fa5-8ee8-1cfb796fc824"
+        },
+        "tags" : "Element,Infrastructure Node"
+      } ],
+      "instances" : "1",
+      "name" : "GitHub Actions",
+      "properties" : {
+        "structurizr.dsl.identifier" : "2aa205d3-763c-48f6-9fcb-c6128b45388b.5b326fef-cf6f-4ce0-b817-f7d098568e90"
+      },
+      "tags" : "Element,Deployment Node",
+      "technology" : "GitHub"
+    } ],
+    "people" : [ {
+      "description" : "Crea y gestiona sprints, tareas y reportes",
+      "id" : "1",
+      "name" : "Manager",
+      "properties" : {
+        "structurizr.dsl.identifier" : "manager"
+      },
+      "relationships" : [ {
+        "description" : "Usa la aplicación",
+        "destinationId" : "7",
+        "id" : "28",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Usa UI",
+        "destinationId" : "8",
+        "id" : "34",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Create Sprint",
+        "destinationId" : "13",
+        "id" : "40",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Create Sprint",
+        "destinationId" : "12",
+        "id" : "41",
+        "linkedRelationshipId" : "40",
+        "sourceId" : "1"
+      }, {
+        "description" : "Edit Sprint",
+        "destinationId" : "14",
+        "id" : "42",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Delete Sprint",
+        "destinationId" : "15",
+        "id" : "43",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Create Task",
+        "destinationId" : "16",
+        "id" : "44",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Assign Task",
+        "destinationId" : "18",
+        "id" : "45",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Edit Task",
+        "destinationId" : "17",
+        "id" : "46",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Change Task State",
+        "destinationId" : "19",
+        "id" : "49",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Delete Task",
+        "destinationId" : "20",
+        "id" : "51",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "View Tasks",
+        "destinationId" : "9",
+        "id" : "52",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "View KPIs",
+        "destinationId" : "10",
+        "id" : "54",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Generate Report",
+        "destinationId" : "23",
+        "id" : "56",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Login / Logout",
+        "destinationId" : "24",
+        "id" : "58",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Register User",
+        "destinationId" : "25",
+        "id" : "60",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "View User Statistics",
+        "destinationId" : "22",
+        "id" : "62",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Trabaja en tareas, visualiza KPIs y genera reportes",
+      "id" : "2",
+      "name" : "Developer",
+      "properties" : {
+        "structurizr.dsl.identifier" : "developer"
+      },
+      "relationships" : [ {
+        "description" : "Usa la aplicación",
+        "destinationId" : "7",
+        "id" : "29",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Usa UI",
+        "destinationId" : "8",
+        "id" : "35",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Edit Task",
+        "destinationId" : "17",
+        "id" : "47",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Edit Task",
+        "destinationId" : "12",
+        "id" : "48",
+        "linkedRelationshipId" : "47",
+        "sourceId" : "2"
+      }, {
+        "description" : "Change Task State",
+        "destinationId" : "19",
+        "id" : "50",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "View Tasks",
+        "destinationId" : "9",
+        "id" : "53",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "View KPIs",
+        "destinationId" : "10",
+        "id" : "55",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Generate Report",
+        "destinationId" : "23",
+        "id" : "57",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Login / Logout",
+        "destinationId" : "24",
+        "id" : "59",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Register User",
+        "destinationId" : "25",
+        "id" : "61",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "View User Statistics",
+        "destinationId" : "22",
+        "id" : "63",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Mensajería para notificaciones del bot",
+      "documentation" : { },
+      "id" : "3",
+      "name" : "Telegram",
+      "properties" : {
+        "structurizr.dsl.identifier" : "telegram"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Base de datos relacional gestionada",
+      "documentation" : { },
+      "id" : "4",
+      "name" : "Oracle DB",
+      "properties" : {
+        "structurizr.dsl.identifier" : "oracleDb"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Oracle Cloud Infrastructure",
+      "documentation" : { },
+      "id" : "5",
+      "name" : "OCI",
+      "properties" : {
+        "structurizr.dsl.identifier" : "oci"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Repositorio y pipelines CI/CD",
+      "documentation" : { },
+      "id" : "6",
+      "name" : "GitHub / CI",
+      "properties" : {
+        "structurizr.dsl.identifier" : "github"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "containers" : [ {
+        "components" : [ {
+          "description" : "Muestra y manipula tareas en columnas Kanban",
+          "documentation" : { },
+          "id" : "9",
+          "name" : "Kanban Page",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.frontend.pageKanban"
+          },
+          "relationships" : [ {
+            "description" : "createSprint()",
+            "destinationId" : "13",
+            "id" : "64",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "createSprint()",
+            "destinationId" : "12",
+            "id" : "65",
+            "linkedRelationshipId" : "64",
+            "sourceId" : "9"
+          }, {
+            "description" : "createTask()",
+            "destinationId" : "16",
+            "id" : "67",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "editTask()",
+            "destinationId" : "17",
+            "id" : "69",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "changeStatus()",
+            "destinationId" : "19",
+            "id" : "71",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Presentation Layer"
+        }, {
+          "description" : "Visualización de métricas y gráficos",
+          "documentation" : { },
+          "id" : "10",
+          "name" : "KPI Dashboard",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.frontend.pageKPI"
+          },
+          "relationships" : [ {
+            "description" : "getKPIs()",
+            "destinationId" : "21",
+            "id" : "73",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          }, {
+            "description" : "getKPIs()",
+            "destinationId" : "12",
+            "id" : "74",
+            "linkedRelationshipId" : "73",
+            "sourceId" : "10"
+          }, {
+            "description" : "getUserStats()",
+            "destinationId" : "22",
+            "id" : "76",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          }, {
+            "description" : "generateReport()",
+            "destinationId" : "23",
+            "id" : "78",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Presentation Layer"
+        }, {
+          "description" : "Formularios de autenticación y registro",
+          "documentation" : { },
+          "id" : "11",
+          "name" : "Login / Register",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.frontend.pageAuth"
+          },
+          "relationships" : [ {
+            "description" : "login() / logout()",
+            "destinationId" : "24",
+            "id" : "80",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "login() / logout()",
+            "destinationId" : "12",
+            "id" : "81",
+            "linkedRelationshipId" : "80",
+            "sourceId" : "11"
+          }, {
+            "description" : "register()",
+            "destinationId" : "25",
+            "id" : "83",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Presentation Layer"
+        } ],
+        "description" : "Interfaz web",
+        "documentation" : { },
+        "id" : "8",
+        "name" : "Frontend",
+        "properties" : {
+          "structurizr.dsl.identifier" : "forgetask.frontend"
+        },
+        "relationships" : [ {
+          "description" : "HTTP REST",
+          "destinationId" : "12",
+          "id" : "36",
+          "sourceId" : "8",
+          "tags" : "Relationship"
+        }, {
+          "description" : "WebSocket",
+          "destinationId" : "27",
+          "id" : "37",
+          "sourceId" : "8",
+          "tags" : "Relationship"
+        }, {
+          "description" : "createSprint()",
+          "destinationId" : "13",
+          "id" : "66",
+          "linkedRelationshipId" : "64",
+          "sourceId" : "8"
+        }, {
+          "description" : "createTask()",
+          "destinationId" : "16",
+          "id" : "68",
+          "linkedRelationshipId" : "67",
+          "sourceId" : "8"
+        }, {
+          "description" : "editTask()",
+          "destinationId" : "17",
+          "id" : "70",
+          "linkedRelationshipId" : "69",
+          "sourceId" : "8"
+        }, {
+          "description" : "changeStatus()",
+          "destinationId" : "19",
+          "id" : "72",
+          "linkedRelationshipId" : "71",
+          "sourceId" : "8"
+        }, {
+          "description" : "getKPIs()",
+          "destinationId" : "21",
+          "id" : "75",
+          "linkedRelationshipId" : "73",
+          "sourceId" : "8"
+        }, {
+          "description" : "getUserStats()",
+          "destinationId" : "22",
+          "id" : "77",
+          "linkedRelationshipId" : "76",
+          "sourceId" : "8"
+        }, {
+          "description" : "generateReport()",
+          "destinationId" : "23",
+          "id" : "79",
+          "linkedRelationshipId" : "78",
+          "sourceId" : "8"
+        }, {
+          "description" : "login() / logout()",
+          "destinationId" : "24",
+          "id" : "82",
+          "linkedRelationshipId" : "80",
+          "sourceId" : "8"
+        }, {
+          "description" : "register()",
+          "destinationId" : "25",
+          "id" : "84",
+          "linkedRelationshipId" : "83",
+          "sourceId" : "8"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Next.js"
+      }, {
+        "components" : [ {
+          "description" : "Crea sprints; valida datos y persiste",
+          "documentation" : { },
+          "id" : "13",
+          "name" : "Sprint Creator",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.sprintCreator"
+          },
+          "relationships" : [ {
+            "description" : "INSERT sprint",
+            "destinationId" : "26",
+            "id" : "85",
+            "sourceId" : "13",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Sprint Domain"
+        }, {
+          "description" : "Modifica atributos de un sprint existente",
+          "documentation" : { },
+          "id" : "14",
+          "name" : "Sprint Editor",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.sprintEditor"
+          },
+          "relationships" : [ {
+            "description" : "UPDATE sprint",
+            "destinationId" : "26",
+            "id" : "86",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Sprint Domain"
+        }, {
+          "description" : "Elimina sprints y datos relacionados",
+          "documentation" : { },
+          "id" : "15",
+          "name" : "Sprint Remover",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.sprintRemover"
+          },
+          "relationships" : [ {
+            "description" : "DELETE sprint",
+            "destinationId" : "26",
+            "id" : "87",
+            "sourceId" : "15",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Sprint Domain"
+        }, {
+          "description" : "Crea tareas asociadas a un sprint",
+          "documentation" : { },
+          "id" : "16",
+          "name" : "Task Creator",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.taskCreator"
+          },
+          "relationships" : [ {
+            "description" : "INSERT task",
+            "destinationId" : "26",
+            "id" : "88",
+            "sourceId" : "16",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Task Domain"
+        }, {
+          "description" : "Modifica atributos de una tarea",
+          "documentation" : { },
+          "id" : "17",
+          "name" : "Task Editor",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.taskEditor"
+          },
+          "relationships" : [ {
+            "description" : "UPDATE task",
+            "destinationId" : "26",
+            "id" : "89",
+            "sourceId" : "17",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Task Domain"
+        }, {
+          "description" : "Asigna desarrolladores responsables",
+          "documentation" : { },
+          "id" : "18",
+          "name" : "Task Assigner",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.taskAssigner"
+          },
+          "relationships" : [ {
+            "description" : "UPDATE assignee",
+            "destinationId" : "26",
+            "id" : "90",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Task Domain"
+        }, {
+          "description" : "Gestiona transiciones de estado",
+          "documentation" : { },
+          "id" : "19",
+          "name" : "Task Status Changer",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.taskStatusChanger"
+          },
+          "relationships" : [ {
+            "description" : "UPDATE status",
+            "destinationId" : "26",
+            "id" : "91",
+            "sourceId" : "19",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Task Domain"
+        }, {
+          "description" : "Elimina tareas de forma segura",
+          "documentation" : { },
+          "id" : "20",
+          "name" : "Task Remover",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.taskRemover"
+          },
+          "relationships" : [ {
+            "description" : "DELETE task",
+            "destinationId" : "26",
+            "id" : "92",
+            "sourceId" : "20",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Task Domain"
+        }, {
+          "description" : "Calcula y expone métricas del proyecto",
+          "documentation" : { },
+          "id" : "21",
+          "name" : "KPI Dashboard Service",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.kpiDashboardService"
+          },
+          "relationships" : [ {
+            "description" : "SELECT métricas",
+            "destinationId" : "26",
+            "id" : "95",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Analytics Domain"
+        }, {
+          "description" : "Agrega métricas de productividad por usuario",
+          "documentation" : { },
+          "id" : "22",
+          "name" : "User Report",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.userReport"
+          },
+          "relationships" : [ {
+            "description" : "SELECT actividad",
+            "destinationId" : "26",
+            "id" : "93",
+            "sourceId" : "22",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Analytics Domain"
+        }, {
+          "description" : "Envía prompts a IA externa y construye el reporte",
+          "documentation" : { },
+          "id" : "23",
+          "name" : "AI Report Generator",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.aiReportGenerator"
+          },
+          "relationships" : [ {
+            "description" : "SELECT contexto",
+            "destinationId" : "26",
+            "id" : "94",
+            "sourceId" : "23",
+            "tags" : "Relationship"
+          }, {
+            "description" : "obtenerContexto()",
+            "destinationId" : "21",
+            "id" : "98",
+            "sourceId" : "23",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "AI Reporting Domain"
+        }, {
+          "description" : "Autentica usuarios; crea y cierra sesiones",
+          "documentation" : { },
+          "id" : "24",
+          "name" : "Session Manager",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.sessionManager"
+          },
+          "relationships" : [ {
+            "description" : "SELECT credenciales",
+            "destinationId" : "26",
+            "id" : "96",
+            "sourceId" : "24",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "User Management Domain"
+        }, {
+          "description" : "Registra nuevos usuarios; valida datos",
+          "documentation" : { },
+          "id" : "25",
+          "name" : "User Creator",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.userCreator"
+          },
+          "relationships" : [ {
+            "description" : "INSERT usuario",
+            "destinationId" : "26",
+            "id" : "97",
+            "sourceId" : "25",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "User Management Domain"
+        }, {
+          "description" : "Acceso a Oracle DB vía JDBC",
+          "documentation" : { },
+          "id" : "26",
+          "name" : "Database",
+          "properties" : {
+            "structurizr.dsl.identifier" : "forgetask.backend.database"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Persistence Layer"
+        } ],
+        "description" : "API REST y lógica de negocio",
+        "documentation" : { },
+        "id" : "12",
+        "name" : "Backend",
+        "properties" : {
+          "structurizr.dsl.identifier" : "forgetask.backend"
+        },
+        "relationships" : [ {
+          "description" : "JDBC",
+          "destinationId" : "4",
+          "id" : "38",
+          "sourceId" : "12",
+          "tags" : "Relationship"
+        }, {
+          "description" : "HTTP API",
+          "destinationId" : "3",
+          "id" : "39",
+          "sourceId" : "12",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Spring Boot (Java)"
+      }, {
+        "description" : "Notificaciones en tiempo real",
+        "documentation" : { },
+        "id" : "27",
+        "name" : "WebSocket Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "forgetask.websocket"
+        },
+        "tags" : "Element,Container",
+        "technology" : "Spring WebSocket"
+      } ],
+      "description" : "Aplicación web para gestión de tareas y sprints",
+      "documentation" : { },
+      "id" : "7",
+      "name" : "Forgetask",
+      "properties" : {
+        "structurizr.dsl.identifier" : "forgetask"
+      },
+      "relationships" : [ {
+        "description" : "Envía notificaciones",
+        "destinationId" : "3",
+        "id" : "30",
+        "sourceId" : "7",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Lee y escribe datos",
+        "destinationId" : "4",
+        "id" : "31",
+        "sourceId" : "7",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Deploy de imágenes",
+        "destinationId" : "5",
+        "id" : "32",
+        "sourceId" : "7",
+        "tags" : "Relationship"
+      }, {
+        "description" : "CI/CD pipelines",
+        "destinationId" : "6",
+        "id" : "33",
+        "sourceId" : "7",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Forgetask Architecture",
+  "properties" : {
+    "structurizr.inspection.error" : "85",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "TopBottom",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "12",
+      "description" : "Nivel C3 — Dominios del backend",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "25",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "C3_Backend",
+      "name" : "Component View: Forgetask - Backend",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "34"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "44"
+      }, {
+        "id" : "45"
+      }, {
+        "id" : "46"
+      }, {
+        "id" : "47"
+      }, {
+        "id" : "49"
+      }, {
+        "id" : "50"
+      }, {
+        "id" : "51"
+      }, {
+        "id" : "56"
+      }, {
+        "id" : "57"
+      }, {
+        "id" : "58"
+      }, {
+        "id" : "59"
+      }, {
+        "id" : "60"
+      }, {
+        "id" : "61"
+      }, {
+        "id" : "62"
+      }, {
+        "id" : "63"
+      }, {
+        "id" : "66"
+      }, {
+        "id" : "68"
+      }, {
+        "id" : "70"
+      }, {
+        "id" : "72"
+      }, {
+        "id" : "75"
+      }, {
+        "id" : "77"
+      }, {
+        "id" : "79"
+      }, {
+        "id" : "82"
+      }, {
+        "id" : "84"
+      }, {
+        "id" : "85"
+      }, {
+        "id" : "86"
+      }, {
+        "id" : "87"
+      }, {
+        "id" : "88"
+      }, {
+        "id" : "89"
+      }, {
+        "id" : "90"
+      }, {
+        "id" : "91"
+      }, {
+        "id" : "92"
+      }, {
+        "id" : "93"
+      }, {
+        "id" : "94"
+      }, {
+        "id" : "95"
+      }, {
+        "id" : "96"
+      }, {
+        "id" : "97"
+      }, {
+        "id" : "98"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "Nivel C3 — Presentation Layer",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "C3_Frontend",
+      "name" : "Component View: Forgetask - Frontend",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "41"
+      }, {
+        "id" : "48"
+      }, {
+        "id" : "52"
+      }, {
+        "id" : "53"
+      }, {
+        "id" : "54"
+      }, {
+        "id" : "55"
+      }, {
+        "id" : "65"
+      }, {
+        "id" : "74"
+      }, {
+        "id" : "81"
+      } ]
+    } ],
+    "configuration" : {
+      "styles" : { },
+      "terminology" : { },
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ]
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Nivel C2 — Frontend, Backend, WebSocket",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "C2_Containers",
+      "name" : "Container View: Forgetask",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "34"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "36"
+      }, {
+        "id" : "37"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "39"
+      }, {
+        "id" : "41"
+      }, {
+        "id" : "48"
+      } ],
+      "softwareSystemId" : "7"
+    } ],
+    "deploymentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Entorno local con Docker Desktop",
+      "elements" : [ {
+        "id" : "99",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "100",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "101",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "102",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "104",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "106",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "107",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "environment" : "Local",
+      "key" : "Deploy_Local",
+      "name" : "Deployment View: Forgetask - Local",
+      "order" : 6,
+      "relationships" : [ {
+        "id" : "103"
+      }, {
+        "id" : "105"
+      } ],
+      "softwareSystemId" : "7"
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Entorno de produccion en OCI / Kubernetes",
+      "elements" : [ {
+        "id" : "108",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "109",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "110",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "111",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "112",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "113",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "115",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "117",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "118",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "119",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "120",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "environment" : "Produccion",
+      "key" : "Deploy_Produccion",
+      "name" : "Deployment View: Forgetask - Produccion",
+      "order" : 7,
+      "relationships" : [ {
+        "id" : "114"
+      }, {
+        "id" : "116"
+      } ],
+      "softwareSystemId" : "7"
+    } ],
+    "dynamicViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Manager crea un sprint",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D1_Create_Sprint",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 8,
+      "relationships" : [ {
+        "description" : "Accede a la vista Kanban",
+        "id" : "34",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "createSprint()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "INSERT sprint",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Manager crea una tarea",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D2_Create_Task",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 9,
+      "relationships" : [ {
+        "description" : "Rellena formulario de tarea",
+        "id" : "34",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "createTask()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "INSERT task",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Manager asigna una tarea",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D3_Assign_Task",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 10,
+      "relationships" : [ {
+        "description" : "Selecciona tarea y asigna responsable",
+        "id" : "34",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "assignTask()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "UPDATE assignee",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Developer cambia estado de tarea",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D4_Change_Task_State",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 11,
+      "relationships" : [ {
+        "description" : "Mueve tarjeta en el tablero Kanban",
+        "id" : "35",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "changeStatus()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "UPDATE status",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Developer consulta KPIs del proyecto",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D5_View_KPIs",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 12,
+      "relationships" : [ {
+        "description" : "Abre KPI Dashboard",
+        "id" : "35",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "getKPIs()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "SELECT metricas",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Manager genera reporte con IA",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D6_Generate_AI_Report",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 13,
+      "relationships" : [ {
+        "description" : "Solicita reporte AI",
+        "id" : "34",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "generateReport()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "SELECT contexto",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Developer inicia sesion",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D7_Login",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 14,
+      "relationships" : [ {
+        "description" : "Introduce credenciales",
+        "id" : "35",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "login()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "SELECT credenciales",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Manager registra un nuevo usuario",
+      "elementId" : "7",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "D8_Register_User",
+      "name" : "Dynamic View: Forgetask",
+      "order" : 15,
+      "relationships" : [ {
+        "description" : "Completa formulario de registro",
+        "id" : "34",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "register()",
+        "id" : "36",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "INSERT usuario",
+        "id" : "38",
+        "order" : "3",
+        "response" : false
+      } ]
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Nivel C1 — Sistema y actores externos",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "C1_Context",
+      "name" : "System Context View: Forgetask",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "28"
+      }, {
+        "id" : "29"
+      }, {
+        "id" : "30"
+      }, {
+        "id" : "31"
+      }, {
+        "id" : "32"
+      }, {
+        "id" : "33"
+      } ],
+      "softwareSystemId" : "7"
+    } ],
+    "systemLandscapeViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Vista general: Forgetask y todos los sistemas externos",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "Landscape",
+      "name" : "System Landscape View",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "28"
+      }, {
+        "id" : "29"
+      }, {
+        "id" : "30"
+      }, {
+        "id" : "31"
+      }, {
+        "id" : "32"
+      }, {
+        "id" : "33"
+      } ]
+    } ]
+  }
+}
