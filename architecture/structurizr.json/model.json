@@ -1,0 +1,994 @@
+{
+  "configuration" : { },
+  "description" : "Modelo estructural generado para Structurizr",
+  "documentation" : { },
+  "id" : 0,
+  "model" : {
+    "people" : [ {
+      "description" : "Usuario final que usa la aplicación para gestionar tareas",
+      "id" : "1",
+      "name" : "Usuario",
+      "properties" : {
+        "structurizr.dsl.identifier" : "usuario"
+      },
+      "relationships" : [ {
+        "description" : "Usa UI",
+        "destinationId" : "10",
+        "id" : "37",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Usa UI",
+        "destinationId" : "9",
+        "id" : "38",
+        "linkedRelationshipId" : "37",
+        "sourceId" : "1"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Administrador del sistema",
+      "id" : "2",
+      "name" : "Administrador",
+      "properties" : {
+        "structurizr.dsl.identifier" : "admin"
+      },
+      "relationships" : [ {
+        "description" : "Usa UI de administración",
+        "destinationId" : "10",
+        "id" : "39",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Usa UI de administración",
+        "destinationId" : "9",
+        "id" : "40",
+        "linkedRelationshipId" : "39",
+        "sourceId" : "2"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Manager del proyecto (crea/gestiona sprints)",
+      "id" : "3",
+      "name" : "Manager",
+      "properties" : {
+        "structurizr.dsl.identifier" : "manager"
+      },
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Developer que trabaja en tareas y solicita reportes",
+      "id" : "4",
+      "name" : "Developer",
+      "properties" : {
+        "structurizr.dsl.identifier" : "developer"
+      },
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Repositorio y pipelines (GitHub Actions)",
+      "documentation" : { },
+      "id" : "5",
+      "name" : "GitHub / CI",
+      "properties" : {
+        "structurizr.dsl.identifier" : "github"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Servicio de mensajería (bot)",
+      "documentation" : { },
+      "id" : "6",
+      "name" : "Telegram",
+      "properties" : {
+        "structurizr.dsl.identifier" : "telegram"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Base de datos relacional gestionada",
+      "documentation" : { },
+      "id" : "7",
+      "name" : "Oracle DB",
+      "properties" : {
+        "structurizr.dsl.identifier" : "oracleDb"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Oracle Cloud Infrastructure",
+      "documentation" : { },
+      "id" : "8",
+      "name" : "OCI",
+      "properties" : {
+        "structurizr.dsl.identifier" : "oci"
+      },
+      "tags" : "Element,Software System"
+    }, {
+      "containers" : [ {
+        "components" : [ {
+          "description" : "Páginas y componentes React (app/)",
+          "documentation" : { },
+          "id" : "11",
+          "name" : "Pages / UI",
+          "properties" : {
+            "structurizr.dsl.identifier" : "pages"
+          },
+          "relationships" : [ {
+            "description" : "Llama a",
+            "destinationId" : "14",
+            "id" : "50",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Llama a",
+            "destinationId" : "15",
+            "id" : "51",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Llama a",
+            "destinationId" : "16",
+            "id" : "52",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Llama a",
+            "destinationId" : "17",
+            "id" : "53",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Next.js Pages"
+        }, {
+          "description" : "Vista Kanban y componentes asociados",
+          "documentation" : { },
+          "id" : "12",
+          "name" : "Kanban Page",
+          "properties" : {
+            "structurizr.dsl.identifier" : "pageKanban"
+          },
+          "relationships" : [ {
+            "description" : "Navegación entre vistas",
+            "destinationId" : "13",
+            "id" : "54",
+            "sourceId" : "12",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Page"
+        }, {
+          "description" : "Panel de KPIs y visualizaciones",
+          "documentation" : { },
+          "id" : "13",
+          "name" : "KPI Dashboard",
+          "properties" : {
+            "structurizr.dsl.identifier" : "pageKPI"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Page"
+        }, {
+          "description" : "Cliente HTTP hacia Backend (/api/projects)",
+          "documentation" : { },
+          "id" : "14",
+          "name" : "ProjectClient",
+          "properties" : {
+            "structurizr.dsl.identifier" : "clientProject"
+          },
+          "relationships" : [ {
+            "description" : "HTTP",
+            "destinationId" : "21",
+            "id" : "55",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "HTTP",
+            "destinationId" : "18",
+            "id" : "56",
+            "linkedRelationshipId" : "55",
+            "sourceId" : "14"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Cliente HTTP hacia Backend (/api/sprints)",
+          "documentation" : { },
+          "id" : "15",
+          "name" : "SprintClient",
+          "properties" : {
+            "structurizr.dsl.identifier" : "clientSprint"
+          },
+          "relationships" : [ {
+            "description" : "HTTP",
+            "destinationId" : "22",
+            "id" : "58",
+            "sourceId" : "15",
+            "tags" : "Relationship"
+          }, {
+            "description" : "HTTP",
+            "destinationId" : "18",
+            "id" : "59",
+            "linkedRelationshipId" : "58",
+            "sourceId" : "15"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Cliente HTTP hacia Backend (/api/tasks)",
+          "documentation" : { },
+          "id" : "16",
+          "name" : "TaskClient",
+          "properties" : {
+            "structurizr.dsl.identifier" : "clientTask"
+          },
+          "relationships" : [ {
+            "description" : "HTTP",
+            "destinationId" : "23",
+            "id" : "61",
+            "sourceId" : "16",
+            "tags" : "Relationship"
+          }, {
+            "description" : "HTTP",
+            "destinationId" : "18",
+            "id" : "62",
+            "linkedRelationshipId" : "61",
+            "sourceId" : "16"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Cliente HTTP hacia Backend (/api/reports)",
+          "documentation" : { },
+          "id" : "17",
+          "name" : "ReportsClient",
+          "properties" : {
+            "structurizr.dsl.identifier" : "clientReports"
+          },
+          "relationships" : [ {
+            "description" : "HTTP",
+            "destinationId" : "25",
+            "id" : "64",
+            "sourceId" : "17",
+            "tags" : "Relationship"
+          }, {
+            "description" : "HTTP",
+            "destinationId" : "18",
+            "id" : "65",
+            "linkedRelationshipId" : "64",
+            "sourceId" : "17"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        } ],
+        "description" : "Interfaz web (Next.js)",
+        "documentation" : { },
+        "id" : "10",
+        "name" : "Frontend",
+        "properties" : {
+          "structurizr.dsl.identifier" : "frontend"
+        },
+        "relationships" : [ {
+          "description" : "HTTP (REST)",
+          "destinationId" : "18",
+          "id" : "41",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        }, {
+          "description" : "WebSocket (suscripción)",
+          "destinationId" : "35",
+          "id" : "42",
+          "sourceId" : "10",
+          "tags" : "Relationship"
+        }, {
+          "description" : "HTTP",
+          "destinationId" : "21",
+          "id" : "57",
+          "linkedRelationshipId" : "55",
+          "sourceId" : "10"
+        }, {
+          "description" : "HTTP",
+          "destinationId" : "22",
+          "id" : "60",
+          "linkedRelationshipId" : "58",
+          "sourceId" : "10"
+        }, {
+          "description" : "HTTP",
+          "destinationId" : "23",
+          "id" : "63",
+          "linkedRelationshipId" : "61",
+          "sourceId" : "10"
+        }, {
+          "description" : "HTTP",
+          "destinationId" : "25",
+          "id" : "66",
+          "linkedRelationshipId" : "64",
+          "sourceId" : "10"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Next.js"
+      }, {
+        "components" : [ {
+          "description" : "/api/reports/health - estado del servicio",
+          "documentation" : { },
+          "id" : "19",
+          "name" : "HealthController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "healthController"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "Autenticación / JWT",
+          "documentation" : { },
+          "id" : "20",
+          "name" : "AuthController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "authController"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "/api/projects - gestión de proyectos",
+          "documentation" : { },
+          "id" : "21",
+          "name" : "ProjectController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "projectController"
+          },
+          "relationships" : [ {
+            "description" : "Delegates sprint operations",
+            "destinationId" : "22",
+            "id" : "67",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Delegates task operations",
+            "destinationId" : "23",
+            "id" : "68",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Solicita generación de reportes",
+            "destinationId" : "25",
+            "id" : "69",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "/api/sprints - gestión de sprints",
+          "documentation" : { },
+          "id" : "22",
+          "name" : "SprintController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "sprintController"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "/api/tasks - CRUD y búsquedas",
+          "documentation" : { },
+          "id" : "23",
+          "name" : "TaskController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "taskController"
+          },
+          "relationships" : [ {
+            "description" : "Persiste y consulta datos",
+            "destinationId" : "33",
+            "id" : "76",
+            "sourceId" : "23",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "/api/kpi - cálculo y exposición de métricas",
+          "documentation" : { },
+          "id" : "24",
+          "name" : "KPIController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "kpiController"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "/api/reports - generación y entrega de reportes",
+          "documentation" : { },
+          "id" : "25",
+          "name" : "ReportController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "reportController"
+          },
+          "relationships" : [ {
+            "description" : "generaReporte()",
+            "destinationId" : "29",
+            "id" : "70",
+            "sourceId" : "25",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "Listener / long-polling para el bot (si habilitado)",
+          "documentation" : { },
+          "id" : "26",
+          "name" : "TelegramBotController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "telegramBotController"
+          },
+          "relationships" : [ {
+            "description" : "Usa",
+            "destinationId" : "30",
+            "id" : "73",
+            "sourceId" : "26",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "WebSocket endpoints para actualizaciones en tiempo real",
+          "documentation" : { },
+          "id" : "27",
+          "name" : "TaskWebSocketController",
+          "properties" : {
+            "structurizr.dsl.identifier" : "taskWebSocketController"
+          },
+          "relationships" : [ {
+            "description" : "Publica eventos",
+            "destinationId" : "35",
+            "id" : "74",
+            "sourceId" : "27",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Controller"
+        }, {
+          "description" : "Lógica y llamadas a proveedores LLM (Groq, DeepSeek)",
+          "documentation" : { },
+          "id" : "28",
+          "name" : "LLMService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "llmService"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Construcción de texto y prompt para AI",
+          "documentation" : { },
+          "id" : "29",
+          "name" : "ReportGeneratorService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "reportGeneratorService"
+          },
+          "relationships" : [ {
+            "description" : "Llama al proveedor LLM",
+            "destinationId" : "28",
+            "id" : "71",
+            "sourceId" : "29",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Consulta métricas/KPIs",
+            "destinationId" : "32",
+            "id" : "72",
+            "sourceId" : "29",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Genera y envía reportes vía Telegram",
+          "documentation" : { },
+          "id" : "30",
+          "name" : "TelegramReportService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "telegramReportService"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Renderiza contenido a PDF",
+          "documentation" : { },
+          "id" : "31",
+          "name" : "PDFGeneratorService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "pdfGeneratorService"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Cálculo de métricas y KPIs",
+          "documentation" : { },
+          "id" : "32",
+          "name" : "KPIService",
+          "properties" : {
+            "structurizr.dsl.identifier" : "kpiService"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Service"
+        }, {
+          "description" : "Acceso a datos (JdbcTemplate / consultas SQL)",
+          "documentation" : { },
+          "id" : "33",
+          "name" : "JdbcRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "jdbcRepository"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Repository"
+        }, {
+          "description" : "Consultas de roles/usuarios",
+          "documentation" : { },
+          "id" : "34",
+          "name" : "UserRoleRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "userRoleRepository"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Repository"
+        } ],
+        "description" : "API REST y lógica de negocio",
+        "documentation" : { },
+        "id" : "18",
+        "name" : "Backend",
+        "properties" : {
+          "structurizr.dsl.identifier" : "backend"
+        },
+        "relationships" : [ {
+          "description" : "JDBC (queries)",
+          "destinationId" : "36",
+          "id" : "43",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "HTTP API (bot)",
+          "destinationId" : "6",
+          "id" : "44",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Webhooks / Deploy triggers",
+          "destinationId" : "5",
+          "id" : "46",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Push images / deploy",
+          "destinationId" : "8",
+          "id" : "48",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Publica eventos",
+          "destinationId" : "35",
+          "id" : "75",
+          "linkedRelationshipId" : "74",
+          "sourceId" : "18"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Spring Boot (Java)"
+      }, {
+        "description" : "Notificaciones en tiempo real (Spring WebSocket)",
+        "documentation" : { },
+        "id" : "35",
+        "name" : "WebSocket Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "websocket"
+        },
+        "tags" : "Element,Container",
+        "technology" : "Spring WebSocket"
+      }, {
+        "description" : "Oracle DB (acceso vía JDBC)",
+        "documentation" : { },
+        "id" : "36",
+        "name" : "Database Proxy",
+        "properties" : {
+          "structurizr.dsl.identifier" : "dbProxy"
+        },
+        "tags" : "Element,Container",
+        "technology" : "Oracle DB"
+      } ],
+      "description" : "Aplicación para gestión de tareas",
+      "documentation" : { },
+      "id" : "9",
+      "name" : "Forgetask",
+      "properties" : {
+        "structurizr.dsl.identifier" : "forgetask"
+      },
+      "relationships" : [ {
+        "description" : "HTTP API (bot)",
+        "destinationId" : "6",
+        "id" : "45",
+        "linkedRelationshipId" : "44",
+        "sourceId" : "9"
+      }, {
+        "description" : "Webhooks / Deploy triggers",
+        "destinationId" : "5",
+        "id" : "47",
+        "linkedRelationshipId" : "46",
+        "sourceId" : "9"
+      }, {
+        "description" : "Push images / deploy",
+        "destinationId" : "8",
+        "id" : "49",
+        "linkedRelationshipId" : "48",
+        "sourceId" : "9"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Forgetask Architecture",
+  "properties" : {
+    "structurizr.inspection.error" : "51",
+    "structurizr.dsl" : "d29ya3NwYWNlICJGb3JnZXRhc2sgQXJjaGl0ZWN0dXJlIiAiTW9kZWxvIGVzdHJ1Y3R1cmFsIGdlbmVyYWRvIHBhcmEgU3RydWN0dXJpenIiIHsKCiAgbW9kZWwgewogICAgLy8gUGVyc29uYXMgLyBBY3RvcmVzCiAgICB1c3VhcmlvICA9IHBlcnNvbiAiVXN1YXJpbyIgICAgICAgIlVzdWFyaW8gZmluYWwgcXVlIHVzYSBsYSBhcGxpY2FjacOzbiBwYXJhIGdlc3Rpb25hciB0YXJlYXMiCiAgICBhZG1pbiAgICA9IHBlcnNvbiAiQWRtaW5pc3RyYWRvciIgIkFkbWluaXN0cmFkb3IgZGVsIHNpc3RlbWEiCiAgICBtYW5hZ2VyICA9IHBlcnNvbiAiTWFuYWdlciIgICAgICAgIk1hbmFnZXIgZGVsIHByb3llY3RvIChjcmVhL2dlc3Rpb25hIHNwcmludHMpIgogICAgZGV2ZWxvcGVyID0gcGVyc29uICJEZXZlbG9wZXIiICAgIkRldmVsb3BlciBxdWUgdHJhYmFqYSBlbiB0YXJlYXMgeSBzb2xpY2l0YSByZXBvcnRlcyIKCiAgICAvLyBTaXN0ZW1hcyBleHRlcm5vcwogICAgZ2l0aHViICAgPSBzb2Z0d2FyZVN5c3RlbSAiR2l0SHViIC8gQ0kiICAiUmVwb3NpdG9yaW8geSBwaXBlbGluZXMgKEdpdEh1YiBBY3Rpb25zKSIKICAgIHRlbGVncmFtID0gc29mdHdhcmVTeXN0ZW0gIlRlbGVncmFtIiAgICAgIlNlcnZpY2lvIGRlIG1lbnNhamVyw61hIChib3QpIgogICAgb3JhY2xlRGIgPSBzb2Z0d2FyZVN5c3RlbSAiT3JhY2xlIERCIiAgICAiQmFzZSBkZSBkYXRvcyByZWxhY2lvbmFsIGdlc3Rpb25hZGEiCiAgICBvY2kgICAgICA9IHNvZnR3YXJlU3lzdGVtICJPQ0kiICAgICAgICAgICJPcmFjbGUgQ2xvdWQgSW5mcmFzdHJ1Y3R1cmUiCgogICAgLy8gU2lzdGVtYSBwcmluY2lwYWwgY29uIGNvbnRlbmVkb3JlcyBBTklEQURPUwogICAgZm9yZ2V0YXNrID0gc29mdHdhcmVTeXN0ZW0gIkZvcmdldGFzayIgIkFwbGljYWNpw7NuIHBhcmEgZ2VzdGnDs24gZGUgdGFyZWFzIiB7CgogICAgICBmcm9udGVuZCA9IGNvbnRhaW5lciAiRnJvbnRlbmQiICJJbnRlcmZheiB3ZWIgKE5leHQuanMpIiAiTmV4dC5qcyIgewogICAgICAgIHBhZ2VzICAgICAgICAgICAgICAgPSBjb21wb25lbnQgIlBhZ2VzIC8gVUkiICAgICAgICAgICJQw6FnaW5hcyB5IGNvbXBvbmVudGVzIFJlYWN0IChhcHAvKSIgICAgICAgICAgIk5leHQuanMgUGFnZXMiCiAgICAgICAgcGFnZUthbmJhbiAgICAgICAgICA9IGNvbXBvbmVudCAiS2FuYmFuIFBhZ2UiICAgICAgICAgIlZpc3RhIEthbmJhbiB5IGNvbXBvbmVudGVzIGFzb2NpYWRvcyIgICAgICAgIlBhZ2UiCiAgICAgICAgcGFnZUtQSSAgICAgICAgICAgICA9IGNvbXBvbmVudCAiS1BJIERhc2hib2FyZCIgICAgICAgIlBhbmVsIGRlIEtQSXMgeSB2aXN1YWxpemFjaW9uZXMiICAgICAgICAgICAgIlBhZ2UiCiAgICAgICAgY2xpZW50UHJvamVjdCAgICAgICA9IGNvbXBvbmVudCAiUHJvamVjdENsaWVudCIgICAgICAgIkNsaWVudGUgSFRUUCBoYWNpYSBCYWNrZW5kICgvYXBpL3Byb2plY3RzKSIgICJTZXJ2aWNlIgogICAgICAgIGNsaWVudFNwcmludCAgICAgICAgPSBjb21wb25lbnQgIlNwcmludENsaWVudCIgICAgICAgICJDbGllbnRlIEhUVFAgaGFjaWEgQmFja2VuZCAoL2FwaS9zcHJpbnRzKSIgICAiU2VydmljZSIKICAgICAgICBjbGllbnRUYXNrICAgICAgICAgID0gY29tcG9uZW50ICJUYXNrQ2xpZW50IiAgICAgICAgICAiQ2xpZW50ZSBIVFRQIGhhY2lhIEJhY2tlbmQgKC9hcGkvdGFza3MpIiAgICAgIlNlcnZpY2UiCiAgICAgICAgY2xpZW50UmVwb3J0cyAgICAgICA9IGNvbXBvbmVudCAiUmVwb3J0c0NsaWVudCIgICAgICAgIkNsaWVudGUgSFRUUCBoYWNpYSBCYWNrZW5kICgvYXBpL3JlcG9ydHMpIiAgICJTZXJ2aWNlIgogICAgICB9CgogICAgICBiYWNrZW5kID0gY29udGFpbmVyICJCYWNrZW5kIiAiQVBJIFJFU1QgeSBsw7NnaWNhIGRlIG5lZ29jaW8iICJTcHJpbmcgQm9vdCAoSmF2YSkiIHsKICAgICAgICBoZWFsdGhDb250cm9sbGVyICAgICAgID0gY29tcG9uZW50ICJIZWFsdGhDb250cm9sbGVyIiAgICAgICAiL2FwaS9yZXBvcnRzL2hlYWx0aCAtIGVzdGFkbyBkZWwgc2VydmljaW8iICAgICAgICAgICAiQ29udHJvbGxlciIKICAgICAgICBhdXRoQ29udHJvbGxlciAgICAgICAgID0gY29tcG9uZW50ICJBdXRoQ29udHJvbGxlciIgICAgICAgICAiQXV0ZW50aWNhY2nDs24gLyBKV1QiICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIkNvbnRyb2xsZXIiCiAgICAgICAgcHJvamVjdENvbnRyb2xsZXIgICAgICA9IGNvbXBvbmVudCAiUHJvamVjdENvbnRyb2xsZXIiICAgICAgIi9hcGkvcHJvamVjdHMgLSBnZXN0acOzbiBkZSBwcm95ZWN0b3MiICAgICAgICAgICAgICAgICAiQ29udHJvbGxlciIKICAgICAgICBzcHJpbnRDb250cm9sbGVyICAgICAgID0gY29tcG9uZW50ICJTcHJpbnRDb250cm9sbGVyIiAgICAgICAiL2FwaS9zcHJpbnRzIC0gZ2VzdGnDs24gZGUgc3ByaW50cyIgICAgICAgICAgICAgICAgICAgIkNvbnRyb2xsZXIiCiAgICAgICAgdGFza0NvbnRyb2xsZXIgICAgICAgICA9IGNvbXBvbmVudCAiVGFza0NvbnRyb2xsZXIiICAgICAgICAgIi9hcGkvdGFza3MgLSBDUlVEIHkgYsO6c3F1ZWRhcyIgICAgICAgICAgICAgICAgICAgICAgICAiQ29udHJvbGxlciIKICAgICAgICBrcGlDb250cm9sbGVyICAgICAgICAgID0gY29tcG9uZW50ICJLUElDb250cm9sbGVyIiAgICAgICAgICAiL2FwaS9rcGkgLSBjw6FsY3VsbyB5IGV4cG9zaWNpw7NuIGRlIG3DqXRyaWNhcyIgICAgICAgICAiQ29udHJvbGxlciIKICAgICAgICByZXBvcnRDb250cm9sbGVyICAgICAgID0gY29tcG9uZW50ICJSZXBvcnRDb250cm9sbGVyIiAgICAgICAiL2FwaS9yZXBvcnRzIC0gZ2VuZXJhY2nDs24geSBlbnRyZWdhIGRlIHJlcG9ydGVzIiAgICAgIkNvbnRyb2xsZXIiCiAgICAgICAgdGVsZWdyYW1Cb3RDb250cm9sbGVyICA9IGNvbXBvbmVudCAiVGVsZWdyYW1Cb3RDb250cm9sbGVyIiAgIkxpc3RlbmVyIC8gbG9uZy1wb2xsaW5nIHBhcmEgZWwgYm90IChzaSBoYWJpbGl0YWRvKSIgIkNvbnRyb2xsZXIiCiAgICAgICAgdGFza1dlYlNvY2tldENvbnRyb2xsZXIgPSBjb21wb25lbnQgIlRhc2tXZWJTb2NrZXRDb250cm9sbGVyIiAiV2ViU29ja2V0IGVuZHBvaW50cyBwYXJhIGFjdHVhbGl6YWNpb25lcyBlbiB0aWVtcG8gcmVhbCIgIkNvbnRyb2xsZXIiCgogICAgICAgIGxsbVNlcnZpY2UgICAgICAgICAgICAgPSBjb21wb25lbnQgIkxMTVNlcnZpY2UiICAgICAgICAgICAgICJMw7NnaWNhIHkgbGxhbWFkYXMgYSBwcm92ZWVkb3JlcyBMTE0gKEdyb3EsIERlZXBTZWVrKSIgIlNlcnZpY2UiCiAgICAgICAgcmVwb3J0R2VuZXJhdG9yU2VydmljZSA9IGNvbXBvbmVudCAiUmVwb3J0R2VuZXJhdG9yU2VydmljZSIgIkNvbnN0cnVjY2nDs24gZGUgdGV4dG8geSBwcm9tcHQgcGFyYSBBSSIgICAgICAgICAgICAgICJTZXJ2aWNlIgogICAgICAgIHRlbGVncmFtUmVwb3J0U2VydmljZSAgPSBjb21wb25lbnQgIlRlbGVncmFtUmVwb3J0U2VydmljZSIgICJHZW5lcmEgeSBlbnbDrWEgcmVwb3J0ZXMgdsOtYSBUZWxlZ3JhbSIgICAgICAgICAgICAgICAgICJTZXJ2aWNlIgogICAgICAgIHBkZkdlbmVyYXRvclNlcnZpY2UgICAgPSBjb21wb25lbnQgIlBERkdlbmVyYXRvclNlcnZpY2UiICAgICJSZW5kZXJpemEgY29udGVuaWRvIGEgUERGIiAgICAgICAgICAgICAgICAgICAgICAgICAgICJTZXJ2aWNlIgogICAgICAgIGtwaVNlcnZpY2UgICAgICAgICAgICAgPSBjb21wb25lbnQgIktQSVNlcnZpY2UiICAgICAgICAgICAgICJDw6FsY3VsbyBkZSBtw6l0cmljYXMgeSBLUElzIiAgICAgICAgICAgICAgICAgICAgICAgICAgIlNlcnZpY2UiCgogICAgICAgIGpkYmNSZXBvc2l0b3J5ICAgICAgICAgPSBjb21wb25lbnQgIkpkYmNSZXBvc2l0b3J5IiAgICAgICAgICJBY2Nlc28gYSBkYXRvcyAoSmRiY1RlbXBsYXRlIC8gY29uc3VsdGFzIFNRTCkiICAgICAgICJSZXBvc2l0b3J5IgogICAgICAgIHVzZXJSb2xlUmVwb3NpdG9yeSAgICAgPSBjb21wb25lbnQgIlVzZXJSb2xlUmVwb3NpdG9yeSIgICAgICJDb25zdWx0YXMgZGUgcm9sZXMvdXN1YXJpb3MiICAgICAgICAgICAgICAgICAgICAgICAgICJSZXBvc2l0b3J5IgogICAgICB9CgogICAgICB3ZWJzb2NrZXQgPSBjb250YWluZXIgIldlYlNvY2tldCBTZXJ2aWNlIiAiTm90aWZpY2FjaW9uZXMgZW4gdGllbXBvIHJlYWwgKFNwcmluZyBXZWJTb2NrZXQpIiAiU3ByaW5nIFdlYlNvY2tldCIKICAgICAgZGJQcm94eSAgID0gY29udGFpbmVyICJEYXRhYmFzZSBQcm94eSIgICAgIk9yYWNsZSBEQiAoYWNjZXNvIHbDrWEgSkRCQykiICAgICAgICAgICAgICAgICAgICAgICJPcmFjbGUgREIiCiAgICB9CgogICAgLy8gUmVsYWNpb25lcyBkZSBhbHRvIG5pdmVsCiAgICB1c3VhcmlvICAtPiBmcm9udGVuZCAgIlVzYSBVSSIKICAgIGFkbWluICAgIC0+IGZyb250ZW5kICAiVXNhIFVJIGRlIGFkbWluaXN0cmFjacOzbiIKICAgIGZyb250ZW5kIC0+IGJhY2tlbmQgICAiSFRUUCAoUkVTVCkiCiAgICBmcm9udGVuZCAtPiB3ZWJzb2NrZXQgIldlYlNvY2tldCAoc3VzY3JpcGNpw7NuKSIKICAgIGJhY2tlbmQgIC0+IGRiUHJveHkgICAiSkRCQyAocXVlcmllcykiCiAgICBiYWNrZW5kICAtPiB0ZWxlZ3JhbSAgIkhUVFAgQVBJIChib3QpIgogICAgYmFja2VuZCAgLT4gZ2l0aHViICAgICJXZWJob29rcyAvIERlcGxveSB0cmlnZ2VycyIKICAgIGJhY2tlbmQgIC0+IG9jaSAgICAgICAiUHVzaCBpbWFnZXMgLyBkZXBsb3kiCgogICAgLy8gUmVsYWNpb25lcyBlbnRyZSBjb21wb25lbnRlcyBkZWwgZnJvbnRlbmQKICAgIHBhZ2VzIC0+IGNsaWVudFByb2plY3QgICJMbGFtYSBhIgogICAgcGFnZXMgLT4gY2xpZW50U3ByaW50ICAgIkxsYW1hIGEiCiAgICBwYWdlcyAtPiBjbGllbnRUYXNrICAgICAiTGxhbWEgYSIKICAgIHBhZ2VzIC0+IGNsaWVudFJlcG9ydHMgICJMbGFtYSBhIgogICAgcGFnZUthbmJhbiAtPiBwYWdlS1BJICAgIk5hdmVnYWNpw7NuIGVudHJlIHZpc3RhcyIKCiAgICBjbGllbnRQcm9qZWN0IC0+IHByb2plY3RDb250cm9sbGVyICJIVFRQIgogICAgY2xpZW50U3ByaW50ICAtPiBzcHJpbnRDb250cm9sbGVyICAiSFRUUCIKICAgIGNsaWVudFRhc2sgICAgLT4gdGFza0NvbnRyb2xsZXIgICAgIkhUVFAiCiAgICBjbGllbnRSZXBvcnRzIC0+IHJlcG9ydENvbnRyb2xsZXIgICJIVFRQIgoKICAgIC8vIENvbnRyb2xhZG9yZXMg4oaSIG90cm9zIGNvbnRyb2xhZG9yZXMvc2VydmljaW9zCiAgICBwcm9qZWN0Q29udHJvbGxlciAtPiBzcHJpbnRDb250cm9sbGVyICJEZWxlZ2F0ZXMgc3ByaW50IG9wZXJhdGlvbnMiCiAgICBwcm9qZWN0Q29udHJvbGxlciAtPiB0YXNrQ29udHJvbGxlciAgICJEZWxlZ2F0ZXMgdGFzayBvcGVyYXRpb25zIgogICAgcHJvamVjdENvbnRyb2xsZXIgLT4gcmVwb3J0Q29udHJvbGxlciAiU29saWNpdGEgZ2VuZXJhY2nDs24gZGUgcmVwb3J0ZXMiCgogICAgcmVwb3J0Q29udHJvbGxlciAtPiByZXBvcnRHZW5lcmF0b3JTZXJ2aWNlICJnZW5lcmFSZXBvcnRlKCkiCiAgICByZXBvcnRHZW5lcmF0b3JTZXJ2aWNlIC0+IGxsbVNlcnZpY2UgICAgICAgICAiTGxhbWEgYWwgcHJvdmVlZG9yIExMTSIKICAgIHJlcG9ydEdlbmVyYXRvclNlcnZpY2UgLT4ga3BpU2VydmljZSAgICAgICAgICJDb25zdWx0YSBtw6l0cmljYXMvS1BJcyIKCiAgICB0ZWxlZ3JhbUJvdENvbnRyb2xsZXIgICAtPiB0ZWxlZ3JhbVJlcG9ydFNlcnZpY2UgICAiVXNhIgogICAgdGFza1dlYlNvY2tldENvbnRyb2xsZXIgLT4gd2Vic29ja2V0ICAgICAgICAgICAgICAgIlB1YmxpY2EgZXZlbnRvcyIKCiAgICB0YXNrQ29udHJvbGxlciAgICAgICAtPiBqZGJjUmVwb3NpdG9yeSAiUGVyc2lzdGUgeSBjb25zdWx0YSBkYXRvcyIKICB9CgogIHZpZXdzIHsKICAgIHN5c3RlbUxhbmRzY2FwZSAibGFuZHNjYXBlIiB7CiAgICAgIGluY2x1ZGUgKgogICAgICBhdXRvTGF5b3V0IGxyCiAgICB9CgogICAgc3lzdGVtQ29udGV4dCBmb3JnZXRhc2sgImNvbnRleHQiIHsKICAgICAgaW5jbHVkZSAqCiAgICAgIGF1dG9MYXlvdXQgbHIKICAgIH0KCiAgICBjb250YWluZXIgZm9yZ2V0YXNrICJjb250YWluZXJzIiB7CiAgICAgIGluY2x1ZGUgKgogICAgICBhdXRvTGF5b3V0IGxyCiAgICB9CgogICAgY29tcG9uZW50IGJhY2tlbmQgImJhY2tlbmRfY29tcG9uZW50cyIgewogICAgICBpbmNsdWRlICoKICAgICAgYXV0b0xheW91dCBscgogICAgfQoKICAgIGNvbXBvbmVudCBmcm9udGVuZCAiZnJvbnRlbmRfY29tcG9uZW50cyIgewogICAgICBpbmNsdWRlICoKICAgICAgYXV0b0xheW91dCBscgogICAgfQoKICAgIHRoZW1lIGRlZmF1bHQKICB9Cn0=",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "18",
+      "elements" : [ {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "25",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "33",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "backend_components",
+      "name" : "Component View: Forgetask - Backend",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "42"
+      }, {
+        "id" : "57"
+      }, {
+        "id" : "60"
+      }, {
+        "id" : "63"
+      }, {
+        "id" : "66"
+      }, {
+        "id" : "67"
+      }, {
+        "id" : "68"
+      }, {
+        "id" : "69"
+      }, {
+        "id" : "70"
+      }, {
+        "id" : "71"
+      }, {
+        "id" : "72"
+      }, {
+        "id" : "73"
+      }, {
+        "id" : "74"
+      }, {
+        "id" : "76"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "10",
+      "elements" : [ {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "frontend_components",
+      "name" : "Component View: Forgetask - Frontend",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "50"
+      }, {
+        "id" : "51"
+      }, {
+        "id" : "52"
+      }, {
+        "id" : "53"
+      }, {
+        "id" : "54"
+      }, {
+        "id" : "56"
+      }, {
+        "id" : "59"
+      }, {
+        "id" : "62"
+      }, {
+        "id" : "65"
+      } ]
+    } ],
+    "configuration" : {
+      "styles" : { },
+      "terminology" : { },
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json" ]
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "containers",
+      "name" : "Container View: Forgetask",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "37"
+      }, {
+        "id" : "39"
+      }, {
+        "id" : "41"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "44"
+      }, {
+        "id" : "46"
+      }, {
+        "id" : "48"
+      }, {
+        "id" : "75"
+      } ],
+      "softwareSystemId" : "9"
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "context",
+      "name" : "System Context View: Forgetask",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "38"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "45"
+      }, {
+        "id" : "47"
+      }, {
+        "id" : "49"
+      } ],
+      "softwareSystemId" : "9"
+    } ],
+    "systemLandscapeViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "landscape",
+      "name" : "System Landscape View",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "38"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "45"
+      }, {
+        "id" : "47"
+      }, {
+        "id" : "49"
+      } ]
+    } ]
+  }
+}
