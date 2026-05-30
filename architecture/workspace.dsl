@@ -5,39 +5,24 @@
     model {
         !include model.dsl
 
-        deploymentEnvironment "Local" {
-            deploymentNode "Developer Laptop" "Máquina local de desarrollo" "Windows / Docker Desktop" {
-                deploymentNode "Docker Engine" "Motor de contenedores local" "Docker" {
-                    containerInstance forgetask.frontend
-                    containerInstance forgetask.backend
-                }
-            }
-            deploymentNode "Oracle DB Local" "Base de datos para desarrollo" "Oracle DB" {
-                infrastructureNode "Oracle DB Instance" "Instancia de base de datos"
-            }
-        }
-
         deploymentEnvironment "Produccion" {
-            deploymentNode "OCI Container Registry" "Registro de imagenes Docker" "Oracle Cloud" {
-                infrastructureNode "Image Registry" "Almacena imagenes del frontend y backend"
+            deploymentNode "OCI Environment" "Ambiente de Oracle" "Oracle Cloud" {
+                infrastructureNode "Build Pipeline" "Ejecuta el Deployment"
+                infrastructureNode "Deploy Stage" "Contiene imágenes del frontend y backend"
+                infrastructureNode "Test Stage" "Contiene imagen del testing"
             }
-            deploymentNode "OCI Container Engine" "Cluster Kubernetes gestionado" "OKE" {
-                deploymentNode "Worker Node" "Nodo de computo del cluster" "VM Standard" {
-                    containerInstance forgetask.frontend
-                    containerInstance forgetask.backend
-                }
-            }
-            deploymentNode "Oracle Cloud DB" "Base de datos gestionada en produccion" "Oracle DB Cloud" {
-                infrastructureNode "Oracle DB Prod" "Instancia de base de datos en produccion"
-            }
+
+
+            // Aquí referenciamos el softwareSystem GitHub
             deploymentNode "GitHub Actions" "Pipeline CI/CD" "GitHub" {
-                infrastructureNode "CI Pipeline" "Build, test y push de imagenes al registry"
+                softwareSystemInstance github
             }
+
+            
         }
     }
 
     views {
-
 
         systemContext forgetask "C1_Context" "Nivel C1 — Sistema y actores externos" {
             include *
@@ -83,8 +68,7 @@
             autoLayout lr
         }
 
-
-        deployment forgetask "Produccion" "Deploy_Produccion" "Entorno de produccion en OCI / Kubernetes" {
+        deployment forgetask "Produccion" "Deploy_Produccion" "Entorno de producción en OCI / Kubernetes" {
             include *
             autoLayout lr
         }
@@ -116,7 +100,6 @@
             forgetask.backend -> oracleDb "UPDATE status"
             autoLayout lr
         }
-
 
         theme default
     }

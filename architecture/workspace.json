@@ -5,188 +5,66 @@
   "description" : "Basado en model-1.md — Actions/Actors Approach",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2026-05-30T02:31:25Z",
+  "lastModifiedDate" : "2026-05-30T03:27:53Z",
   "model" : {
     "deploymentNodes" : [ {
-      "children" : [ {
-        "containerInstances" : [ {
-          "containerId" : "8",
-          "environment" : "Local",
-          "id" : "86",
-          "instanceId" : 1,
-          "properties" : {
-            "structurizr.dsl.identifier" : "9d94bcdd-ab12-47ac-a957-ff2da16efc0e.67c5dec3-681b-4acd-9db5-a0b52d11c8bf.84670035-a247-4e32-85cf-86b10a08855d.5da53d87-a440-4419-a1ce-d6e2dc4c7689"
-          },
-          "relationships" : [ {
-            "description" : "HTTP REST",
-            "destinationId" : "87",
-            "id" : "88",
-            "linkedRelationshipId" : "39",
-            "sourceId" : "86"
-          } ],
-          "tags" : "Container Instance"
-        }, {
-          "containerId" : "12",
-          "environment" : "Local",
-          "id" : "87",
-          "instanceId" : 1,
-          "properties" : {
-            "structurizr.dsl.identifier" : "9d94bcdd-ab12-47ac-a957-ff2da16efc0e.67c5dec3-681b-4acd-9db5-a0b52d11c8bf.84670035-a247-4e32-85cf-86b10a08855d.a6f4ca36-5b2e-4d9a-9806-48cedcf9c145"
-          },
-          "tags" : "Container Instance"
-        } ],
-        "description" : "Motor de contenedores local",
-        "environment" : "Local",
-        "id" : "85",
-        "instances" : "1",
-        "name" : "Docker Engine",
-        "properties" : {
-          "structurizr.dsl.identifier" : "9d94bcdd-ab12-47ac-a957-ff2da16efc0e.67c5dec3-681b-4acd-9db5-a0b52d11c8bf.84670035-a247-4e32-85cf-86b10a08855d"
-        },
-        "tags" : "Element,Deployment Node",
-        "technology" : "Docker"
-      } ],
-      "description" : "Máquina local de desarrollo",
-      "environment" : "Local",
-      "id" : "84",
-      "instances" : "1",
-      "name" : "Developer Laptop",
-      "properties" : {
-        "structurizr.dsl.identifier" : "9d94bcdd-ab12-47ac-a957-ff2da16efc0e.67c5dec3-681b-4acd-9db5-a0b52d11c8bf"
-      },
-      "tags" : "Element,Deployment Node",
-      "technology" : "Windows / Docker Desktop"
-    }, {
-      "description" : "Base de datos para desarrollo",
-      "environment" : "Local",
-      "id" : "89",
-      "infrastructureNodes" : [ {
-        "description" : "Instancia de base de datos",
-        "environment" : "Local",
-        "id" : "90",
-        "name" : "Oracle DB Instance",
-        "properties" : {
-          "structurizr.dsl.identifier" : "9d94bcdd-ab12-47ac-a957-ff2da16efc0e.fe7b1c77-ec89-4b0c-8618-9b11d99f4902.84aa5457-62da-4010-99d2-258d9f50a9b7"
-        },
-        "tags" : "Element,Infrastructure Node"
-      } ],
-      "instances" : "1",
-      "name" : "Oracle DB Local",
-      "properties" : {
-        "structurizr.dsl.identifier" : "9d94bcdd-ab12-47ac-a957-ff2da16efc0e.fe7b1c77-ec89-4b0c-8618-9b11d99f4902"
-      },
-      "tags" : "Element,Deployment Node",
-      "technology" : "Oracle DB"
-    }, {
-      "description" : "Registro de imagenes Docker",
+      "description" : "Ambiente de Oracle",
       "environment" : "Produccion",
-      "id" : "91",
+      "id" : "84",
       "infrastructureNodes" : [ {
-        "description" : "Almacena imagenes del frontend y backend",
+        "description" : "Ejecuta el Deployment",
         "environment" : "Produccion",
-        "id" : "92",
-        "name" : "Image Registry",
+        "id" : "85",
+        "name" : "Build Pipeline",
         "properties" : {
-          "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.aaa413ce-fb7d-4c88-9a48-88571ca78d15.9ed28ce3-f0cb-4c74-bf42-1077585fa0c6"
+          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9.16184f6f-a0a8-4b03-baba-167b0e60bc66"
+        },
+        "tags" : "Element,Infrastructure Node"
+      }, {
+        "description" : "Contiene imágenes del frontend y backend",
+        "environment" : "Produccion",
+        "id" : "86",
+        "name" : "Deploy Stage",
+        "properties" : {
+          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9.c1fc50ba-aed1-4abd-b0fb-23779c149945"
+        },
+        "tags" : "Element,Infrastructure Node"
+      }, {
+        "description" : "Contiene imagen del testing",
+        "environment" : "Produccion",
+        "id" : "87",
+        "name" : "Test Stage",
+        "properties" : {
+          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9.66084eaa-faf0-445c-9d17-4aa9b03ed8a0"
         },
         "tags" : "Element,Infrastructure Node"
       } ],
       "instances" : "1",
-      "name" : "OCI Container Registry",
+      "name" : "OCI Environment",
       "properties" : {
-        "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.aaa413ce-fb7d-4c88-9a48-88571ca78d15"
+        "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Oracle Cloud"
     }, {
-      "children" : [ {
-        "containerInstances" : [ {
-          "containerId" : "8",
-          "environment" : "Produccion",
-          "id" : "95",
-          "instanceId" : 1,
-          "properties" : {
-            "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.da6eb41c-f043-4a63-9928-7bf12d2f5b5e.53579ff9-d7bd-475e-9e94-210744bcc29c.03f8dacc-357b-4a31-a94b-494b57082e4d"
-          },
-          "relationships" : [ {
-            "description" : "HTTP REST",
-            "destinationId" : "96",
-            "id" : "97",
-            "linkedRelationshipId" : "39",
-            "sourceId" : "95"
-          } ],
-          "tags" : "Container Instance"
-        }, {
-          "containerId" : "12",
-          "environment" : "Produccion",
-          "id" : "96",
-          "instanceId" : 1,
-          "properties" : {
-            "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.da6eb41c-f043-4a63-9928-7bf12d2f5b5e.53579ff9-d7bd-475e-9e94-210744bcc29c.b462d5b3-ab73-423c-b08e-6f1b0540fc1a"
-          },
-          "tags" : "Container Instance"
-        } ],
-        "description" : "Nodo de computo del cluster",
-        "environment" : "Produccion",
-        "id" : "94",
-        "instances" : "1",
-        "name" : "Worker Node",
-        "properties" : {
-          "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.da6eb41c-f043-4a63-9928-7bf12d2f5b5e.53579ff9-d7bd-475e-9e94-210744bcc29c"
-        },
-        "tags" : "Element,Deployment Node",
-        "technology" : "VM Standard"
-      } ],
-      "description" : "Cluster Kubernetes gestionado",
-      "environment" : "Produccion",
-      "id" : "93",
-      "instances" : "1",
-      "name" : "OCI Container Engine",
-      "properties" : {
-        "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.da6eb41c-f043-4a63-9928-7bf12d2f5b5e"
-      },
-      "tags" : "Element,Deployment Node",
-      "technology" : "OKE"
-    }, {
-      "description" : "Base de datos gestionada en produccion",
-      "environment" : "Produccion",
-      "id" : "98",
-      "infrastructureNodes" : [ {
-        "description" : "Instancia de base de datos en produccion",
-        "environment" : "Produccion",
-        "id" : "99",
-        "name" : "Oracle DB Prod",
-        "properties" : {
-          "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.a1ada49d-df5d-44c9-8b6a-d71a721bf345.5b972f1e-d7d1-42f9-8e61-17e4cf7963ef"
-        },
-        "tags" : "Element,Infrastructure Node"
-      } ],
-      "instances" : "1",
-      "name" : "Oracle Cloud DB",
-      "properties" : {
-        "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.a1ada49d-df5d-44c9-8b6a-d71a721bf345"
-      },
-      "tags" : "Element,Deployment Node",
-      "technology" : "Oracle DB Cloud"
-    }, {
       "description" : "Pipeline CI/CD",
       "environment" : "Produccion",
-      "id" : "100",
-      "infrastructureNodes" : [ {
-        "description" : "Build, test y push de imagenes al registry",
-        "environment" : "Produccion",
-        "id" : "101",
-        "name" : "CI Pipeline",
-        "properties" : {
-          "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.f9e78328-af94-4918-b976-e155eeccc0cd.87ce8db0-604b-46ed-9ba6-7c0d6a8429f4"
-        },
-        "tags" : "Element,Infrastructure Node"
-      } ],
+      "id" : "88",
       "instances" : "1",
       "name" : "GitHub Actions",
       "properties" : {
-        "structurizr.dsl.identifier" : "8553cd01-0353-4c90-bc47-cebfdcf35529.f9e78328-af94-4918-b976-e155eeccc0cd"
+        "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.dec1f7c8-8512-423b-bd87-11cd51f5decc"
       },
+      "softwareSystemInstances" : [ {
+        "environment" : "Produccion",
+        "id" : "89",
+        "instanceId" : 1,
+        "properties" : {
+          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.dec1f7c8-8512-423b-bd87-11cd51f5decc.1b0514c4-0b16-4d47-9f26-56641ad36dbe"
+        },
+        "softwareSystemId" : "5",
+        "tags" : "Software System Instance"
+      } ],
       "tags" : "Element,Deployment Node",
       "technology" : "GitHub"
     } ],
@@ -328,7 +206,7 @@
       "description" : "Repositorio y pipelines CI/CD",
       "documentation" : { },
       "id" : "5",
-      "name" : "GitHub / CI",
+      "name" : "GitHub",
       "properties" : {
         "structurizr.dsl.identifier" : "github"
       },
@@ -814,7 +692,7 @@
   },
   "name" : "Forgetask Architecture",
   "properties" : {
-    "structurizr.inspection.error" : "75",
+    "structurizr.inspection.error" : "72",
     "structurizr.inspection.info" : "0",
     "structurizr.inspection.ignore" : "0",
     "structurizr.inspection.warning" : "0"
@@ -1041,7 +919,7 @@
         "rankSeparation" : 100,
         "vertices" : true
       },
-      "description" : "Entorno local con Docker Desktop",
+      "description" : "Entorno de producción en OCI / Kubernetes",
       "elements" : [ {
         "id" : "84",
         "x" : 0,
@@ -1059,79 +937,18 @@
         "x" : 0,
         "y" : 0
       }, {
+        "id" : "88",
+        "x" : 0,
+        "y" : 0
+      }, {
         "id" : "89",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "90",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "environment" : "Local",
-      "key" : "Deploy_Local",
-      "name" : "Deployment View: Forgetask - Local",
-      "order" : 5,
-      "relationships" : [ {
-        "id" : "88"
-      } ],
-      "softwareSystemId" : "7"
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "description" : "Entorno de produccion en OCI / Kubernetes",
-      "elements" : [ {
-        "id" : "91",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "92",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "93",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "94",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "95",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "96",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "98",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "99",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "100",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "101",
         "x" : 0,
         "y" : 0
       } ],
       "environment" : "Produccion",
       "key" : "Deploy_Produccion",
       "name" : "Deployment View: Forgetask - Produccion",
-      "order" : 6,
-      "relationships" : [ {
-        "id" : "97"
-      } ],
+      "order" : 5,
       "softwareSystemId" : "7"
     } ],
     "dynamicViews" : [ {
@@ -1164,7 +981,7 @@
       "externalBoundariesVisible" : false,
       "key" : "D1_Create_Sprint",
       "name" : "Dynamic View: Forgetask",
-      "order" : 7,
+      "order" : 6,
       "relationships" : [ {
         "description" : "Accede a la vista Kanban",
         "id" : "35",
@@ -1211,7 +1028,7 @@
       "externalBoundariesVisible" : false,
       "key" : "D2_Create_Task",
       "name" : "Dynamic View: Forgetask",
-      "order" : 8,
+      "order" : 7,
       "relationships" : [ {
         "description" : "Rellena formulario de tarea",
         "id" : "36",
@@ -1258,7 +1075,7 @@
       "externalBoundariesVisible" : false,
       "key" : "D3_Assign_Task",
       "name" : "Dynamic View: Forgetask",
-      "order" : 9,
+      "order" : 8,
       "relationships" : [ {
         "description" : "Selecciona tarea y asigna responsable",
         "id" : "35",
@@ -1305,7 +1122,7 @@
       "externalBoundariesVisible" : false,
       "key" : "D4_Change_Task_State",
       "name" : "Dynamic View: Forgetask",
-      "order" : 10,
+      "order" : 9,
       "relationships" : [ {
         "description" : "Mueve tarjeta en el tablero Kanban",
         "id" : "36",

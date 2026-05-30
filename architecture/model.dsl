@@ -9,7 +9,7 @@ developer = person "Developer" "Trabaja en tareas, visualiza KPIs y genera repor
 // ═══════════════════════════════════════════════════════════════
 telegram = softwareSystem "Telegram"    "Mensajería para notificaciones del bot"
 oci      = softwareSystem "OCI"         "Oracle Cloud Infrastructure"
-github   = softwareSystem "GitHub / CI" "Repositorio y pipelines CI/CD"
+github   = softwareSystem "GitHub" "Repositorio y pipelines CI/CD"
 
 oracleDb = softwareSystem "Oracle DB" "Base de datos relacional gestionada" {
     tags "Database"
