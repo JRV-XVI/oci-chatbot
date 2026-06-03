@@ -16,6 +16,11 @@ BACKEND_DEPLOYMENT_NAME="${BACKEND_DEPLOYMENT_NAME:-forgetask-deployment}"
 FRONTEND_DEPLOYMENT_NAME="${FRONTEND_DEPLOYMENT_NAME:-forgetask-frontend-deployment}"
 BACKEND_SERVICE_NAME="${BACKEND_SERVICE_NAME:-forgetask-service}"
 FRONTEND_SERVICE_NAME="${FRONTEND_SERVICE_NAME:-forgetask-frontend-service}"
+TELEGRAM_SECRET_NAME="${TELEGRAM_SECRET_NAME:-forgetask-secrets}"
+
+# Valores base64 para parchear TELEGRAM_BOT_ENABLED en los secrets de K8s
+B64_TRUE="$(echo -n 'true'  | base64 -w0)"
+B64_FALSE="$(echo -n 'false' | base64 -w0)"
 
 echo ">> DEBUG: Variables de entorno actuales:"
 env | grep -E "OCIR|GITHUB|OKE|JOB|INGRESS|BLUE|GREEN|NAMESPACE|DEPLOYMENT|SERVICE|BUILDRUN" | sort || true
@@ -56,6 +61,24 @@ kubectl rollout status deployment/"${FRONTEND_DEPLOYMENT_NAME}" -n "${TARGET_NAM
 kubectl get svc "${BACKEND_SERVICE_NAME}" -n "${TARGET_NAMESPACE}"
 kubectl get svc "${FRONTEND_SERVICE_NAME}" -n "${TARGET_NAMESPACE}"
 
+# ── Telegram: deshabilitar bot en TARGET para evitar 409 Conflict ────────────
+# Durante el overlap de Blue/Green ambos pods tienen el mismo token. El namespace
+# activo (ACTIVE) conserva el polling; el nuevo (TARGET) arranca con bot=false
+# para evitar el conflicto. Al final del pipeline, si los tests pasan, se hace
+# el swap: TARGET=true, ACTIVE=false + rollout restart en ambos.
+echo ">> Telegram: deshabilitando bot en TARGET (${TARGET_NAMESPACE}) para evitar 409..."
+kubectl patch secret "${TELEGRAM_SECRET_NAME}" -n "${TARGET_NAMESPACE}" \
+  --type='json' \
+  -p="[{\"op\":\"replace\",\"path\":\"/data/TELEGRAM_BOT_ENABLED\",\"value\":\"${B64_FALSE}\"}]" \
+  && echo "   OK: TELEGRAM_BOT_ENABLED=false en ${TARGET_NAMESPACE}" \
+  || echo "   WARN: no se pudo parchear secret en ${TARGET_NAMESPACE} (puede no existir aún)"
+
+# Forzar restart del backend en TARGET para que tome el nuevo valor del secret
+echo ">> Reiniciando backend en ${TARGET_NAMESPACE} con bot deshabilitado..."
+kubectl rollout restart deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${TARGET_NAMESPACE}"
+kubectl rollout status  deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${TARGET_NAMESPACE}" --timeout=120s
+# ─────────────────────────────────────────────────────────────────────────────
+
 RUN_ID="$(date +%s)"
 JOB_NAME="forgetask-e2e-${RUN_ID}"
 TEST_IMAGE="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/forgetask/mjmnu/forgetask-e2e-tests:${BUILDRUN_HASH:-latest}"
@@ -93,6 +116,33 @@ while [ "${ELAPSED}" -lt "${TIMEOUT}" ]; do
 
   if [ "${SUCCEEDED}" = "1" ]; then
     echo "OK: tests pasaron."
+
+    # ── Telegram: swap de long-polling al namespace nuevo ────────────────────
+    # Tests OK = TARGET_NAMESPACE es el nuevo activo. Habilitamos el bot ahí y
+    # lo apagamos en ACTIVE_NAMESPACE. Ambos pods hacen rollout restart para
+    # que lean el valor actualizado del secret al arrancar.
+    echo ">> Telegram: habilitando bot en TARGET (${TARGET_NAMESPACE})..."
+    kubectl patch secret "${TELEGRAM_SECRET_NAME}" -n "${TARGET_NAMESPACE}" \
+      --type='json' \
+      -p="[{\"op\":\"replace\",\"path\":\"/data/TELEGRAM_BOT_ENABLED\",\"value\":\"${B64_TRUE}\"}]" \
+      && echo "   OK: TELEGRAM_BOT_ENABLED=true en ${TARGET_NAMESPACE}" \
+      || echo "   WARN: no se pudo habilitar bot en ${TARGET_NAMESPACE}"
+
+    echo ">> Telegram: deshabilitando bot en ACTIVE (${ACTIVE_NAMESPACE})..."
+    kubectl patch secret "${TELEGRAM_SECRET_NAME}" -n "${ACTIVE_NAMESPACE}" \
+      --type='json' \
+      -p="[{\"op\":\"replace\",\"path\":\"/data/TELEGRAM_BOT_ENABLED\",\"value\":\"${B64_FALSE}\"}]" \
+      && echo "   OK: TELEGRAM_BOT_ENABLED=false en ${ACTIVE_NAMESPACE}" \
+      || echo "   WARN: no se pudo deshabilitar bot en ${ACTIVE_NAMESPACE}"
+
+    echo ">> Reiniciando backends para aplicar nuevo valor del secret..."
+    kubectl rollout restart deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${TARGET_NAMESPACE}"
+    kubectl rollout restart deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${ACTIVE_NAMESPACE}"
+    kubectl rollout status  deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${TARGET_NAMESPACE}" --timeout=120s
+    kubectl rollout status  deployment/"${BACKEND_DEPLOYMENT_NAME}" -n "${ACTIVE_NAMESPACE}" --timeout=120s
+    echo ">> Telegram swap completado: long-polling activo solo en ${TARGET_NAMESPACE}"
+    # ─────────────────────────────────────────────────────────────────────────
+
     exit 0
   fi
 
