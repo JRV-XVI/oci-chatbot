@@ -18,10 +18,12 @@ public class ForgetaskApplication {
 	}
 
 	@PostConstruct
-	public void testConnection() throws Exception {
+	public void testConnection() {
 		System.out.println("DataSource class: " + dataSource.getClass().getName());
 		try (Connection conn = dataSource.getConnection()) {
 			System.out.println("Conectado a Oracle ATP: " + conn.getMetaData().getURL());
+		} catch (Exception e) {
+			System.err.println("WARNING: No se pudo verificar conexión a Oracle ATP al iniciar: " + e.getMessage());
 		}
 	}
 

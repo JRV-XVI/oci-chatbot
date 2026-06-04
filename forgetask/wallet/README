@@ -1,7 +1,12 @@
 Wallet Expiry Date
 -----------------------
+<<<<<<< HEAD
 This wallet was downloaded on 2026-06-01 00:45:50.930816163 UTC.
 The SSL certificates provided in this wallet will expire on 2031-05-30 18:56:30.481078 UTC.
+=======
+This wallet was downloaded on 2026-06-04 03:34:44.035767868 UTC.
+The SSL certificates provided in this wallet will expire on 2031-06-03 03:31:04.30535 UTC.
+>>>>>>> debug/26ai
 In order to avoid any service interruptions due to an expired SSL certificate, you must re-download the wallet before this date.
 
 Autonomous Database Tools and Resources
