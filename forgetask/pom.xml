@@ -134,6 +134,23 @@
 			<artifactId>gson</artifactId>
 			<version>2.10.1</version>
 		</dependency>
+
+		<!-- RAG / Vector DB (LangChain4j) -->
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j</artifactId>
+			<version>0.36.2</version>
+		</dependency>
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-oracle</artifactId>
+			<version>0.36.2</version>
+		</dependency>
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-open-ai</artifactId>
+			<version>0.36.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>

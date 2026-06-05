@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -58,7 +57,11 @@ public class ReportGeneratorService {
             logger.info("Generating AI report for Project: {}, Sprint: {}", projectId, sprintId);
             String aiContent;
             try {
-                aiContent = llmService.generateText(prompt);
+                if (projectId != null && sprintId != null) {
+                    aiContent = llmService.generateSprintExecutiveReportWithRag(projectId.longValue(), sprintId.longValue());
+                } else {
+                    aiContent = llmService.generateText(prompt);
+                }
             } catch (Exception llmError) {
                 logger.warn("LLM generation failed; generating report without AI. Reason: {}", llmError.getMessage());
                 aiContent = "AI generation is currently unavailable (model not accessible or provider error).\n\n" +

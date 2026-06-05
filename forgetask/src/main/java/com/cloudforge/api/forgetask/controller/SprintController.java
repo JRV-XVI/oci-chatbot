@@ -1,6 +1,8 @@
 package com.cloudforge.api.forgetask.controller;
 
+import com.cloudforge.api.forgetask.dto.SprintDTO;
 import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
+import com.cloudforge.api.forgetask.service.SprintService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -112,9 +114,11 @@ public class SprintController {
                         """;
 
     private final JdbcTemplate jdbcTemplate;
+    private final SprintService sprintService;
 
-    public SprintController(JdbcTemplate jdbcTemplate) {
+    public SprintController(JdbcTemplate jdbcTemplate, SprintService sprintService) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sprintService = sprintService;
     }
 
     @GetMapping
@@ -303,6 +307,16 @@ public class SprintController {
         }
 
         return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/{idSprint}/activate")
+    public ResponseEntity<SprintDTO> activateSprint(@PathVariable Long idSprint) {
+        return ResponseEntity.ok(sprintService.activateSprint(idSprint));
+    }
+
+    @PutMapping("/{idSprint}/close")
+    public ResponseEntity<SprintDTO> closeSprint(@PathVariable Long idSprint) {
+        return ResponseEntity.ok(sprintService.closeSprint(idSprint));
     }
 
     @DeleteMapping("/{sprintId}")

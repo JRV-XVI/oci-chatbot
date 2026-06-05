@@ -32,10 +32,72 @@ public class LLMService {
 
     private final LLMConfig llmConfig;
     private final RestTemplate restTemplate;
+    private final VectorContextRetriever vectorContextRetriever;
+    private final SprintChunkBuilder sprintChunkBuilder;
 
-    public LLMService(LLMConfig llmConfig, RestTemplate restTemplate) {
+    public LLMService(
+            LLMConfig llmConfig,
+            RestTemplate restTemplate,
+            VectorContextRetriever vectorContextRetriever,
+            SprintChunkBuilder sprintChunkBuilder
+    ) {
         this.llmConfig = llmConfig;
         this.restTemplate = restTemplate;
+        this.vectorContextRetriever = vectorContextRetriever;
+        this.sprintChunkBuilder = sprintChunkBuilder;
+    }
+
+    /**
+     * Generates a sprint executive report using Retrieval-Augmented Generation (RAG)
+     * with historical sprint embeddings from the same project.
+     */
+    public String generateSprintExecutiveReportWithRag(Long idProject, Long idSprint) throws Exception {
+        if (idProject == null || idSprint == null) {
+            throw new IllegalArgumentException("idProject and idSprint are required");
+        }
+
+        String currentSprintChunk = sprintChunkBuilder.buildSprintChunk(idSprint);
+        List<String> historical = vectorContextRetriever.retrieveSprintContext(
+                currentSprintChunk,
+                idSprint,
+                idProject
+        );
+
+        String contextBlock;
+        if (historical.isEmpty()) {
+            contextBlock = "No hay sprints históricos disponibles aún para comparación.";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < historical.size(); i++) {
+                if (i > 0) {
+                    sb.append("\n\n");
+                }
+                sb.append("Sprint histórico ").append(i + 1).append(":\n").append(historical.get(i));
+            }
+            contextBlock = sb.toString();
+        }
+
+        String prompt = """
+                Eres un analista de proyectos ágiles. Tu tarea es generar un reporte administrativo
+                de retroalimentación sobre el siguiente sprint.
+
+                === SPRINT ACTUAL ===
+                %s
+
+                === CONTEXTO HISTÓRICO (sprints anteriores del mismo proyecto) ===
+                %s
+
+                Genera un reporte ejecutivo que incluya:
+                1. Resumen de desempeño del sprint actual.
+                2. Comparación con sprints anteriores (si hay contexto disponible).
+                3. Áreas de mejora identificadas con base en los datos.
+                4. Recomendaciones concretas y accionables para el siguiente sprint.
+
+                Sé específico y basa tus observaciones únicamente en los datos proporcionados.
+                Responde en español.
+                """.formatted(currentSprintChunk, contextBlock);
+
+        return generateText(prompt);
     }
 
     /**
