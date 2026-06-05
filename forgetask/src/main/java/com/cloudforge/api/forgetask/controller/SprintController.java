@@ -1,6 +1,7 @@
 package com.cloudforge.api.forgetask.controller;
 
 import com.cloudforge.api.forgetask.dto.SprintOptionDTO;
+import com.cloudforge.api.forgetask.service.SprintEmbeddingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -112,9 +113,11 @@ public class SprintController {
                         """;
 
     private final JdbcTemplate jdbcTemplate;
+    private final SprintEmbeddingService sprintEmbeddingService;
 
-    public SprintController(JdbcTemplate jdbcTemplate) {
+    public SprintController(JdbcTemplate jdbcTemplate, SprintEmbeddingService sprintEmbeddingService) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sprintEmbeddingService = sprintEmbeddingService;
     }
 
     @GetMapping
@@ -340,7 +343,8 @@ public class SprintController {
                         rs.getString("TITLE"),
                         rs.getString("GOAL"),
                         rs.getString("START_DATE_TEXT"),
-                        rs.getString("END_DATE_TEXT")
+                        rs.getString("END_DATE_TEXT"),
+                        rs.getString("STATUS")
                 ),
                 sprintId
         );
@@ -423,5 +427,78 @@ public class SprintController {
         public String goal;
         public String startDate;
         public String endDate;
+    }
+
+    @PutMapping("/{sprintId}/activate")
+    @Transactional
+    public ResponseEntity<SprintOptionDTO> activateSprint(@PathVariable int sprintId) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "SELECT ID_SPRINT, ID_PROJECT, STATUS FROM SPRINT WHERE ID_SPRINT = ?", sprintId
+        );
+        if (rows.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String currentStatus = (String) rows.get(0).get("STATUS");
+        if (!"PLANNED".equals(currentStatus)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .build(); // Solo se puede activar desde PLANNED
+        }
+
+        jdbcTemplate.update("UPDATE SPRINT SET STATUS = 'ACTIVE' WHERE ID_SPRINT = ?", sprintId);
+
+        SprintOptionDTO updated = findSprintById(sprintId);
+        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+    @PutMapping("/{sprintId}/close")
+    @Transactional
+    public ResponseEntity<SprintOptionDTO> closeSprint(@PathVariable int sprintId) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "SELECT ID_SPRINT, ID_PROJECT, TITLE, STATUS FROM SPRINT WHERE ID_SPRINT = ?", sprintId
+        );
+        if (rows.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String currentStatus = (String) rows.get(0).get("STATUS");
+        if (!"ACTIVE".equals(currentStatus)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .build(); // Solo se puede cerrar desde ACTIVE
+        }
+
+        int idProject = ((Number) rows.get(0).get("ID_PROJECT")).intValue();
+        String title  = (String) rows.get(0).get("TITLE");
+
+        jdbcTemplate.update("UPDATE SPRINT SET STATUS = 'CLOSED' WHERE ID_SPRINT = ?", sprintId);
+
+        // Trigger de indexación RAG — no bloquea la respuesta si falla
+        sprintEmbeddingService.indexSprint(sprintId, idProject, title);
+
+        SprintOptionDTO updated = findSprintById(sprintId);
+        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+    @GetMapping("/status/{status}")
+    public List<SprintOptionDTO> listSprintsByStatus(
+            @PathVariable String status,
+            @RequestParam(required = false) Integer projectId) {
+        int resolvedProjectId = projectId != null ? projectId : resolveDefaultProjectId();
+        return jdbcTemplate.query(
+            "SELECT ID_SPRINT, ID_PROJECT, TITLE, GOAL, " +
+            "TO_CHAR(START_DATE,'YYYY-MM-DD') AS START_DATE_TEXT, " +
+            "TO_CHAR(END_DATE,'YYYY-MM-DD') AS END_DATE_TEXT " +
+            "FROM SPRINT WHERE ID_PROJECT = ? AND STATUS = ? ORDER BY START_DATE",
+            (rs, rowNum) -> new SprintOptionDTO(
+                rs.getInt("ID_SPRINT"),
+                rs.getInt("ID_PROJECT"),
+                0,
+                rs.getString("TITLE"),
+                rs.getString("GOAL"),
+                rs.getString("START_DATE_TEXT"),
+                rs.getString("END_DATE_TEXT")
+            ),
+            resolvedProjectId, status.toUpperCase()
+        );
     }
 }

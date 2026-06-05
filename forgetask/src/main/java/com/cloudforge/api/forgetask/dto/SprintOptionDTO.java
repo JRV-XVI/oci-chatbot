@@ -8,19 +8,29 @@ public class SprintOptionDTO {
     private String goal;
     private String startDate;
     private String endDate;
+    private final String status;
 
-    public SprintOptionDTO() {
-    }
-
-    public SprintOptionDTO(int idSprint, int idProject, int sprintNumber, String title, String goal, String startDate, String endDate) {
-        this.idSprint = idSprint;
-        this.idProject = idProject;
+    public SprintOptionDTO(int idSprint, int idProject, int sprintNumber,
+                           String title, String goal,
+                           String startDate, String endDate, String status) {
+        this.idSprint     = idSprint;
+        this.idProject    = idProject;
         this.sprintNumber = sprintNumber;
-        this.title = title;
-        this.goal = goal;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.title        = title;
+        this.goal         = goal;
+        this.startDate    = startDate;
+        this.endDate      = endDate;
+        this.status       = status;
     }
+
+    // Mantener el constructor anterior para compatibilidad con código existente
+    public SprintOptionDTO(int idSprint, int idProject, int sprintNumber,
+                           String title, String goal,
+                           String startDate, String endDate) {
+        this(idSprint, idProject, sprintNumber, title, goal, startDate, endDate, "PLANNED");
+    }
+
+    public String getStatus() { return status; }
 
     public int getIdSprint() {
         return idSprint;

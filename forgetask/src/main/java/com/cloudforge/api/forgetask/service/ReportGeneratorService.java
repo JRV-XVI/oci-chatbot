@@ -5,6 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.cloudforge.api.forgetask.service.VectorContextRetriever;
+import com.cloudforge.api.forgetask.service.SprintChunkBuilder;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.LocalDateTime;
@@ -22,10 +27,15 @@ public class ReportGeneratorService {
     private static final Logger logger = LoggerFactory.getLogger(ReportGeneratorService.class);
     private final LLMService llmService;
     private final KPIService kpiService;
+    private final VectorContextRetriever vectorContextRetriever;
+    private final SprintChunkBuilder sprintChunkBuilder;
 
-    public ReportGeneratorService(LLMService llmService, KPIService kpiService) {
+    public ReportGeneratorService(LLMService llmService, KPIService kpiService, VectorContextRetriever vectorContextRetriever,
+        SprintChunkBuilder sprintChunkBuilder) {
         this.llmService = llmService;
         this.kpiService = kpiService;
+        this.vectorContextRetriever = vectorContextRetriever;
+        this.sprintChunkBuilder     = sprintChunkBuilder;
     }
 
     /**
@@ -204,12 +214,42 @@ public class ReportGeneratorService {
         return sb.toString();
     }
 
+    private String buildRagContextBlock(Integer sprintId, Integer projectId) {
+        if (sprintId == null || projectId == null) {
+            return "";
+        }
+        try {
+            String currentChunk = sprintChunkBuilder.buildSprintChunk(sprintId);
+            List<String> historicalChunks = vectorContextRetriever
+                .retrieveSprintContext(currentChunk, sprintId, projectId);
+
+            if (historicalChunks.isEmpty()) {
+                return "\nCONTEXTO HISTORICO\n==================\nNo hay sprints historicos disponibles aun para comparacion.\n";
+            }
+
+            String contextText = IntStream.range(0, historicalChunks.size())
+                .mapToObj(i -> "Sprint historico " + (i + 1) + ":\n" + historicalChunks.get(i))
+                .collect(Collectors.joining("\n"));
+
+            return "\nCONTEXTO HISTORICO (sprints anteriores del proyecto)\n" +
+                "====================================================\n" +
+                contextText + "\n";
+
+        } catch (Exception e) {
+            logger.warn("No se pudo recuperar contexto RAG para sprint {}: {}", sprintId, e.getMessage());
+            return "";
+        }
+    }
+
     /**
      * Build the prompt for AI
      */
     private String buildReportPrompt(String sprintInfo, String tasksSummary,
                                     String kpiAnalysis, String userHoursSummary,
                                     Integer projectId, Integer sprintId) {
+        // Recuperar contexto histórico del RAG
+        String ragContext = buildRagContextBlock(sprintId, projectId);
+
         return """
             You are a professional project manager generating an executive management report.
 
@@ -233,7 +273,7 @@ public class ReportGeneratorService {
             13) Key Performance Insights must derive conclusions NOT directly readable from the dashboard.
 
             SPRINT DATA:
-            """ + sprintInfo + tasksSummary + kpiAnalysis + userHoursSummary + """
+            """ + sprintInfo + tasksSummary + kpiAnalysis + userHoursSummary + ragContext + """
 
             Generate exactly these 4 sections using these exact headings (no numbers, no extra formatting):
 
