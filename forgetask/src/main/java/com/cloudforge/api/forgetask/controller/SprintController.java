@@ -26,41 +26,43 @@ import java.util.Map;
 public class SprintController {
 
     private static final String LIST_SPRINTS_SQL = """
-            SELECT s.ID_SPRINT,
-                   s.ID_PROJECT,
-                   COALESCE(
-                       CASE
-                           WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
-                               THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
-                           ELSE NULL
-                       END,
-                       ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
-                   ) AS SPRINT_NUMBER,
-                   s.TITLE,
-                   s.GOAL,
-                   TO_CHAR(s.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
-                   TO_CHAR(s.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT
-            FROM SPRINT s
-            WHERE s.ID_PROJECT = ?
-            ORDER BY SPRINT_NUMBER, s.START_DATE NULLS LAST, s.ID_SPRINT
-            """;
+        SELECT s.ID_SPRINT,
+               s.ID_PROJECT,
+               COALESCE(
+                   CASE
+                       WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                           THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                       ELSE NULL
+                   END,
+                   ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+               ) AS SPRINT_NUMBER,
+               s.TITLE,
+               s.GOAL,
+               TO_CHAR(s.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+               TO_CHAR(s.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
+               s.STATUS
+        FROM SPRINT s
+        WHERE s.ID_PROJECT = ?
+        ORDER BY SPRINT_NUMBER, s.START_DATE NULLS LAST, s.ID_SPRINT
+        """;
 
     private static final String GET_SPRINT_BY_ID_SQL = """
             SELECT * FROM (
                 SELECT s.ID_SPRINT,
-                       s.ID_PROJECT,
-                       COALESCE(
-                           CASE
-                               WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
-                                   THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
-                               ELSE NULL
-                           END,
-                           ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
-                       ) AS SPRINT_NUMBER,
-                       s.TITLE,
-                       s.GOAL,
-                       TO_CHAR(s.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
-                       TO_CHAR(s.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT
+                    s.ID_PROJECT,
+                    COALESCE(
+                        CASE
+                            WHEN REGEXP_LIKE(s.TITLE, 'Sprint\\s*#?\\s*[0-9]+', 'i')
+                                THEN TO_NUMBER(REGEXP_SUBSTR(s.TITLE, 'Sprint\\s*#?\\s*([0-9]+)', 1, 1, NULL, 1))
+                            ELSE NULL
+                        END,
+                        ROW_NUMBER() OVER (PARTITION BY s.ID_PROJECT ORDER BY s.START_DATE NULLS LAST, s.ID_SPRINT)
+                    ) AS SPRINT_NUMBER,
+                    s.TITLE,
+                    s.GOAL,
+                    TO_CHAR(s.START_DATE, 'YYYY-MM-DD') AS START_DATE_TEXT,
+                    TO_CHAR(s.END_DATE, 'YYYY-MM-DD') AS END_DATE_TEXT,
+                    s.STATUS
                 FROM SPRINT s
                 WHERE s.ID_SPRINT = ?
             )
@@ -133,11 +135,12 @@ public class SprintController {
                         rs.getString("TITLE"),
                         rs.getString("GOAL"),
                         rs.getString("START_DATE_TEXT"),
-                        rs.getString("END_DATE_TEXT")
+                        rs.getString("END_DATE_TEXT"),
+                        rs.getString("STATUS")   // ← agregado
                 ),
                 resolvedProjectId
         );
-    }
+}
 
     @GetMapping("/current")
     public ResponseEntity<SprintOptionDTO> getCurrentSprint(@RequestParam(required = false) Integer projectId) {
