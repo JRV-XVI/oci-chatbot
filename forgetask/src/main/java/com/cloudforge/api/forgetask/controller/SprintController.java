@@ -221,6 +221,29 @@ public class SprintController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PostMapping("/{sprintId}/reindex")
+    public ResponseEntity<String> reindexSprint(@PathVariable int sprintId) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "SELECT ID_SPRINT, ID_PROJECT, TITLE, STATUS FROM SPRINT WHERE ID_SPRINT = ?",
+            sprintId
+        );
+        if (rows.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        int idProject   = ((Number) rows.get(0).get("ID_PROJECT")).intValue();
+        String title    = (String) rows.get(0).get("TITLE");
+        String status   = (String) rows.get(0).get("STATUS");
+
+        if (!"CLOSED".equals(status)) {
+            return ResponseEntity.badRequest()
+                .body("Solo se pueden reindexar sprints en estado CLOSED");
+        }
+
+        sprintEmbeddingService.indexSprint(sprintId, idProject, title);
+        return ResponseEntity.ok("Sprint " + sprintId + " enviado a reindexar");
+    }
+
     @PutMapping("/{sprintId}")
     @Transactional
     public ResponseEntity<SprintOptionDTO> updateSprint(

@@ -41,7 +41,7 @@ public class VectorContextRetriever {
                   AND ID_SPRINT  != ?
                 ORDER BY VECTOR_DISTANCE(
                     EMBEDDING,
-                    VECTOR_EMBEDDING(ADMIN.ALL_MINILM_L12_V2 USING ? AS DATA),
+                    VECTOR_EMBEDDING(ALL_MINILM_L12_V2 USING ? AS DATA),
                     COSINE
                 )
                 FETCH FIRST ? ROWS ONLY

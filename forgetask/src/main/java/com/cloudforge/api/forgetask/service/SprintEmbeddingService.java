@@ -40,7 +40,7 @@ public class SprintEmbeddingService {
                         ?                AS id_project,
                         ?                AS sprint_title,
                         ?                AS chunk_text,
-                        VECTOR_EMBEDDING(ADMIN.ALL_MINILM_L12_V2 USING ? AS DATA) AS emb
+                        VECTOR_EMBEDDING(ALL_MINILM_L12_V2 USING ? AS DATA) AS emb
                     FROM DUAL
                 ) src ON (tgt.ID_SPRINT = src.id_sprint)
                 WHEN MATCHED THEN

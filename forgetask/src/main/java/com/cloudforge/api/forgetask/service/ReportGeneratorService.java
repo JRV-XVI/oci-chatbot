@@ -214,26 +214,37 @@ public class ReportGeneratorService {
         return sb.toString();
     }
 
+    // Reemplazar la construcción del ragContext en buildRagContextBlock()
+    // para que sea más directiva sobre cómo usar el contexto:
+
     private String buildRagContextBlock(Integer sprintId, Integer projectId) {
-        if (sprintId == null || projectId == null) {
-            return "";
-        }
+        if (sprintId == null || projectId == null) return "";
         try {
             String currentChunk = sprintChunkBuilder.buildSprintChunk(sprintId);
             List<String> historicalChunks = vectorContextRetriever
                 .retrieveSprintContext(currentChunk, sprintId, projectId);
 
             if (historicalChunks.isEmpty()) {
-                return "\nCONTEXTO HISTORICO\n==================\nNo hay sprints historicos disponibles aun para comparacion.\n";
+                return "\n\nHISTORICAL SPRINT CONTEXT: No previous sprint data available yet.\n";
             }
 
-            String contextText = IntStream.range(0, historicalChunks.size())
-                .mapToObj(i -> "Sprint historico " + (i + 1) + ":\n" + historicalChunks.get(i))
-                .collect(Collectors.joining("\n"));
+            StringBuilder sb = new StringBuilder();
+            sb.append("\n\nHISTORICAL SPRINT CONTEXT (use this data to make explicit comparisons):\n");
+            sb.append("=".repeat(70)).append("\n");
+            sb.append("The following are previous sprints from the same project, ordered by relevance.\n");
+            sb.append("You MUST reference specific sprint names and metrics when comparing.\n\n");
 
-            return "\nCONTEXTO HISTORICO (sprints anteriores del proyecto)\n" +
-                "====================================================\n" +
-                contextText + "\n";
+            for (int i = 0; i < historicalChunks.size(); i++) {
+                sb.append("--- Historical Sprint ").append(i + 1).append(" ---\n");
+                sb.append(historicalChunks.get(i)).append("\n");
+            }
+
+            sb.append("=".repeat(70)).append("\n");
+            sb.append("COMPARISON REQUIREMENT: In section 6.2, explicitly compare the current sprint\n");
+            sb.append("metrics against the historical sprints above. Mention sprint names, reference\n");
+            sb.append("specific numbers, and identify trends across sprints.\n");
+
+            return sb.toString();
 
         } catch (Exception e) {
             logger.warn("No se pudo recuperar contexto RAG para sprint {}: {}", sprintId, e.getMessage());
