@@ -334,9 +334,11 @@ export default function RealTotalHoursByUserKpi({
       });
   }, [filteredRows, sprintOptions, taskSprintData, taskTotalsBySprint, topUsers]);
 
-  const visibleSprintSlots = 3;
+  const visibleSprintSlots = 6;
   const enableHorizontalScroll = chartData.length > visibleSprintSlots;
-  const chartWidth = enableHorizontalScroll ? `calc(100% * ${chartData.length} / ${visibleSprintSlots})` : "100%";
+  // Force chart to fit container and adapt axis ticks so horizontal scrolling is not required
+  const chartWidth = "100%";
+  const xAxisInterval = chartData.length > visibleSprintSlots ? Math.max(0, Math.ceil(chartData.length / visibleSprintSlots) - 1) : 0;
 
   return (
     <Card className="px-5 py-4">
@@ -371,16 +373,16 @@ export default function RealTotalHoursByUserKpi({
       ) : (
         <div className="kpi-panel-muted rounded-xl border border-border p-3">
           <div className="relative">
-            <div className={enableHorizontalScroll ? "overflow-x-auto pb-1" : "pb-1"}>
-              <div className="relative h-[380px]" style={{ width: chartWidth, minWidth: "100%" }}>
+            <div className={"pb-1"}>
+              <div className="relative h-[320px] md:h-[360px]" style={{ width: chartWidth, minWidth: "0" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 24, right: 16, left: 0, bottom: 30 }}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 12, left: 0, bottom: 22 }} barCategoryGap="18%" barGap={6}>
                     <CartesianGrid stroke="rgba(148,163,184,0.24)" strokeDasharray="4 4" />
                     <XAxis
                       dataKey="sprintAxisLabel"
-                      interval={0}
-                      height={66}
-                      tick={<SprintAxisTick />}
+                      interval={xAxisInterval}
+                      height={56}
+                      tick={<SprintAxisTick width={240} visibleTicksCount={Math.min(chartData.length, visibleSprintSlots)} />}
                     />
                     <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} />
                     <Tooltip
@@ -422,13 +424,13 @@ export default function RealTotalHoursByUserKpi({
                         name={user}
                         fill={getUserSeriesColorByIndex(userIndex)}
                         radius={[5, 5, 0, 0]}
-                        maxBarSize={28}
+                        maxBarSize={18}
                       >
                         <LabelList
                           dataKey={user}
                           position="top"
                           fill="#dbeafe"
-                          fontSize={10}
+                          fontSize={9}
                           formatter={(value) => {
                             const numeric = Number(value);
                             if (!Number.isFinite(numeric)) {
