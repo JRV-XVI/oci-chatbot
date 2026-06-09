@@ -221,6 +221,13 @@ interface ProjectBoardProps {
   sprintOptions: SprintOption[]
   onSprintSaved: (sprint: SprintOption) => void
   onSprintDeleted: (sprintId: number) => void
+  sprintLifecycleButtons?: Array<{
+    label: string
+    icon?: any
+    onClick: () => void
+    variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost'
+    testId?: string
+  }>
 }
 
 type FilterableTask = Task & {
@@ -244,6 +251,7 @@ export function ProjectBoard({
   sprintOptions,
   onSprintSaved,
   onSprintDeleted,
+  sprintLifecycleButtons = [],
 }: ProjectBoardProps) {
   const router = useRouter()
 
@@ -534,6 +542,7 @@ export function ProjectBoard({
             assigneeOptions,
             sprintOptions,
           },
+          custom: sprintLifecycleButtons,
         }}
         showSidebarToggle={true}
         onSidebarToggle={() => {

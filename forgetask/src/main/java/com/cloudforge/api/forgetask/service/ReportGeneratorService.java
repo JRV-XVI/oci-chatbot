@@ -5,6 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.cloudforge.api.forgetask.service.VectorContextRetriever;
+import com.cloudforge.api.forgetask.service.SprintChunkBuilder;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.LocalDateTime;
@@ -22,10 +27,15 @@ public class ReportGeneratorService {
     private static final Logger logger = LoggerFactory.getLogger(ReportGeneratorService.class);
     private final LLMService llmService;
     private final KPIService kpiService;
+    private final VectorContextRetriever vectorContextRetriever;
+    private final SprintChunkBuilder sprintChunkBuilder;
 
-    public ReportGeneratorService(LLMService llmService, KPIService kpiService) {
+    public ReportGeneratorService(LLMService llmService, KPIService kpiService, VectorContextRetriever vectorContextRetriever,
+        SprintChunkBuilder sprintChunkBuilder) {
         this.llmService = llmService;
         this.kpiService = kpiService;
+        this.vectorContextRetriever = vectorContextRetriever;
+        this.sprintChunkBuilder     = sprintChunkBuilder;
     }
 
     /**
@@ -204,53 +214,131 @@ public class ReportGeneratorService {
         return sb.toString();
     }
 
+    // Reemplazar la construcción del ragContext en buildRagContextBlock()
+    // para que sea más directiva sobre cómo usar el contexto:
+
+    private String buildRagContextBlock(Integer sprintId, Integer projectId) {
+        if (sprintId == null || projectId == null) return "";
+        try {
+            String currentChunk = sprintChunkBuilder.buildSprintChunk(sprintId);
+            List<String> historicalChunks = vectorContextRetriever
+                .retrieveSprintContext(currentChunk, sprintId, projectId);
+
+            if (historicalChunks.isEmpty()) {
+                return "\n\nHISTORICAL SPRINT CONTEXT: No previous sprint data available yet.\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("\n\nHISTORICAL SPRINT CONTEXT (use this data to make explicit comparisons):\n");
+            sb.append("=".repeat(70)).append("\n");
+            sb.append("The following are previous sprints from the same project, ordered by relevance.\n");
+            sb.append("You MUST reference specific sprint names and metrics when comparing.\n\n");
+
+            for (int i = 0; i < historicalChunks.size(); i++) {
+                sb.append("--- Historical Sprint ").append(i + 1).append(" ---\n");
+                sb.append(historicalChunks.get(i)).append("\n");
+            }
+
+            sb.append("=".repeat(70)).append("\n");
+            sb.append("COMPARISON REQUIREMENT: In section 6.2, explicitly compare the current sprint\n");
+            sb.append("metrics against the historical sprints above. Mention sprint names, reference\n");
+            sb.append("specific numbers, and identify trends across sprints.\n");
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            logger.warn("No se pudo recuperar contexto RAG para sprint {}: {}", sprintId, e.getMessage());
+            return "";
+        }
+    }
+
     /**
      * Build the prompt for AI
      */
     private String buildReportPrompt(String sprintInfo, String tasksSummary,
                                     String kpiAnalysis, String userHoursSummary,
                                     Integer projectId, Integer sprintId) {
-        return """
-            You are a professional project manager generating an executive management report.
+        String ragContext = buildRagContextBlock(sprintId, projectId);
+        boolean hasHistory = !ragContext.contains("No previous sprint data available");
 
-            CRITICAL RULES:
-            1) Use ONLY the data provided. Do not invent numbers, usernames, or metrics not present below.
-            2) The sprint state is FINAL. Treat it as closed.
-            3) Negative time variance = team finished AHEAD of schedule. Never interpret as underutilization.
-            4) Do NOT mention ISO/IEC standards or capability frameworks.
-            5) Do NOT use filler phrases unless directly supported by data.
-            6) Risk statements must be internally consistent. Never flag both underutilization and overload simultaneously.
-            7) Do not claim all tasks are done unless Done equals Total Tasks.
-            8) Higher-complexity work is indicated ONLY when a member has FEWER tasks AND MORE hours than peers. Never flag a member negatively for having fewer tasks.
-            9) Each Key Performance Insight must be a distinct observation. Do not restate the same metric twice.
-            10) FORMATTING: Every list item must be a complete sentence on ONE line. Never put a number alone on its line.
-            11) FORMATTING: Every risk item MUST start with "Risk:" and follow this exact single-line pattern:
-                Risk: [one sentence describing the risk] / Mitigation: [one sentence describing the action]
-                NEVER write "Risk:" twice in one item.
-                NEVER start a risk item without the word "Risk:".
-                NEVER split Risk and Mitigation across separate lines.
-            12) Key Performance Insights must focus on TEAM-LEVEL patterns. Never single out individuals negatively.
-            13) Key Performance Insights must derive conclusions NOT directly readable from the dashboard.
+        String sectionList = hasHistory
+            ? """
+                Generate exactly these 5 sections with these exact headings:
+
+                Executive Summary
+                2-3 plain sentences. State: how many tasks were completed out of total, \
+                whether the team finished ahead or behind schedule, and the overall time variance. \
+                Write as if explaining results to a non-technical manager seeing this for the first time. \
+                Avoid jargon. No filler words like "notable" or "satisfactory".
+
+                Sprint Comparison
+                Compare the current sprint against each historical sprint listed above. \
+                For EACH historical sprint write exactly ONE sentence in this format:
+                "In [exact sprint name], the team estimated [X]h and used [Y]h ([+/-Z]% deviation). \
+                In the current sprint, estimated [A]h and used [B]h ([+/-C]% deviation)."
+                End with one sentence summarizing the overall trend across sprints in plain language.
+
+                Key Performance Insights
+                3-4 bullet points. Each must be a plain-language observation that a manager \
+                without technical knowledge can understand. Focus on patterns: \
+                Is workload balanced? Did the team improve over time? Are estimates getting better? \
+                Do NOT restate numbers already shown in the dashboard.
+
+                Improvement Actions
+                3-5 concrete actions. Each must be a single complete sentence. \
+                Write as recommendations to the team, not as observations. \
+                Use simple, direct language. Example: "Review how tasks are estimated before each sprint \
+                to reduce the gap between planned and actual hours."
+
+                Risk Assessment
+                2-3 risks. Each on exactly ONE line in this format: \
+                "Risk: [plain sentence describing the risk] / Mitigation: [plain sentence describing the action]"
+                """
+            : """
+                Generate exactly these 4 sections with these exact headings:
+
+                Executive Summary
+                2-3 plain sentences. State: how many tasks were completed out of total, \
+                whether the team finished ahead or behind schedule, and the overall time variance. \
+                Write as if explaining results to a non-technical manager seeing this for the first time. \
+                Avoid jargon.
+
+                Key Performance Insights
+                3-4 bullet points in plain language a non-technical manager can understand. \
+                Focus on patterns, not raw numbers.
+
+                Improvement Actions
+                3-5 concrete recommendations written as direct actions for the team. \
+                Simple, clear sentences.
+
+                Risk Assessment
+                2-3 risks. Each on exactly ONE line: \
+                "Risk: [sentence] / Mitigation: [sentence]"
+                """;
+
+        return """
+            You are generating an executive sprint report for senior management and administrators \
+            who are NOT technical. They do not know software development terminology. \
+            Write everything in plain, professional business language.
+
+            RULES — follow all of them strictly:
+            1) Use ONLY the data provided below. Do not invent any numbers or names.
+            2) The sprint is CLOSED and FINAL. Do not suggest ongoing actions as if it were open.
+            3) Negative time variance means the team finished AHEAD of schedule — always frame this positively.
+            4) Do NOT use technical terms: no "backlog grooming", no "velocity", no "sprints" without explanation, \
+            no "ISO/IEC", no "capability levels", no "story points".
+            5) Never single out a team member negatively.
+            6) Each section must use its exact heading. Do not add numbers to headings.
+            7) Risk format is mandatory: "Risk: [sentence] / Mitigation: [sentence]" on one line.
+            8) Sprint Comparison MUST cite the EXACT sprint name and EXACT hours from the historical data. \
+            Never write vague comparisons like "previous sprints showed lower performance".
+            9) Key Performance Insights must contain observations a manager can act on, \
+            not technical metrics restated in prose.
+            10) Write as if this report will be read by someone outside the development team.
 
             SPRINT DATA:
-            """ + sprintInfo + tasksSummary + kpiAnalysis + userHoursSummary + """
-
-            Generate exactly these 4 sections using these exact headings (no numbers, no extra formatting):
-
-            Executive Summary
-            2-3 sentences: efficiency rate, tasks completed (X of Y), time variance interpretation. No filler conclusions like "satisfactory" or "good indicator".
-
-            Key Performance Insights
-            3-4 bullet points. Each must be an analytical observation derived from ratios or patterns in the data, not a restatement of dashboard numbers.
-
-            Improvement Actions
-            3-5 items. Each on a single complete line. Address: backlog root cause, estimation accuracy, workload distribution by hours-to-tasks ratio.
-
-            Risk Assessment
-            2-3 risks. Each on exactly ONE line starting with "Risk:" in this format: "Risk: [description] / Mitigation: [action]"
-
-            Use these exact section headings without numbers or extra formatting.
-            """;
+            """ + sprintInfo + tasksSummary + kpiAnalysis + userHoursSummary + ragContext
+            + "\n\n" + sectionList;
     }
 
     private int intFrom(Object value) {

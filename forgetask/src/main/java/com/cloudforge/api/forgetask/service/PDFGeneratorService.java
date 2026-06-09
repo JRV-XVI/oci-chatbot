@@ -31,6 +31,7 @@ public class PDFGeneratorService {
 
     private static final String[] KNOWN_SECTION_HEADINGS = {
         "Executive Summary",
+        "Sprint Comparison",
         "Key Performance Insights",
         "Improvement Actions",
         "Risk Assessment"
@@ -399,47 +400,127 @@ public class PDFGeneratorService {
     }
 
     /**
+     * Convierte el texto de Sprint Comparison en una tabla HTML estructurada.
+     * Primero renderiza la tabla comparativa con los datos clave,
+     * luego agrega el análisis narrativo del LLM debajo.
+     */
+    private String buildSprintComparisonTable(String comparisonText, Integer projectId, Integer sprintId) {
+        // Regex para capturar líneas con patrón:
+        // "In [Sprint Name], estimated Xh / real Yh (Z% deviation)."
+        Pattern rowPattern = Pattern.compile(
+            "(?i)In\\s+([^,]+),\\s+estimated\\s+([\\d.]+)h\\s*/\\s*real\\s+([\\d.]+)h\\s*\\(([^)]+)\\)"
+        );
+
+        List<String[]> rows = new ArrayList<>();
+        Matcher m = rowPattern.matcher(comparisonText);
+        while (m.find()) {
+            rows.add(new String[]{
+                m.group(1).trim(),   // Sprint name
+                m.group(2).trim(),   // Estimated h
+                m.group(3).trim(),   // Real h
+                m.group(4).trim()    // Deviation
+            });
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        // Si se pudieron parsear filas, renderizar la tabla
+        if (!rows.isEmpty()) {
+            sb.append("<table class=\"data-table\">")
+            .append("<thead><tr>")
+            .append("<th>Sprint</th>")
+            .append("<th>Estimated Hours</th>")
+            .append("<th>Actual Hours</th>")
+            .append("<th>Deviation</th>")
+            .append("</tr></thead><tbody>");
+
+            for (String[] row : rows) {
+                // Colorear la desviación: negativo = verde (adelantado), positivo = rojo (atrasado)
+                boolean positive = row[3].startsWith("+") || (!row[3].startsWith("-") && !row[3].equals("0%"));
+                String deviationStyle = positive
+                    ? "color:#dc2626;font-weight:bold"
+                    : "color:#16a34a;font-weight:bold";
+
+                sb.append("<tr>")
+                .append("<td>").append(escapeHtml(row[0])).append("</td>")
+                .append("<td style=\"text-align:center\">").append(escapeHtml(row[1])).append(" h</td>")
+                .append("<td style=\"text-align:center\">").append(escapeHtml(row[2])).append(" h</td>")
+                .append("<td style=\"text-align:center;").append(deviationStyle).append("\">")
+                .append(escapeHtml(row[3])).append("</td>")
+                .append("</tr>");
+            }
+
+            sb.append("</tbody></table>");
+        }
+
+        // Siempre agregar el análisis narrativo completo debajo de la tabla
+        // (el LLM puede dar conclusiones que no caben en la tabla)
+        sb.append("<div class=\"narrative-panel\" style=\"margin-top:8pt\">")
+        .append(formatNarrative(comparisonText))
+        .append("</div>");
+
+        return sb.toString();
+    }
+
+    /**
      * Builds section 6 with subsection extraction and markdown conversion.
      */
     private String buildNarrativeSection(String reportContent, Integer projectId, Integer sprintId) {
         String s61 = extractSection(reportContent, "Executive Summary");
-        String s62 = extractSection(reportContent, "Key Performance Insights");
-        String s63 = extractSection(reportContent, "Improvement Actions");
-        String s64 = extractSection(reportContent, "Risk Assessment");
+        String s62 = extractSection(reportContent, "Sprint Comparison");   // ← nuevo
+        String s63 = extractSection(reportContent, "Key Performance Insights");
+        String s64 = extractSection(reportContent, "Improvement Actions");
+        String s65 = extractSection(reportContent, "Risk Assessment");
 
-        boolean foundAnySection = !(s61.isBlank() && s62.isBlank() && s63.isBlank() && s64.isBlank());
+        boolean foundAnySection = !(s61.isBlank() && s62.isBlank() && s63.isBlank()
+                                    && s64.isBlank() && s65.isBlank());
 
         if (!foundAnySection) {
             List<String> equalParts = splitIntoFour(cleanNarrative(reportContent));
             s61 = equalParts.get(0);
-            s62 = equalParts.get(1);
-            s63 = equalParts.get(2);
-            s64 = equalParts.get(3);
+            s63 = equalParts.get(1);
+            s64 = equalParts.get(2);
+            s65 = equalParts.get(3);
         }
 
         if (s61.isBlank()) s61 = "No executive summary details were provided.";
-        if (s62.isBlank()) s62 = "No key performance insights were provided.";
-        if (s63.isBlank()) s63 = "No improvement actions were provided.";
-        if (s64.isBlank()) s64 = "No risk assessment details were provided.";
+        if (s63.isBlank()) s63 = "No key performance insights were provided.";
+        if (s64.isBlank()) s64 = "No improvement actions were provided.";
+        if (s65.isBlank()) s65 = "No risk assessment details were provided.";
 
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"page page-break-before\">")
-          .append(pageHeader(projectId, sprintId))
-          .append("<h2 class=\"section-title\">6. AI-GENERATED PROCESS ASSESSMENT</h2>")
-          .append("<div class=\"section-divider\"></div>")
-          .append("<h3 class=\"sub-title\">6.1 Executive Summary</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s61)).append("</div>")
-          .append("<h3 class=\"sub-title\">6.2 Key Performance Insights</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s62)).append("</div>")
-          .append("<h3 class=\"sub-title\">6.3 Improvement Actions</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s63)).append("</div>")
-          .append("<h3 class=\"sub-title\">6.4 Risk Assessment</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s64)).append("</div>")
-          .append("</div>");
+        .append(pageHeader(projectId, sprintId))
+        .append("<h2 class=\"section-title\">6. AI-GENERATED PROCESS ASSESSMENT</h2>")
+        .append("<div class=\"section-divider\"></div>")
+
+        .append("<h3 class=\"sub-title\">6.1 Executive Summary</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s61)).append("</div>");
+
+        // 6.2 solo se renderiza si hay contenido de comparación
+        if (!s62.isBlank()) {
+            sb.append("<h3 class=\"sub-title\">6.2 Sprint Comparison</h3>")
+            .append("<div class=\"sub-divider\"></div>")
+            .append(buildSprintComparisonTable(s62, projectId, sprintId));
+        }
+
+        sb.append("<h3 class=\"sub-title\">").append(s62.isBlank() ? "6.2" : "6.3")
+        .append(" Key Performance Insights</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s63)).append("</div>")
+
+        .append("<h3 class=\"sub-title\">").append(s62.isBlank() ? "6.3" : "6.4")
+        .append(" Improvement Actions</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s64)).append("</div>")
+
+        .append("<h3 class=\"sub-title\">").append(s62.isBlank() ? "6.4" : "6.5")
+        .append(" Risk Assessment</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s65)).append("</div>")
+        .append("</div>");
+
         return sb.toString();
     }
 

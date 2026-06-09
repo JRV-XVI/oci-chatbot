@@ -43,6 +43,8 @@ spec:
               value: "${BUILDRUN_HASH}"
             - name: TNS_ADMIN
               value: "/app/wallet"
+            - name: VECTOR_TOP_K
+              value: "5"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
