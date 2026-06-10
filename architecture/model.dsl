@@ -30,25 +30,72 @@ frontend = container "Frontend" "Interfaz web" "Next.js" {
 
 backend = container "Backend" "API REST y lógica de negocio" "Spring Boot (Java)" {
 
-    sprintCreator = component "Sprint Creator" "Crea sprints; valida datos y persiste"     "Sprint Domain"
-    sprintEditor  = component "Sprint Editor"  "Modifica atributos de un sprint existente" "Sprint Domain"
-    sprintRemover = component "Sprint Remover" "Elimina sprints y datos relacionados"      "Sprint Domain"
+    // ── Sprint Domain ────────────────────────────────────────────────────────
+    // Apuntan a service.puml porque la lógica de sprints vive en los Services.
 
-    taskCreator       = component "Task Creator"        "Crea tareas asociadas a un sprint"   "Task Domain"
-    taskEditor        = component "Task Editor"         "Modifica atributos de una tarea"     "Task Domain"
-    taskAssigner      = component "Task Assigner"       "Asigna desarrolladores responsables" "Task Domain"
-    taskStatusChanger = component "Task Status Changer" "Gestiona transiciones de estado"     "Task Domain"
-    taskRemover       = component "Task Remover"        "Elimina tareas de forma segura"      "Task Domain"
+    sprintCreator = component "Sprint Creator" "Crea sprints; valida datos y persiste" "Sprint Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    sprintEditor = component "Sprint Editor" "Modifica atributos de un sprint existente" "Sprint Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    sprintRemover = component "Sprint Remover" "Elimina sprints y datos relacionados" "Sprint Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
 
-    kpiDashboardService = component "KPI Dashboard Service" "Calcula y expone métricas del proyecto"       "Analytics Domain"
-    userReport          = component "User Report"           "Agrega métricas de productividad por usuario" "Analytics Domain"
+    // ── Task Domain ──────────────────────────────────────────────────────────
+    // Apuntan a service.puml porque la lógica de tareas vive en los Services.
 
-    aiReportGenerator = component "AI Report Generator" "Envía prompts a IA externa y construye el reporte" "AI Reporting Domain"
+    taskCreator = component "Task Creator" "Crea tareas asociadas a un sprint" "Task Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    taskEditor = component "Task Editor" "Modifica atributos de una tarea" "Task Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    taskAssigner = component "Task Assigner" "Asigna desarrolladores responsables" "Task Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    taskStatusChanger = component "Task Status Changer" "Gestiona transiciones de estado" "Task Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    taskRemover = component "Task Remover" "Elimina tareas de forma segura" "Task Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
 
-    sessionManager = component "Session Manager" "Autentica usuarios; crea y cierra sesiones" "User Management Domain"
-    userCreator    = component "User Creator"    "Registra nuevos usuarios; valida datos"      "User Management Domain"
+    // ── Analytics Domain ─────────────────────────────────────────────────────
+    // Apuntan a service.puml (KPIService, ReportGeneratorService, LLMService).
 
-    database = component "Database" "Acceso a Oracle DB vía JDBC" "Persistence Layer"
+    kpiDashboardService = component "KPI Dashboard Service" "Calcula y expone métricas del proyecto" "Analytics Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+    userReport = component "User Report" "Agrega métricas de productividad por usuario" "Analytics Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+
+    // ── AI Reporting Domain ──────────────────────────────────────────────────
+    // Apunta a service.puml (LLMService, ReportGeneratorService, PDFGeneratorService).
+
+    aiReportGenerator = component "AI Report Generator" "Envía prompts a IA externa y construye el reporte" "AI Reporting Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+
+    // ── User Management Domain ───────────────────────────────────────────────
+    // sessionManager apunta a security.puml (JwtAuthFilter, JwtUtil).
+    // userCreator apunta a service.puml (AuthService maneja registro).
+
+    sessionManager = component "Session Manager" "Autentica usuarios; crea y cierra sesiones" "User Management Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/security.puml"
+    }
+    userCreator = component "User Creator" "Registra nuevos usuarios; valida datos" "User Management Domain" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+    }
+
+    // ── Persistence Layer ────────────────────────────────────────────────────
+    // Apunta a model.puml (Project, UserAccount, UserRole, ProjectInvite).
+
+    database = component "Database" "Acceso a Oracle DB vía JDBC" "Persistence Layer" {
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/model.puml"
+    }
 }
 
 

@@ -1,0 +1,67 @@
+name: Generate PlantUML Diagrams (C4 Level 4)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Se activa en cada push que modifique código Java o este mismo workflow.
+# El [skip ci] en el mensaje del commit automático evita un loop infinito:
+# cuando el bot hace commit de los .puml, ese push NO vuelve a disparar este job.
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches:
+      - feat/documentation-angel
+      - main
+    paths:
+      - 'forgetask/src/**'
+      - '.github/workflows/generate-diagrams.yml'
+
+jobs:
+  generate-diagrams:
+    name: Generate and Commit PlantUML Diagrams
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # Requerido para que el action pueda hacer commit y push
+
+    steps:
+      # ── Step 1: Checkout ────────────────────────────────────────────────────
+      # Descarga el repositorio completo en el runner de GitHub Actions.
+      # ref y persist-credentials son necesarios para que el auto-commit
+      # pueda hacer push de vuelta a la misma rama.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: true
+
+      # ── Step 2: Java 21 ─────────────────────────────────────────────────────
+      # Configura el mismo JDK que usa el proyecto localmente.
+      # cache: maven descarga las dependencias una sola vez y las reutiliza
+      # en runs posteriores para que el pipeline sea más rápido.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # ── Step 3: Generar diagramas ────────────────────────────────────────────
+      # Ejecuta el plugin plantuml-generator-maven-plugin configurado en pom.xml.
+      # generate-test-sources es la phase de Maven donde está atado el plugin.
+      # --no-transfer-progress suprime el spam de descarga de dependencias en logs.
+      # -DskipTests asegura que no intente correr tests (no es necesario aquí).
+      # working-directory apunta a la carpeta del backend donde está el pom.xml.
+      - name: Generate PlantUML diagrams from Java source
+        working-directory: forgetask
+        run: mvn generate-test-sources --no-transfer-progress -DskipTests
+
+      # ── Step 4: Commit y push automático ────────────────────────────────────
+      # Detecta si los archivos .puml cambiaron respecto al último commit.
+      # Si cambiaron (porque el código Java cambió), hace commit y push.
+      # Si no cambiaron, no hace nada — el step simplemente no crea un commit.
+      - name: Commit generated diagrams back to repository
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: auto-generate PlantUML C4 Level 4 diagrams [skip ci]"
+          file_pattern: "forgetask/docs/diagrams/*.puml"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
