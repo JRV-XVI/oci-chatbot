@@ -1,0 +1,71 @@
+@startuml
+
+class com.cloudforge.api.forgetask.model.Project <<Entity>>  <<Table>>  {
+ {TableName=PROJECT}
+ {TableSchema=APP_USER}
+--
+	{field} +@Column("BUDGET") budget : java.math.BigDecimal
+	{field} +@Column("DESCRIPTION") description : String
+	{field} +@Column("END_DATE") endDate : java.time.LocalDateTime
+	{field} +@Column("ESTIMATED_TIME") estimatedTime : java.math.BigDecimal
+	{field} +@Column("ID_PROJECT") @Id idProject : Long
+	{field} +@Column("REAL_TIME") realTime : java.math.BigDecimal
+	{field} +@Column("START_DATE") startDate : java.time.LocalDateTime
+	{field} +@Column("TITLE") title : String
+}
+
+
+class com.cloudforge.api.forgetask.model.ProjectInvite <<Entity>>  <<Table>>  {
+ {TableName=PROJECT_INVITE}
+ {TableSchema=APP_USER}
+--
+	{field} +@Column("CREATED_AT") createdAt : java.time.LocalDateTime
+	{field} +@Column("EMAIL") email : String
+	{field} +@Column("EXPIRES_AT") expiresAt : java.time.LocalDateTime
+	{field} +@Column("ID_INVITE") @Id idInvite : Long
+	{field} +@Column("ID_PROJECT") idProject : Long
+	{field} +@Column("INVITE_TOKEN") inviteToken : String
+	{field} +@Column("ROLE") role : String
+	{field} +@Column("STATUS") status : String
+}
+
+
+class com.cloudforge.api.forgetask.model.UserAccount <<Entity>>  <<Table>>  {
+ {TableName=USER_ACCOUNT}
+ {TableSchema=APP_USER}
+--
+	{field} +@Column("EMAIL") email : String
+	{field} +@Column("FIRST_NAME") firstName : String
+	{field} +@Column("ID_PROJECT") idProject : Long
+	{field} +@Column("ID_USER") @Id idUser : Long
+	{field} +@Column("LAST_NAME") lastName : String
+	{field} +@Column("PASSWORD") password : String
+	{field} +@Column("PHONE_NUMBER") phoneNumber : String
+	{field} +@Column("USERNAME") username : String
+}
+
+
+class com.cloudforge.api.forgetask.model.UserRole <<Entity>>  <<Table>>  {
+ {TableName=USER_ROLE}
+ {TableSchema=APP_USER}
+--
+	{method} +getRole () : String
+}
+
+
+class com.cloudforge.api.forgetask.model.UserRoleId {
+	{field} +@Column("ID_USER") idUser : Long
+	{field} +@Column("ROLE") role : String
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+}
+
+
+
+
+com.cloudforge.api.forgetask.model.UserAccount "1" o-- "0..*"  com.cloudforge.api.forgetask.model.UserRole :  @OneToMany\nroles
+com.cloudforge.api.forgetask.model.UserRole -->  com.cloudforge.api.forgetask.model.UserRoleId : id
+
+hide methods
+
+@enduml

@@ -1,0 +1,195 @@
+@startuml
+
+class com.cloudforge.api.forgetask.controller.AuthController {
+	{field} -authService : com.cloudforge.api.forgetask.service.auth.AuthService
+	{method} +login ( request : com.cloudforge.api.forgetask.dto.auth.LoginRequestDTO ) : org.springframework.http.ResponseEntity
+	{method} +signup ( request : com.cloudforge.api.forgetask.dto.auth.SignupRequestDTO ) : org.springframework.http.ResponseEntity
+}
+
+
+class com.cloudforge.api.forgetask.controller.InviteController {
+	{field} -inviteService : com.cloudforge.api.forgetask.service.invite.InviteService
+	{method} +createInvite ( request : com.cloudforge.api.forgetask.dto.invite.CreateInviteRequestDTO ) : org.springframework.http.ResponseEntity
+	{method} +validateInvite ( token : String ) : org.springframework.http.ResponseEntity
+}
+
+
+class com.cloudforge.api.forgetask.controller.KPIController {
+	{field} -kpiService : com.cloudforge.api.forgetask.service.KPIService
+	{method} +calculateKPIs ( request : com.cloudforge.api.forgetask.controller.KPIController$KPICalculationRequest ) : org.springframework.http.ResponseEntity
+	{method} +calculateKPIsSimple ( tasks : java.util.List ) : org.springframework.http.ResponseEntity
+	{method} +getProjectKpisSummary ( projectId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +getRealHoursBySprintUser ( sprintId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +getRealHoursByUser ( sprintId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +getRealHoursTasksByUser ( username : String , sprintId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +getTaskDistribution ( tasks : java.util.List ) : org.springframework.http.ResponseEntity
+	{method} +getTimeSummary ( tasks : java.util.List ) : org.springframework.http.ResponseEntity
+	{method} +health () : org.springframework.http.ResponseEntity
+}
+
+
+class com.cloudforge.api.forgetask.controller.KPIController$KPICalculationRequest {
+	{field} +expectedTaskCounts : java.util.Map
+	{field} +tasks : java.util.List
+}
+
+
+class com.cloudforge.api.forgetask.controller.MetricsController {
+	{field} {static} -SPRINT_DONE_BY_USER_SQL : String
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{method} -buildDisplayName ( firstName : String , lastName : String , username : String , idUser : int ) : String
+	{method} +getTasksDoneByUserInSprint ( sprintId : int ) : java.util.List
+}
+
+
+class com.cloudforge.api.forgetask.controller.ProjectController {
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} -projectRepository : com.cloudforge.api.forgetask.repository.ProjectRepository
+	{method} +completeOnboarding ( id : Long , dto : com.cloudforge.api.forgetask.dto.ProjectOnboardingDTO ) : org.springframework.http.ResponseEntity
+	{method} +listProjects () : java.util.List
+}
+
+
+class com.cloudforge.api.forgetask.controller.ReportController {
+	{field} -kpiService : com.cloudforge.api.forgetask.service.KPIService
+	{field} -llmService : com.cloudforge.api.forgetask.service.LLMService
+	{field} {static} -logger : org.slf4j.Logger
+	{field} -pdfGeneratorService : com.cloudforge.api.forgetask.service.PDFGeneratorService
+	{field} -reportGeneratorService : com.cloudforge.api.forgetask.service.ReportGeneratorService
+	{field} -telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient
+	{field} -telegramReportService : com.cloudforge.api.forgetask.service.TelegramReportService
+	{method} -buildMetricsMap ( kpi : com.cloudforge.api.forgetask.dto.KPIMetrics ) : java.util.Map
+	{method} -convertToHTML ( textContent : String ) : String
+	{method} +generateHTMLReport ( projectId : Integer , sprintId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +generatePDFReport ( projectId : Integer , sprintId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +generateTextReport ( projectId : Integer , sprintId : Integer ) : org.springframework.http.ResponseEntity
+	{method} -getFilteredTasks ( projectId : Integer , sprintId : Integer ) : java.util.List
+	{method} +getTelegramCurrentSprintContext ( projectId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +health () : org.springframework.http.ResponseEntity
+	{method} +sendTelegramCurrentSprintReport ( chatId : long , projectId : Integer ) : org.springframework.http.ResponseEntity
+	{method} -toUserHoursMaps ( raw : java.util.List ) : java.util.List
+}
+
+
+class com.cloudforge.api.forgetask.controller.SprintController {
+	{field} {static} -COUNT_OVERLAPPING_SPRINTS_EXCLUDING_CURRENT_SQL : String
+	{field} {static} -COUNT_OVERLAPPING_SPRINTS_SQL : String
+	{field} {static} -GET_CURRENT_SPRINT_SQL : String
+	{field} {static} -GET_SPRINT_BY_ID_SQL : String
+	{field} {static} -LIST_SPRINTS_SQL : String
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{method} +createSprint ( request : com.cloudforge.api.forgetask.controller.SprintController$SprintCreateRequest ) : org.springframework.http.ResponseEntity
+	{method} +deleteSprint ( sprintId : int ) : org.springframework.http.ResponseEntity
+	{method} -findSprintById ( sprintId : int ) : com.cloudforge.api.forgetask.dto.SprintOptionDTO
+	{method} +getCurrentSprint ( projectId : Integer ) : org.springframework.http.ResponseEntity
+	{method} -hasOverlappingSprintDates ( projectId : int , start : java.sql.Timestamp , end : java.sql.Timestamp , excludeSprintId : Integer ) : boolean
+	{method} -isValidDateRange ( start : java.sql.Timestamp , end : java.sql.Timestamp ) : boolean
+	{method} +listSprints ( projectId : Integer ) : java.util.List
+	{method} -normalizeTextOrNull ( value : String ) : String
+	{method} -parseDateOrNull ( date : String ) : java.sql.Timestamp
+	{method} -resolveDefaultProjectId () : int
+	{method} +updateSprint ( sprintId : int , request : com.cloudforge.api.forgetask.controller.SprintController$SprintUpdateRequest ) : org.springframework.http.ResponseEntity
+}
+
+
+class com.cloudforge.api.forgetask.controller.SprintController$SprintCreateRequest {
+	{field} +endDate : String
+	{field} +goal : String
+	{field} +projectId : Integer
+	{field} +sprintNumber : Integer
+	{field} +startDate : String
+	{field} +title : String
+}
+
+
+class com.cloudforge.api.forgetask.controller.SprintController$SprintUpdateRequest {
+	{field} +endDate : String
+	{field} +goal : String
+	{field} +projectId : Integer
+	{field} +sprintNumber : Integer
+	{field} +startDate : String
+	{field} +title : String
+}
+
+
+class com.cloudforge.api.forgetask.controller.TaskController {
+	{field} {static} -SELECT_TASKS_BY_PROJECT_AND_SPRINT_SQL : String
+	{field} {static} -SELECT_TASKS_BY_PROJECT_SQL : String
+	{field} {static} -SELECT_TASKS_SQL : String
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} -jwtUtil : com.cloudforge.api.forgetask.security.JwtUtil
+	{field} -taskStateConstraintChecked : boolean
+	{method} -buildDisplayName ( firstName : String , lastName : String , username : String , idUser : Object ) : String
+	{method} +createTask ( task : com.cloudforge.api.forgetask.dto.TaskDTO ) : org.springframework.http.ResponseEntity
+	{method} +deleteTask ( id : String ) : org.springframework.http.ResponseEntity
+	{method} -deleteTaskDependencies ( taskId : int ) : void
+	{method} -ensureTaskStateConstraintSupportsReady () : void <<synchronized>> 
+	{method} -extractBearerToken ( request : jakarta.servlet.http.HttpServletRequest ) : String
+	{method} -extractFirstAssignedToken ( assignedTo : java.util.List ) : String
+	{method} -findTaskById ( taskId : int ) : com.cloudforge.api.forgetask.dto.TaskDTO
+	{method} -findTaskSnapshotById ( taskId : int ) : com.cloudforge.api.forgetask.controller.TaskController$ExistingTaskSnapshot
+	{method} +getAllTasks () : org.springframework.http.ResponseEntity
+	{method} +getProjectUsers ( projectId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +getTaskById ( id : String ) : org.springframework.http.ResponseEntity
+	{method} +getTasksByProjectAndSprint ( projectId : int , sprintId : int ) : org.springframework.http.ResponseEntity
+	{method} +getTasksByProjectFromToken ( request : jakarta.servlet.http.HttpServletRequest ) : org.springframework.http.ResponseEntity
+	{method} +handleDataAccessError ( exception : Exception ) : org.springframework.http.ResponseEntity
+	{method} +handleNumberFormatError ( exception : Exception ) : org.springframework.http.ResponseEntity
+	{method} +inspectTaskStates () : org.springframework.http.ResponseEntity
+	{method} +inspectUserTables () : org.springframework.http.ResponseEntity
+	{method} -isSafeIdentifier ( value : String ) : boolean
+	{method} -isValidDateRange ( startTime : java.sql.Timestamp , endTime : java.sql.Timestamp ) : boolean
+	{method} -mapRowToTask ( id : int , idUser : Object , idProject : Object , idSprint : Object , sprintNumber : Object , sprintTitle : String , title : String , description : String , startTime : Object , endTime : Object , startDateText : String , endDateText : String , estimatedTime : Object , realTime : Object , state : String , priority : String , firstName : String , lastName : String , username : String , role : String ) : com.cloudforge.api.forgetask.dto.TaskDTO
+	{method} -normalizePriority ( priority : String , fallback : String ) : String
+	{method} -normalizeText ( value : String , fallback : String ) : String
+	{method} -normalizeTextOrNull ( value : String ) : String
+	{method} -parseDate ( value : Object ) : String
+	{method} -parseDateOrFallback ( date : String , fallback : java.sql.Timestamp ) : java.sql.Timestamp
+	{method} -parseDateOrNull ( date : String ) : java.sql.Timestamp
+	{method} -resolveAssignee ( assignedTo : java.util.List , fallbackProjectId : int , fallbackUserId : int ) : com.cloudforge.api.forgetask.controller.TaskController$ResolvedAssignee
+	{method} -resolveAssigneeStrict ( assignedTo : java.util.List , projectId : int ) : com.cloudforge.api.forgetask.controller.TaskController$ResolvedAssignee
+	{method} -resolveDateText ( formattedDate : String , rawValue : Object ) : String
+	{method} -resolveDefaultProjectId () : int
+	{method} -resolveSprintIdStrict ( sprintId : Integer , projectId : int ) : Integer
+	{method} -toDatabaseState ( frontendStatus : String ) : String
+	{method} -toDoubleOrZero ( value : Object ) : double
+	{method} -toFrontendStatus ( dbState : String ) : String
+	{method} -toNullableDouble ( value : Object ) : Double
+	{method} +updateTask ( id : String , task : com.cloudforge.api.forgetask.dto.TaskDTO ) : org.springframework.http.ResponseEntity
+	{method} -upsertTaskPriority ( taskId : int , priority : String ) : void
+	{method} -upsertTaskState ( taskId : int , dbState : String ) : void
+}
+
+
+class com.cloudforge.api.forgetask.controller.TaskWebSocketController {
+	{field} {static} -log : org.slf4j.Logger
+	{field} -messagingTemplate : org.springframework.messaging.simp.SimpMessagingTemplate
+	{method} +handleTaskCreate ( message : com.cloudforge.api.forgetask.dto.TaskCreateMessage ) : void
+	{method} +handleTaskDelete ( message : com.cloudforge.api.forgetask.dto.TaskDeleteMessage ) : void
+	{method} +handleTaskUpdate ( message : com.cloudforge.api.forgetask.dto.TaskUpdateMessage ) : void
+}
+
+
+class com.cloudforge.api.forgetask.controller.TelegramBotController {
+	{field} -conversationManager : com.cloudforge.api.forgetask.util.ConversationManager
+	{field} {static} -logger : org.slf4j.Logger
+	{field} -telegramBotConfig : com.cloudforge.api.forgetask.config.TelegramBotConfig
+	{field} -telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient
+	{field} -telegramReportService : com.cloudforge.api.forgetask.service.TelegramReportService
+	{method} +afterRegistration ( botSession : org.telegram.telegrambots.longpolling.BotSession ) : void
+	{method} +consume ( update : org.telegram.telegrambots.meta.api.objects.Update ) : void
+	{method} +getBotToken () : String
+	{method} +getUpdatesConsumer () : org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer
+}
+
+
+
+
+com.cloudforge.api.forgetask.controller.ReportController *--  com.cloudforge.api.forgetask.controller.SprintController : sprintController
+com.cloudforge.api.forgetask.controller.ReportController *--  com.cloudforge.api.forgetask.controller.TaskController : taskController
+com.cloudforge.api.forgetask.controller.TaskWebSocketController -->  com.cloudforge.api.forgetask.controller.TaskController : taskController
+com.cloudforge.api.forgetask.controller.TelegramBotController *--  com.cloudforge.api.forgetask.controller.SprintController : sprintController
+com.cloudforge.api.forgetask.controller.TelegramBotController *--  com.cloudforge.api.forgetask.controller.TaskController : taskController
+
+
+@enduml

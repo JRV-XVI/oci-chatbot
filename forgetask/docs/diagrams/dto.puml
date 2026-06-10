@@ -1,0 +1,294 @@
+@startuml
+
+class com.cloudforge.api.forgetask.dto.KPIMetrics {
+	{field} +backlogCount : int
+	{field} +completedEstimatedHours : double
+	{field} +completedTasks : int
+	{field} +doneCount : int
+	{field} +inProgressCount : int
+	{field} -isBacklogOverloaded : boolean
+	{field} -isDoneOverloaded : boolean
+	{field} -isInProgressOverloaded : boolean
+	{field} -isReadyOverloaded : boolean
+	{field} -isReviewOverloaded : boolean
+	{field} +progressPercentage : int
+	{field} +readyCount : int
+	{field} +reviewCount : int
+	{field} +timeVariance : double
+	{field} +totalEstimatedHours : double
+	{field} +totalRealHours : double
+	{field} +totalTasks : int
+	{method} +isBacklogOverloaded () : boolean
+	{method} +isDoneOverloaded () : boolean
+	{method} +isInProgressOverloaded () : boolean
+	{method} +isReadyOverloaded () : boolean
+	{method} +isReviewOverloaded () : boolean
+	{method} +setBacklogOverloaded ( backlogOverloaded : boolean ) : void
+	{method} +setDoneOverloaded ( doneOverloaded : boolean ) : void
+	{method} +setInProgressOverloaded ( inProgressOverloaded : boolean ) : void
+	{method} +setReadyOverloaded ( readyOverloaded : boolean ) : void
+	{method} +setReviewOverloaded ( reviewOverloaded : boolean ) : void
+	{method} +toString () : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO {
+	{field} +created : long
+	{field} +id : String
+	{field} +model : String
+	{field} +object : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Choice {
+	{field} +finish_reason : String
+	{field} +index : int
+}
+
+
+class com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Message {
+	{field} +content : String
+	{field} +role : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Usage {
+	{field} +completion_tokens : int
+	{field} +prompt_tokens : int
+	{field} +total_tokens : int
+}
+
+
+class com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO {
+	{field} +max_tokens : int
+	{field} +model : String
+	{field} +temperature : double
+}
+
+
+class com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO$Message {
+	{field} +content : String
+	{field} +role : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO {
+	{field} -avgHoursPerDev : double
+	{field} -avgTasksPerDev : double
+	{field} -estimatedHours : double
+	{field} -expectedHoursPerDev : double
+	{field} -realHours : double
+	{field} -sprintDevs : int
+	{field} -sprintEstimatedHours : double
+	{field} -sprintRealHours : double
+	{field} -sprintTasks : int
+	{field} -tasksBacklog : int
+	{field} -tasksDone : int
+	{field} -tasksInProgress : int
+	{field} -tasksReady : int
+	{field} -tasksReview : int
+	{field} -totalDevs : int
+	{field} -totalTasks : int
+	{method} +avgHoursPerDev () : double
+	{method} +avgTasksPerDev () : double
+	{method} +equals ( o : Object ) : boolean
+	{method} +estimatedHours () : double
+	{method} +expectedHoursPerDev () : double
+	{method} +hashCode () : int
+	{method} +realHours () : double
+	{method} +sprintDevs () : int
+	{method} +sprintEstimatedHours () : double
+	{method} +sprintRealHours () : double
+	{method} +sprintTasks () : int
+	{method} +tasksBacklog () : int
+	{method} +tasksDone () : int
+	{method} +tasksInProgress () : int
+	{method} +tasksReady () : int
+	{method} +tasksReview () : int
+	{method} +toString () : String
+	{method} +totalDevs () : int
+	{method} +totalTasks () : int
+}
+
+
+class com.cloudforge.api.forgetask.dto.ProjectOnboardingDTO {
+	{field} +budget : Double
+	{field} +description : String
+	{field} +endDate : java.time.LocalDateTime
+	{field} +estimatedTime : Double
+	{field} +startDate : java.time.LocalDateTime
+	{field} +title : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.ProjectOptionDTO {
+	{field} +endDate : String
+	{field} +idProject : int
+	{field} +startDate : String
+	{field} +title : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.RealHoursBySprintUserDTO {
+	{field} +displayName : String
+	{field} +doneTasks : int
+	{field} +realTotalHours : double
+	{field} +sprintId : int
+	{field} +sprintNumber : int
+	{field} +sprintTitle : String
+	{field} +username : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.RealHoursByUserDTO {
+	{field} +displayName : String
+	{field} +doneTasks : int
+	{field} +realTotalHours : double
+	{field} +username : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.RealHoursTaskDetailDTO {
+	{field} +realTime : double
+	{field} +taskId : String
+	{field} +title : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.SprintOptionDTO {
+	{field} +endDate : String
+	{field} +goal : String
+	{field} +idProject : int
+	{field} +idSprint : int
+	{field} +sprintNumber : int
+	{field} +startDate : String
+	{field} +title : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.SprintUserPerformanceDTO {
+	{field} +displayName : String
+	{field} +doneCount : int
+	{field} +idProject : int
+	{field} +idUser : int
+	{field} +role : String
+	{field} +totalCount : int
+	{field} +username : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.TaskAssigneeOptionDTO {
+	{field} +displayName : String
+	{field} +idProject : int
+	{field} +idUser : int
+	{field} +role : String
+	{field} +username : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.TaskCreateMessage {
+	{method} +toString () : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.TaskDTO {
+	{field} +assignedRole : String
+	{field} +assignedTo : java.util.List
+	{field} +assignedUsername : String
+	{field} +description : String
+	{field} +endDate : String
+	{field} +estimatedTime : Double
+	{field} +id : String
+	{field} +priority : String
+	{field} +realTime : Double
+	{field} +sprintId : Integer
+	{field} +sprintNumber : Integer
+	{field} +sprintTitle : String
+	{field} +startDate : String
+	{field} +status : String
+	{field} +title : String
+	{method} +getEstimatedTimeNullable () : Double
+	{method} +getRealTimeNullable () : Double
+	{method} +toString () : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.TaskDeleteMessage {
+	{field} +taskId : String
+	{method} +toString () : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.TaskEventMessage {
+	{field} {static} +TASK_CREATED : String
+	{field} {static} +TASK_DELETED : String
+	{field} {static} +TASK_UPDATED : String
+	{field} +data : Object
+	{field} +timestamp : java.time.LocalDateTime
+	{field} +type : String
+	{method} +toString () : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.TaskUpdateMessage {
+	{field} +taskId : String
+	{method} +toString () : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.auth.LoginRequestDTO {
+	{field} +email : String
+	{field} +password : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.auth.LoginResponseDTO {
+	{field} -email : String
+	{field} -firstName : String
+	{field} -idProject : Long
+	{field} -idUser : Long
+	{field} -lastName : String
+	{field} -roles : java.util.List
+	{field} -token : String
+	{field} -tokenType : String
+	{field} -username : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.auth.SignupRequestDTO {
+	{field} +email : String
+	{field} +firstName : String
+	{field} +inviteToken : String
+	{field} +lastName : String
+	{field} +password : String
+	{field} +username : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.invite.CreateInviteRequestDTO {
+	{field} +email : String
+	{field} +idProject : Long
+	{field} +role : String
+}
+
+
+class com.cloudforge.api.forgetask.dto.invite.ValidateInviteResponseDTO {
+	{field} -email : String
+	{field} -idProject : Long
+	{field} -role : String
+	{field} -valid : boolean
+}
+
+
+
+
+com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO "1" o-- "0..*"  com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Choice : choices
+com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO -->  com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Usage : usage
+com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Choice -->  com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO$Message : message
+com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO "1" o-- "0..*"  com.cloudforge.api.forgetask.dto.LLMChatCompletionRequestDTO$Message : messages
+com.cloudforge.api.forgetask.dto.TaskCreateMessage -->  com.cloudforge.api.forgetask.dto.TaskDTO : taskData
+com.cloudforge.api.forgetask.dto.TaskUpdateMessage -->  com.cloudforge.api.forgetask.dto.TaskDTO : taskData
+
+hide methods
+
+@enduml
