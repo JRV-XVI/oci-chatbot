@@ -94,21 +94,6 @@ class com.cloudforge.api.forgetask.service.ReportGeneratorService {
 }
 
 
-class com.cloudforge.api.forgetask.service.SprintChunkBuilder {
-	{field} {static} -DATE_FMT : java.time.format.DateTimeFormatter
-	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
-	{field} {static} -logger : org.slf4j.Logger
-	{method} +buildSprintChunk ( idSprint : int ) : String
-}
-
-
-class com.cloudforge.api.forgetask.service.SprintEmbeddingService {
-	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
-	{field} {static} -logger : org.slf4j.Logger
-	{method} +indexSprint ( idSprint : int , idProject : int , sprintTitle : String ) : void
-}
-
-
 class com.cloudforge.api.forgetask.service.TelegramReportService {
 	{field} {static} -logger : org.slf4j.Logger
 	{field} -sprintController : com.cloudforge.api.forgetask.controller.SprintController
@@ -116,14 +101,6 @@ class com.cloudforge.api.forgetask.service.TelegramReportService {
 	{method} +generateAndSendReport ( chatId : long , projectId : Integer , sprintId : Integer , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
 	{method} -sendMessage ( chatId : long , text : String , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
 	{method} -sendPDFDocument ( chatId : long , filename : String , fileBytes : [B , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
-}
-
-
-class com.cloudforge.api.forgetask.service.VectorContextRetriever {
-	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
-	{field} {static} -logger : org.slf4j.Logger
-	{field} -topK : int
-	{method} +retrieveSprintContext ( queryText : String , excludeSprintId : int , idProject : int ) : java.util.List
 }
 
 
@@ -150,7 +127,6 @@ class com.cloudforge.api.forgetask.service.invite.InviteService {
 
 com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.KPIService : kpiService
 com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.LLMService : llmService
-com.cloudforge.api.forgetask.service.SprintEmbeddingService *--  com.cloudforge.api.forgetask.service.SprintChunkBuilder : chunkBuilder
 com.cloudforge.api.forgetask.service.TelegramReportService *--  com.cloudforge.api.forgetask.service.PDFGeneratorService : pdfGeneratorService
 com.cloudforge.api.forgetask.service.TelegramReportService *--  com.cloudforge.api.forgetask.service.ReportGeneratorService : reportGeneratorService
 com.cloudforge.api.forgetask.service.auth.AuthService *--  com.cloudforge.api.forgetask.service.invite.InviteService : inviteService
