@@ -162,6 +162,7 @@ class com.cloudforge.api.forgetask.dto.SprintOptionDTO {
 	{field} +idSprint : int
 	{field} +sprintNumber : int
 	{field} +startDate : String
+	{field} -status : String
 	{field} +title : String
 }
 

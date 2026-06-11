@@ -25,6 +25,7 @@ class com.cloudforge.api.forgetask.controller.KPIController {
 	{method} +getTaskDistribution ( tasks : java.util.List ) : org.springframework.http.ResponseEntity
 	{method} +getTimeSummary ( tasks : java.util.List ) : org.springframework.http.ResponseEntity
 	{method} +health () : org.springframework.http.ResponseEntity
+	{method} +prueba () : void
 }
 
 
@@ -78,6 +79,9 @@ class com.cloudforge.api.forgetask.controller.SprintController {
 	{field} {static} -GET_SPRINT_BY_ID_SQL : String
 	{field} {static} -LIST_SPRINTS_SQL : String
 	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} -sprintEmbeddingService : com.cloudforge.api.forgetask.service.SprintEmbeddingService
+	{method} +activateSprint ( sprintId : int ) : org.springframework.http.ResponseEntity
+	{method} +closeSprint ( sprintId : int ) : org.springframework.http.ResponseEntity
 	{method} +createSprint ( request : com.cloudforge.api.forgetask.controller.SprintController$SprintCreateRequest ) : org.springframework.http.ResponseEntity
 	{method} +deleteSprint ( sprintId : int ) : org.springframework.http.ResponseEntity
 	{method} -findSprintById ( sprintId : int ) : com.cloudforge.api.forgetask.dto.SprintOptionDTO
@@ -85,8 +89,10 @@ class com.cloudforge.api.forgetask.controller.SprintController {
 	{method} -hasOverlappingSprintDates ( projectId : int , start : java.sql.Timestamp , end : java.sql.Timestamp , excludeSprintId : Integer ) : boolean
 	{method} -isValidDateRange ( start : java.sql.Timestamp , end : java.sql.Timestamp ) : boolean
 	{method} +listSprints ( projectId : Integer ) : java.util.List
+	{method} +listSprintsByStatus ( status : String , projectId : Integer ) : java.util.List
 	{method} -normalizeTextOrNull ( value : String ) : String
 	{method} -parseDateOrNull ( date : String ) : java.sql.Timestamp
+	{method} +reindexSprint ( sprintId : int ) : org.springframework.http.ResponseEntity
 	{method} -resolveDefaultProjectId () : int
 	{method} +updateSprint ( sprintId : int , request : com.cloudforge.api.forgetask.controller.SprintController$SprintUpdateRequest ) : org.springframework.http.ResponseEntity
 }

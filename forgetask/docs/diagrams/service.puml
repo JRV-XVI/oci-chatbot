@@ -46,6 +46,7 @@ class com.cloudforge.api.forgetask.service.PDFGeneratorService {
 	{method} -buildKpiDashboard ( totalTasks : int , doneTasks : int , inProgress : int , review : int , ready : int , backlog : int , efficiency : double , progress : int , variance : double , projectId : Integer , sprintId : Integer ) : String
 	{method} -buildNarrativeSection ( reportContent : String , projectId : Integer , sprintId : Integer ) : String
 	{method} -buildPageCss ( projectId : Integer , sprintId : Integer ) : String
+	{method} -buildSprintComparisonTable ( comparisonText : String , projectId : Integer , sprintId : Integer ) : String
 	{method} -buildTasksTable ( userHours : java.util.List , projectId : Integer , sprintId : Integer ) : String
 	{method} -capabilityDescription ( efficiency : double ) : String
 	{method} -capabilityLevel ( efficiency : double ) : String
@@ -54,6 +55,7 @@ class com.cloudforge.api.forgetask.service.PDFGeneratorService {
 	{method} -doubleVal ( m : java.util.Map , key : String , def : double ) : double
 	{method} -escapeCss ( text : String ) : String
 	{method} -escapeHtml ( text : String ) : String
+	{method} -extractListItems ( text : String ) : java.util.List
 	{method} -extractSection ( reportContent : String , headingName : String ) : String
 	{method} -firstParagraphs ( text : String , maxParagraphs : int ) : String
 	{method} -formatInline ( text : String ) : String
@@ -72,7 +74,10 @@ class com.cloudforge.api.forgetask.service.PDFGeneratorService {
 	{method} -normalizeHeading ( source : String ) : String
 	{method} -normalizeNarrativeLines ( text : String ) : java.util.List
 	{method} -pageHeader ( projectId : Integer , sprintId : Integer ) : String
+	{method} -renderActionsSection ( text : String ) : String
 	{method} -renderHtmlToPdf ( html : String ) : [B
+	{method} -renderInsightsSection ( text : String ) : String
+	{method} -renderRiskSection ( riskText : String ) : String
 	{method} -splitIntoFour ( text : String ) : java.util.List
 	{method} -splitParagraphs ( text : String ) : java.util.List
 	{method} -stateText ( value : double , greenThreshold : double , yellowThreshold : double ) : String
@@ -83,6 +88,7 @@ class com.cloudforge.api.forgetask.service.ReportGeneratorService {
 	{field} {static} -logger : org.slf4j.Logger
 	{method} -buildFormattedReport ( sprintInfo : String , tasksSummary : String , kpiAnalysis : String , aiContent : String ) : String
 	{method} -buildKPIAnalysis ( tasks : java.util.List ) : String
+	{method} -buildRagContextBlock ( sprintId : Integer , projectId : Integer ) : String
 	{method} -buildReportPrompt ( sprintInfo : String , tasksSummary : String , kpiAnalysis : String , userHoursSummary : String , projectId : Integer , sprintId : Integer ) : String
 	{method} -buildSprintInfo ( sprintId : Integer ) : String
 	{method} -buildTasksSummary ( tasks : java.util.List ) : String
@@ -94,6 +100,21 @@ class com.cloudforge.api.forgetask.service.ReportGeneratorService {
 }
 
 
+class com.cloudforge.api.forgetask.service.SprintChunkBuilder {
+	{field} {static} -DATE_FMT : java.time.format.DateTimeFormatter
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} {static} -logger : org.slf4j.Logger
+	{method} +buildSprintChunk ( idSprint : int ) : String
+}
+
+
+class com.cloudforge.api.forgetask.service.SprintEmbeddingService {
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} {static} -logger : org.slf4j.Logger
+	{method} +indexSprint ( idSprint : int , idProject : int , sprintTitle : String ) : void
+}
+
+
 class com.cloudforge.api.forgetask.service.TelegramReportService {
 	{field} {static} -logger : org.slf4j.Logger
 	{field} -sprintController : com.cloudforge.api.forgetask.controller.SprintController
@@ -101,6 +122,14 @@ class com.cloudforge.api.forgetask.service.TelegramReportService {
 	{method} +generateAndSendReport ( chatId : long , projectId : Integer , sprintId : Integer , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
 	{method} -sendMessage ( chatId : long , text : String , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
 	{method} -sendPDFDocument ( chatId : long , filename : String , fileBytes : [B , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
+}
+
+
+class com.cloudforge.api.forgetask.service.VectorContextRetriever {
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} {static} -logger : org.slf4j.Logger
+	{field} -topK : int
+	{method} +retrieveSprintContext ( queryText : String , excludeSprintId : int , idProject : int ) : java.util.List
 }
 
 
@@ -127,6 +156,9 @@ class com.cloudforge.api.forgetask.service.invite.InviteService {
 
 com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.KPIService : kpiService
 com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.LLMService : llmService
+com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.SprintChunkBuilder : sprintChunkBuilder
+com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.VectorContextRetriever : vectorContextRetriever
+com.cloudforge.api.forgetask.service.SprintEmbeddingService *--  com.cloudforge.api.forgetask.service.SprintChunkBuilder : chunkBuilder
 com.cloudforge.api.forgetask.service.TelegramReportService *--  com.cloudforge.api.forgetask.service.PDFGeneratorService : pdfGeneratorService
 com.cloudforge.api.forgetask.service.TelegramReportService *--  com.cloudforge.api.forgetask.service.ReportGeneratorService : reportGeneratorService
 com.cloudforge.api.forgetask.service.auth.AuthService *--  com.cloudforge.api.forgetask.service.invite.InviteService : inviteService
