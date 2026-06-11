@@ -263,22 +263,6 @@ function KpisContent() {
               />
             </div>
 
-            {/* stats rápidos: los 6 números */}
-            {!isLoading && effectiveKpis && (
-              <div className="flex flex-wrap gap-x-6 gap-y-1 mb-4 px-0.5">
-                <StatPill label="Completed" value={effectiveKpis.tasksDone} suffix="tasks" />
-                <StatPill label="Real hours" value={effectiveKpis.realHours} suffix="h" decimals={1} />
-                {!filters.username && (
-                  <>
-                    <StatPill label="Avg task/dev" value={effectiveKpis.avgTasksPerDev} decimals={1} />
-                    <StatPill label="Avg hrs/dev" value={effectiveKpis.avgHoursPerDev} suffix="h" decimals={1} />
-                    <StatPill label="Median task/dev" value={medianTasks} decimals={1} />
-                    <StatPill label="Median hrs/dev" value={medianHours} suffix="h" decimals={1} />
-                  </>
-                )}
-              </div>
-            )}
-
             {/* 4 cards */}
             {isLoading ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

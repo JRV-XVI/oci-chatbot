@@ -29,6 +29,7 @@ export default function AvgTasksKpi({
       title="Tasks per developer"
       icon={<Users />}
       value={displayValue}
+      decimalPlaces={1}
       suffix="tasks"
       bottomContent={
         <div className="flex flex-col gap-4 w-full">

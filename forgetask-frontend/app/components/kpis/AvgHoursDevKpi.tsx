@@ -31,6 +31,7 @@ export default function AvgHoursDevKpi({
       title="Hours per developer"
       icon={<Clock4 />}
       value={displayValue}
+      decimalPlaces={1}
       suffix="hrs"
       bottomContent={
         <div className="flex flex-col gap-4 w-full">
