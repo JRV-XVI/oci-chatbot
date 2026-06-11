@@ -26,5 +26,7 @@ public record ProjectKpisSummaryDTO(
     double avgHoursPerDev,
     double expectedHoursPerDev, // estimatedHours / totalDevs
     double sprintRealHours,
-    double sprintEstimatedHours
+    double sprintEstimatedHours,
+    double medianTasksPerDev,   // NUEVO
+    double medianHoursPerDev    // NUEVO
 ) {}
