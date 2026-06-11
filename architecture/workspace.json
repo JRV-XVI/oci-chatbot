@@ -5,7 +5,7 @@
   "description" : "Basado en model-1.md — Actions/Actors Approach",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2026-05-30T03:27:53Z",
+  "lastModifiedDate" : "2026-06-10T05:18:22Z",
   "model" : {
     "deploymentNodes" : [ {
       "description" : "Ambiente de Oracle",
@@ -17,7 +17,7 @@
         "id" : "85",
         "name" : "Build Pipeline",
         "properties" : {
-          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9.16184f6f-a0a8-4b03-baba-167b0e60bc66"
+          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9.c2129234-598d-4d02-92e3-02a878a85dce"
         },
         "tags" : "Element,Infrastructure Node"
       }, {
@@ -26,7 +26,7 @@
         "id" : "86",
         "name" : "Deploy Stage",
         "properties" : {
-          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9.c1fc50ba-aed1-4abd-b0fb-23779c149945"
+          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9.1660ee63-9a25-40b5-acbd-4130c36f2616"
         },
         "tags" : "Element,Infrastructure Node"
       }, {
@@ -35,14 +35,14 @@
         "id" : "87",
         "name" : "Test Stage",
         "properties" : {
-          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9.66084eaa-faf0-445c-9d17-4aa9b03ed8a0"
+          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9.3bb0b389-7c56-45c2-95cc-437edc26d341"
         },
         "tags" : "Element,Infrastructure Node"
       } ],
       "instances" : "1",
       "name" : "OCI Environment",
       "properties" : {
-        "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.d48f152a-640d-40ef-a341-d7fa9c89dbf9"
+        "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Oracle Cloud"
@@ -53,14 +53,14 @@
       "instances" : "1",
       "name" : "GitHub Actions",
       "properties" : {
-        "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.dec1f7c8-8512-423b-bd87-11cd51f5decc"
+        "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.5d828b7a-1872-4a8f-8a5b-cab3a91fe3f1"
       },
       "softwareSystemInstances" : [ {
         "environment" : "Produccion",
         "id" : "89",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "35645878-aa6f-4cff-9d02-1a1e96e6056a.dec1f7c8-8512-423b-bd87-11cd51f5decc.1b0514c4-0b16-4d47-9f26-56641ad36dbe"
+          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.5d828b7a-1872-4a8f-8a5b-cab3a91fe3f1.4cc54ee1-4ce1-4e90-9a47-956c8c723b1a"
         },
         "softwareSystemId" : "5",
         "tags" : "Software System Instance"
@@ -422,7 +422,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Sprint Domain"
+          "technology" : "Sprint Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Modifica atributos de un sprint existente",
           "documentation" : { },
@@ -439,7 +440,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Sprint Domain"
+          "technology" : "Sprint Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Elimina sprints y datos relacionados",
           "documentation" : { },
@@ -456,7 +458,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Sprint Domain"
+          "technology" : "Sprint Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Crea tareas asociadas a un sprint",
           "documentation" : { },
@@ -473,7 +476,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Task Domain"
+          "technology" : "Task Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Modifica atributos de una tarea",
           "documentation" : { },
@@ -490,7 +494,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Task Domain"
+          "technology" : "Task Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Asigna desarrolladores responsables",
           "documentation" : { },
@@ -507,7 +512,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Task Domain"
+          "technology" : "Task Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Gestiona transiciones de estado",
           "documentation" : { },
@@ -524,7 +530,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Task Domain"
+          "technology" : "Task Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Elimina tareas de forma segura",
           "documentation" : { },
@@ -541,7 +548,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Task Domain"
+          "technology" : "Task Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Calcula y expone métricas del proyecto",
           "documentation" : { },
@@ -558,7 +566,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Analytics Domain"
+          "technology" : "Analytics Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Agrega métricas de productividad por usuario",
           "documentation" : { },
@@ -575,7 +584,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "Analytics Domain"
+          "technology" : "Analytics Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Envía prompts a IA externa y construye el reporte",
           "documentation" : { },
@@ -598,7 +608,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "AI Reporting Domain"
+          "technology" : "AI Reporting Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Autentica usuarios; crea y cierra sesiones",
           "documentation" : { },
@@ -615,7 +626,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "User Management Domain"
+          "technology" : "User Management Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/security.puml"
         }, {
           "description" : "Registra nuevos usuarios; valida datos",
           "documentation" : { },
@@ -632,7 +644,8 @@
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component",
-          "technology" : "User Management Domain"
+          "technology" : "User Management Domain",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
         }, {
           "description" : "Acceso a Oracle DB vía JDBC",
           "documentation" : { },
@@ -642,7 +655,8 @@
             "structurizr.dsl.identifier" : "forgetask.backend.database"
           },
           "tags" : "Element,Component",
-          "technology" : "Persistence Layer"
+          "technology" : "Persistence Layer",
+          "url" : "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/model.puml"
         } ],
         "description" : "API REST y lógica de negocio",
         "documentation" : { },
