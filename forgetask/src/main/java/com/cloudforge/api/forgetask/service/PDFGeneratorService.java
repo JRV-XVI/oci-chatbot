@@ -31,6 +31,7 @@ public class PDFGeneratorService {
 
     private static final String[] KNOWN_SECTION_HEADINGS = {
         "Executive Summary",
+        "Sprint Comparison",
         "Key Performance Insights",
         "Improvement Actions",
         "Risk Assessment"
@@ -314,9 +315,10 @@ public class PDFGeneratorService {
                 int done = intVal(row, "doneTasks", 0);
                 double percentage = totalDone > 0 ? (done * 100d / totalDone) : 0d;
 
+                String memberName = String.valueOf(row.getOrDefault("displayName", row.getOrDefault("username", "-")));
                 sb.append("<tr>")
                   .append("<td>").append(rank).append("</td>")
-                  .append("<td>").append(escapeHtml(String.valueOf(row.getOrDefault("username", "-")))).append("</td>")
+                  .append("<td>").append(escapeHtml(memberName)).append("</td>")
                   .append("<td>").append(done).append("</td>")
                   .append("<td>").append(String.format(Locale.US, "%.1f%%", percentage)).append("</td>")
                   .append("</tr>");
@@ -368,9 +370,10 @@ public class PDFGeneratorService {
                     ? "<span class=\"vs-positive\">" + deltaText + "</span>"
                     : escapeHtml(deltaText);
 
+                String memberName = String.valueOf(row.getOrDefault("displayName", row.getOrDefault("username", "-")));
                 sb.append("<tr>")
                   .append("<td>").append(rank).append("</td>")
-                  .append("<td>").append(escapeHtml(String.valueOf(row.getOrDefault("username", "-")))).append("</td>")
+                  .append("<td>").append(escapeHtml(memberName)).append("</td>")
                   .append("<td>").append(String.format(Locale.US, "%.1f h", hours)).append("</td>")
                   .append("<td>").append(String.format(Locale.US, "%.1f%%", contribution)).append("</td>")
                   .append("<td>").append(deltaCell).append("</td>")
@@ -399,47 +402,345 @@ public class PDFGeneratorService {
     }
 
     /**
+     * Convierte el texto de Sprint Comparison en una tabla HTML estructurada.
+     * Primero renderiza la tabla comparativa con los datos clave,
+     * luego agrega el análisis narrativo del LLM debajo.
+     */
+    private String buildSprintComparisonTable(String comparisonText, Integer projectId, Integer sprintId) {
+        // Strip markdown # headings/artifacts the LLM may leave in the text,
+        // then rejoin into one paragraph so sentence-splitting works correctly.
+        comparisonText = normalizeBreaks(comparisonText)
+            .lines()
+            .map(l -> l.trim().replaceAll("^#+\\s*", ""))
+            .filter(l -> !l.isBlank())
+            .collect(java.util.stream.Collectors.joining(" "))
+            .replaceAll("\\s{2,}", " ")
+            .trim();
+
+        // Pattern A — LLM format:
+        //   "In [Sprint Name], the team estimated Xh and used Yh (Z% deviation). In the current sprint..."
+        // Captures: sprint name, estimated h, used h, deviation
+        Pattern patternA = Pattern.compile(
+            "(?i)In\\s+([^,]+),\\s+the\\s+team\\s+estimated\\s+([\\d.]+)\\s*h(?:ours)?\\s+and\\s+used\\s+([\\d.]+)\\s*h(?:ours)?\\s*\\(([^)]+)\\)"
+        );
+
+        // Pattern B — legacy format (kept as fallback):
+        //   "In [Sprint Name], estimated Xh / real Yh (Z% deviation)"
+        Pattern patternB = Pattern.compile(
+            "(?i)In\\s+([^,]+),\\s+estimated\\s+([\\d.]+)h\\s*/\\s*real\\s+([\\d.]+)h\\s*\\(([^)]+)\\)"
+        );
+
+        // Each entry: { sprintName, estimatedH, usedH, deviation, observationSentence }
+        List<String[]> rows = new ArrayList<>();
+
+        // Split into sentences to pair each historical comparison with the observation that follows it
+        String[] sentences = comparisonText.split("(?<=[.!?])\\s+");
+        for (int i = 0; i < sentences.length; i++) {
+            String sentence = sentences[i];
+            Matcher mA = patternA.matcher(sentence);
+            Matcher mB = patternB.matcher(sentence);
+
+            String sprintName = null, estimatedH = null, usedH = null, deviation = null;
+            if (mA.find()) {
+                sprintName  = mA.group(1).trim();
+                estimatedH  = mA.group(2).trim();
+                usedH       = mA.group(3).trim();
+                deviation   = mA.group(4).trim();
+            } else if (mB.find()) {
+                sprintName  = mB.group(1).trim();
+                estimatedH  = mB.group(2).trim();
+                usedH       = mB.group(3).trim();
+                deviation   = mB.group(4).trim();
+            }
+
+            if (sprintName != null) {
+                // The observation is typically the next sentence in the pair ("In the current sprint...")
+                String observation = "";
+                if (i + 1 < sentences.length) {
+                    String next = sentences[i + 1].trim();
+                    if (next.toLowerCase(Locale.ROOT).startsWith("in the current sprint")) {
+                        observation = next;
+                        i++; // consume it
+                    }
+                }
+                rows.add(new String[]{ sprintName, estimatedH, usedH, deviation, observation });
+            }
+        }
+
+        // Extract the overall trend sentence (last sentence not already consumed as a row/observation)
+        String trendSentence = "";
+        String[] allSentences = comparisonText.split("(?<=[.!?])\\s+");
+        if (allSentences.length > 0) {
+            String last = allSentences[allSentences.length - 1].trim();
+            boolean isDataRow = patternA.matcher(last).find() || patternB.matcher(last).find();
+            boolean isObservation = last.toLowerCase(Locale.ROOT).startsWith("in the current sprint");
+            if (!isDataRow && !isObservation && !last.isBlank()) {
+                trendSentence = last;
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        if (!rows.isEmpty()) {
+            sb.append("<table class=\"report-table\" style=\"margin-bottom:8pt\">")
+              .append("<thead><tr>")
+              .append("<th style=\"width:28%\">Sprint</th>")
+              .append("<th style=\"width:15%;text-align:center\">Estimated</th>")
+              .append("<th style=\"width:15%;text-align:center\">Actual</th>")
+              .append("<th style=\"width:14%;text-align:center\">Deviation</th>")
+              .append("<th>Current Sprint vs. Historical</th>")
+              .append("</tr></thead><tbody>");
+
+            for (String[] row : rows) {
+                String dev = row[3];
+                boolean isOver = dev.startsWith("+") || (!dev.startsWith("-") && !dev.equals("0%") && !dev.equals("0"));
+                String devStyle = isOver ? "color:#dc2626;font-weight:bold" : "color:#16a34a;font-weight:bold";
+                String devLabel = isOver ? "&#9650; " : "&#9660; ";  // ▲ or ▼
+
+                sb.append("<tr>")
+                  .append("<td style=\"font-weight:bold\">").append(escapeHtml(row[0])).append("</td>")
+                  .append("<td style=\"text-align:center\">").append(escapeHtml(row[1])).append(" h</td>")
+                  .append("<td style=\"text-align:center\">").append(escapeHtml(row[2])).append(" h</td>")
+                  .append("<td style=\"text-align:center;").append(devStyle).append("\">")
+                    .append(devLabel).append(escapeHtml(dev))
+                  .append("</td>")
+                  .append("<td style=\"font-size:8pt;color:#374151\">").append(escapeHtml(row[4])).append("</td>")
+                  .append("</tr>");
+            }
+
+            sb.append("</tbody></table>");
+
+            if (!trendSentence.isBlank()) {
+                sb.append("<p style=\"font-style:italic;font-size:9pt;color:#374151;margin:0 0 8pt 0\">")
+                  .append("&#128200; ") // 📈
+                  .append(escapeHtml(trendSentence))
+                  .append("</p>");
+            }
+        } else {
+            // Fallback: no structured data could be parsed — render as plain narrative
+            sb.append("<div class=\"narrative-panel\">")
+              .append(formatNarrative(comparisonText))
+              .append("</div>");
+        }
+
+        return sb.toString();
+    }
+
+    /**
      * Builds section 6 with subsection extraction and markdown conversion.
      */
     private String buildNarrativeSection(String reportContent, Integer projectId, Integer sprintId) {
         String s61 = extractSection(reportContent, "Executive Summary");
-        String s62 = extractSection(reportContent, "Key Performance Insights");
-        String s63 = extractSection(reportContent, "Improvement Actions");
-        String s64 = extractSection(reportContent, "Risk Assessment");
+        String s62 = extractSection(reportContent, "Sprint Comparison");   // ← nuevo
+        String s63 = extractSection(reportContent, "Key Performance Insights");
+        String s64 = extractSection(reportContent, "Improvement Actions");
+        String s65 = extractSection(reportContent, "Risk Assessment");
 
-        boolean foundAnySection = !(s61.isBlank() && s62.isBlank() && s63.isBlank() && s64.isBlank());
+        boolean foundAnySection = !(s61.isBlank() && s62.isBlank() && s63.isBlank()
+                                    && s64.isBlank() && s65.isBlank());
 
         if (!foundAnySection) {
             List<String> equalParts = splitIntoFour(cleanNarrative(reportContent));
             s61 = equalParts.get(0);
-            s62 = equalParts.get(1);
-            s63 = equalParts.get(2);
-            s64 = equalParts.get(3);
+            s63 = equalParts.get(1);
+            s64 = equalParts.get(2);
+            s65 = equalParts.get(3);
         }
 
         if (s61.isBlank()) s61 = "No executive summary details were provided.";
-        if (s62.isBlank()) s62 = "No key performance insights were provided.";
-        if (s63.isBlank()) s63 = "No improvement actions were provided.";
-        if (s64.isBlank()) s64 = "No risk assessment details were provided.";
+        if (s63.isBlank()) s63 = "No key performance insights were provided.";
+        if (s64.isBlank()) s64 = "No improvement actions were provided.";
+        if (s65.isBlank()) s65 = "No risk assessment details were provided.";
 
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"page page-break-before\">")
-          .append(pageHeader(projectId, sprintId))
-          .append("<h2 class=\"section-title\">6. AI-GENERATED PROCESS ASSESSMENT</h2>")
-          .append("<div class=\"section-divider\"></div>")
-          .append("<h3 class=\"sub-title\">6.1 Executive Summary</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s61)).append("</div>")
-          .append("<h3 class=\"sub-title\">6.2 Key Performance Insights</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s62)).append("</div>")
-          .append("<h3 class=\"sub-title\">6.3 Improvement Actions</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s63)).append("</div>")
-          .append("<h3 class=\"sub-title\">6.4 Risk Assessment</h3>")
-          .append("<div class=\"sub-divider\"></div>")
-          .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s64)).append("</div>")
-          .append("</div>");
+        .append(pageHeader(projectId, sprintId))
+        .append("<h2 class=\"section-title\">6. AI-GENERATED PROCESS ASSESSMENT</h2>")
+        .append("<div class=\"section-divider\"></div>")
+
+        .append("<h3 class=\"sub-title\">6.1 Executive Summary</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append("<div class=\"narrative-panel\">\n").append(formatNarrative(s61)).append("</div>");
+
+        // 6.2 solo se renderiza si hay contenido de comparación
+        if (!s62.isBlank()) {
+            sb.append("<h3 class=\"sub-title\">6.2 Sprint Comparison</h3>")
+            .append("<div class=\"sub-divider\"></div>")
+            .append(buildSprintComparisonTable(s62, projectId, sprintId));
+        }
+
+        sb.append("<h3 class=\"sub-title\">").append(s62.isBlank() ? "6.2" : "6.3")
+        .append(" Key Performance Insights</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append(renderInsightsSection(s63))
+
+        .append("<h3 class=\"sub-title\">").append(s62.isBlank() ? "6.3" : "6.4")
+        .append(" Improvement Actions</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append(renderActionsSection(s64))
+
+        .append("<h3 class=\"sub-title\">").append(s62.isBlank() ? "6.4" : "6.5")
+        .append(" Risk Assessment</h3>")
+        .append("<div class=\"sub-divider\"></div>")
+        .append(renderRiskSection(s65))
+        .append("</div>");
+
+        return sb.toString();
+    }
+
+    /**
+     * Renders Risk Assessment section as individual styled risk cards.
+     * Each "Risk: ... / Mitigation: ..." line becomes a two-part visual card.
+     * Falls back to plain narrative for any lines that don't match the pattern.
+     */
+    /**
+     * Renders Key Performance Insights as colored insight cards.
+     */
+    private String renderInsightsSection(String text) {
+        if (text == null || text.isBlank()) {
+            return "<p class=\"body-text\">No key performance insights were provided.</p>";
+        }
+
+        List<String> items = extractListItems(cleanNarrative(text));
+
+        if (items.isEmpty()) {
+            return "<div class=\"narrative-panel\">" + formatNarrative(text) + "</div>";
+        }
+
+        String[] colors = { "#1e3a5f", "#0369a1", "#0f766e", "#6d28d9" };
+        String[] icons  = { "&#128200;", "&#9733;", "&#10003;", "&#128269;" };
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table style=\"width:100%;border-collapse:collapse;margin-bottom:10pt\"><tbody>");
+
+        for (int i = 0; i < items.size(); i++) {
+            String color = colors[i % colors.length];
+            String icon  = icons[i % icons.length];
+            sb.append("<tr>")
+              .append("<td style=\"width:28pt;vertical-align:top;padding:6pt 8pt 6pt 0\">")
+              .append("<div style=\"background-color:").append(color)
+              .append(";color:#ffffff;font-size:10pt;font-weight:bold;text-align:center;")
+              .append("padding:4pt 0;border-radius:2pt\">").append(icon).append("</div>")
+              .append("</td>")
+              .append("<td style=\"vertical-align:top;padding:6pt 0 6pt 0;")
+              .append("border-bottom:0.5pt solid #e5e7eb\">")
+              .append("<p style=\"margin:0;font-size:9pt;color:#111827;line-height:1.5\">")
+              .append(escapeHtml(items.get(i))).append("</p>")
+              .append("</td>")
+              .append("</tr>");
+        }
+
+        sb.append("</tbody></table>");
+        return sb.toString();
+    }
+
+    /**
+     * Renders Improvement Actions as numbered action cards.
+     */
+    private String renderActionsSection(String text) {
+        if (text == null || text.isBlank()) {
+            return "<p class=\"body-text\">No improvement actions were provided.</p>";
+        }
+
+        List<String> items = extractListItems(cleanNarrative(text));
+
+        if (items.isEmpty()) {
+            return "<div class=\"narrative-panel\">" + formatNarrative(text) + "</div>";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table style=\"width:100%;border-collapse:collapse;margin-bottom:10pt\"><tbody>");
+
+        for (int i = 0; i < items.size(); i++) {
+            String bgColor = (i % 2 == 0) ? "#f8fafc" : "#ffffff";
+            sb.append("<tr>")
+              .append("<td style=\"width:28pt;vertical-align:top;padding:8pt 8pt 8pt 0\">")
+              .append("<div style=\"background-color:#1e3a5f;color:#ffffff;")
+              .append("font-size:11pt;font-weight:bold;text-align:center;")
+              .append("padding:4pt 0;border-radius:2pt\">").append(i + 1).append("</div>")
+              .append("</td>")
+              .append("<td style=\"vertical-align:top;background-color:").append(bgColor)
+              .append(";border:1pt solid #e5e7eb;padding:8pt 10pt\">")
+              .append("<p style=\"margin:0;font-size:9pt;color:#111827;line-height:1.5\">")
+              .append(escapeHtml(items.get(i))).append("</p>")
+              .append("</td>")
+              .append("</tr>");
+        }
+
+        sb.append("</tbody></table>");
+        return sb.toString();
+    }
+
+    /**
+     * Extracts bullet/numbered list items as plain text strings.
+     */
+    private List<String> extractListItems(String text) {
+        List<String> items = new ArrayList<>();
+        if (text == null || text.isBlank()) return items;
+
+        for (String rawLine : normalizeBreaks(text).split("\\n")) {
+            String line = rawLine.trim();
+            if (line.isBlank()) continue;
+            line = line.replaceAll("^[-*\\u2022]\\s+", "");
+            line = line.replaceAll("^\\d+[.)::]\\s+", "");
+            if (!line.isBlank()) {
+                items.add(line);
+            }
+        }
+        return items;
+    }
+
+
+    private String renderRiskSection(String riskText) {
+        if (riskText == null || riskText.isBlank()) {
+            return "<p class=\"body-text\">No risk assessment details were provided.</p>";
+        }
+
+        Pattern riskPattern = Pattern.compile(
+            "(?i)Risk:\\s*(.+?)\\s*/\\s*Mitigation:\\s*(.+)"
+        );
+
+        StringBuilder sb = new StringBuilder();
+        boolean anyCard = false;
+
+        for (String rawLine : normalizeBreaks(riskText).split("\\n")) {
+            String line = rawLine.trim();
+            if (line.isBlank()) continue;
+
+            Matcher m = riskPattern.matcher(line);
+            if (m.find()) {
+                anyCard = true;
+                String riskDesc   = m.group(1).trim();
+                String mitigation = m.group(2).trim();
+                sb.append("<table style=\"width:100%;border-collapse:collapse;margin-bottom:8pt\"><tbody><tr>")
+                  // Risk column
+                  .append("<td style=\"width:50%;vertical-align:top;border:1pt solid #fca5a5;")
+                  .append("background-color:#fff5f5;padding:8pt 10pt\">")
+                  .append("<p style=\"margin:0 0 4pt 0;font-size:8pt;font-weight:bold;")
+                  .append("color:#dc2626;text-transform:uppercase\">&#9888; Risk</p>")
+                  .append("<p style=\"margin:0;font-size:9pt;color:#111827\">")
+                  .append(escapeHtml(riskDesc)).append("</p>")
+                  .append("</td>")
+                  // Mitigation column
+                  .append("<td style=\"width:50%;vertical-align:top;border:1pt solid #86efac;")
+                  .append("background-color:#f0fdf4;padding:8pt 10pt\">")
+                  .append("<p style=\"margin:0 0 4pt 0;font-size:8pt;font-weight:bold;")
+                  .append("color:#16a34a;text-transform:uppercase\">&#10003; Mitigation</p>")
+                  .append("<p style=\"margin:0;font-size:9pt;color:#111827\">")
+                  .append(escapeHtml(mitigation)).append("</p>")
+                  .append("</td>")
+                  .append("</tr></tbody></table>");
+            } else {
+                // Non-risk line (e.g. intro sentence) — render as plain text
+                sb.append("<p class=\"body-text\">").append(formatInline(line)).append("</p>");
+            }
+        }
+
+        if (!anyCard) {
+            // Nothing matched the pattern — fall back to full narrative render
+            return "<div class=\"narrative-panel\">" + formatNarrative(riskText) + "</div>";
+        }
+
         return sb.toString();
     }
 
@@ -938,6 +1239,12 @@ public class PDFGeneratorService {
             }
 
             if (METADATA_PATTERN.matcher(line).matches()) {
+                continue;
+            }
+
+            // Strip leading markdown heading characters (# ## ###) left by the LLM
+            line = line.replaceAll("^#+\\s*", "");
+            if (line.isBlank()) {
                 continue;
             }
 
