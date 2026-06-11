@@ -90,6 +90,10 @@ export interface ProjectKpisSummary {
   expectedHoursPerDev: number;
   sprintRealHours?: number;
   sprintEstimatedHours?: number;
+
+  medianTasksPerDev: number;   // NUEVO
+  medianHoursPerDev: number;   // NUEVO
+
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -314,22 +318,19 @@ class KPIService {
    * Obtiene los 4 KPIs del dashboard en una sola llamada.
    * GET /api/kpi/project/{projectId}/summary
    */
-  async getProjectKpisSummary(projectId: number): Promise<ProjectKpisSummary> {
+  async getProjectKpisSummary(
+    projectId: number,
+    sprintId?: number
+  ): Promise<ProjectKpisSummary> {
     try {
+      const params = sprintId !== undefined ? `?sprintId=${sprintId}` : "";
       const response = await fetch(
-        `${API_BASE_URL}/api/kpi/project/${projectId}/summary`,
-        {
-          method: "GET",
-          cache: "no-store", // siempre datos frescos, sin caché
-        }
+        `${API_BASE_URL}/api/kpi/project/${projectId}/summary${params}`,
+        { method: "GET", cache: "no-store" }
       );
-
       if (!response.ok) {
-        throw new Error(
-          `Failed to fetch project KPIs summary: ${response.statusText}`
-        );
+        throw new Error(`Failed to fetch project KPIs summary: ${response.statusText}`);
       }
-
       return await response.json();
     } catch (error) {
       console.error("Error fetching project KPIs summary:", error);

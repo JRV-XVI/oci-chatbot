@@ -335,10 +335,10 @@ public class KPIService {
      * Calcula todos los KPIs del dashboard para un proyecto dado.
      * Consulta directamente la BD sin necesitar que el frontend envíe datos.
      */
-    public ProjectKpisSummaryDTO getProjectKpisSummary(Integer projectId) {
+    public ProjectKpisSummaryDTO getProjectKpisSummary(Integer projectId, Integer sprintId) {
 
-        // ── KPI 1: Conteo de tasks por estado ──
-        // TASK_STATE tiene los estados: backlog, ready, in_progress, review, done
+        String sprintFilter = sprintId != null ? " AND t.ID_SPRINT = " + sprintId : "";
+
         String taskCountsSql = """
             SELECT
                 COUNT(t.ID_TASK) AS TOTAL_TASKS,
@@ -350,19 +350,16 @@ public class KPIService {
             FROM TASK t
             LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
             WHERE t.ID_PROJECT = ?
-            """;
+            """ + sprintFilter;
 
         Map<String, Object> taskCounts = jdbcTemplate.queryForMap(taskCountsSql, projectId);
-
-        int totalTasks    = ((Number) taskCounts.get("TOTAL_TASKS")).intValue();
-        int tasksBacklog  = ((Number) taskCounts.get("BACKLOG")).intValue();
-        int tasksReady    = ((Number) taskCounts.get("READY")).intValue();
+        int totalTasks      = ((Number) taskCounts.get("TOTAL_TASKS")).intValue();
+        int tasksBacklog    = ((Number) taskCounts.get("BACKLOG")).intValue();
+        int tasksReady      = ((Number) taskCounts.get("READY")).intValue();
         int tasksInProgress = ((Number) taskCounts.get("IN_PROGRESS")).intValue();
-        int tasksReview   = ((Number) taskCounts.get("REVIEW")).intValue();
-        int tasksDone     = ((Number) taskCounts.get("DONE")).intValue();
+        int tasksReview     = ((Number) taskCounts.get("REVIEW")).intValue();
+        int tasksDone       = ((Number) taskCounts.get("DONE")).intValue();
 
-        // ── KPI 2: Horas reales vs estimadas ──
-        // Leídas directamente de PROJECT (las columnas ya existen en tu tabla)
         String hoursSql = """
             SELECT
                 NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'done' THEN t.REAL_TIME ELSE 0 END), 0) AS REAL_TIME,
@@ -370,14 +367,12 @@ public class KPIService {
             FROM TASK t
             LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
             WHERE t.ID_PROJECT = ?
-            """;
+            """ + sprintFilter;
 
         Map<String, Object> hours = jdbcTemplate.queryForMap(hoursSql, projectId);
         double realHours      = ((Number) hours.get("REAL_TIME")).doubleValue();
         double estimatedHours = ((Number) hours.get("ESTIMATED_TIME")).doubleValue();
 
-        // ── KPI 3 y 4: Número de developers del proyecto ──
-        // Solo contamos usuarios con ROLE = 'developer', no managers
         String devCountSql = """
             SELECT COUNT(DISTINCT ua.ID_USER) AS TOTAL_DEVS
             FROM USER_ACCOUNT ua
@@ -389,11 +384,10 @@ public class KPIService {
         Integer totalDevsResult = jdbcTemplate.queryForObject(devCountSql, Integer.class, projectId);
         int totalDevs = (totalDevsResult != null) ? totalDevsResult : 0;
 
-        // ── KPI 3: Promedio tasks por developer ──
         double avgTasksPerDev = totalDevs > 0
             ? Math.round((double) totalTasks / totalDevs * 10.0) / 10.0
             : 0;
-        
+
         String sprintTasksSql = """
             SELECT COUNT(t.ID_TASK) AS SPRINT_TOTAL_TASKS
             FROM TASK t
@@ -408,17 +402,15 @@ public class KPIService {
                 ) WHERE ROWNUM = 1
             ), -1)
             """;
-        
+
         Integer sprintTasksResult = jdbcTemplate.queryForObject(
             sprintTasksSql, Integer.class, projectId, projectId
         );
         int sprintTasks = sprintTasksResult != null ? sprintTasksResult : 0;
 
-        // ── KPI 4: Promedio horas por developer ──
         double avgHoursPerDev = totalDevs > 0
             ? Math.round(realHours / totalDevs * 10.0) / 10.0
             : 0;
-
         double expectedHoursPerDev = totalDevs > 0
             ? Math.round(estimatedHours / totalDevs * 10.0) / 10.0
             : 0;
@@ -447,6 +439,29 @@ public class KPIService {
         double sprintEstimatedHours = ((Number) sprintHours.get("SPRINT_ESTIMATED_HOURS")).doubleValue();
         double sprintRealHours      = ((Number) sprintHours.get("SPRINT_REAL_HOURS")).doubleValue();
 
+        String medianSql = """
+            SELECT
+                NVL(MEDIAN(task_count), 0)  AS MEDIAN_TASKS,
+                NVL(MEDIAN(real_hours), 0)  AS MEDIAN_HOURS
+            FROM (
+                SELECT
+                    ua.ID_USER,
+                    COUNT(t.ID_TASK) AS task_count,
+                    NVL(SUM(CASE WHEN LOWER(ts.STATE) = 'done' THEN t.REAL_TIME ELSE 0 END), 0) AS real_hours
+                FROM USER_ACCOUNT ua
+                JOIN USER_ROLE ur ON ur.ID_USER = ua.ID_USER AND LOWER(ur.ROLE) = 'developer'
+                LEFT JOIN TASK t  ON t.ID_USER = ua.ID_USER AND t.ID_PROJECT = ua.ID_PROJECT
+                LEFT JOIN TASK_STATE ts ON ts.ID_TASK = t.ID_TASK
+                WHERE ua.ID_PROJECT = ?
+                """ + (sprintId != null ? " AND t.ID_SPRINT = " + sprintId : "") + """
+                GROUP BY ua.ID_USER
+            )
+            """;
+
+        Map<String, Object> medians = jdbcTemplate.queryForMap(medianSql, projectId);
+        double medianTasksPerDev = ((Number) medians.get("MEDIAN_TASKS")).doubleValue();
+        double medianHoursPerDev = ((Number) medians.get("MEDIAN_HOURS")).doubleValue();
+
         return new ProjectKpisSummaryDTO(
             totalTasks, tasksBacklog, tasksReady, tasksInProgress, tasksReview, tasksDone,
             realHours, estimatedHours,
@@ -454,7 +469,8 @@ public class KPIService {
             avgTasksPerDev,
             sprintTasks,
             totalDevs,
-            avgHoursPerDev, expectedHoursPerDev, sprintRealHours, sprintEstimatedHours
+            avgHoursPerDev, expectedHoursPerDev, sprintRealHours, sprintEstimatedHours,
+            medianTasksPerDev, medianHoursPerDev
         );
     }
 

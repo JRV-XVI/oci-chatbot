@@ -1,4 +1,3 @@
-// src/components/kpis/AvgHoursDevKpi.tsx
 "use client";
 
 import React from "react";
@@ -9,48 +8,35 @@ interface AvgHoursDevKpiProps {
   totalHours: number;
   totalDevs: number;
   expectedHoursPerDev?: number;
-  sprintRealHours?: number;
-  sprintEstimatedHours?: number;
+  medianHoursPerDev?: number;
 }
 
 export default function AvgHoursDevKpi({
   totalHours,
   totalDevs,
-  expectedHoursPerDev = 80,
-  sprintRealHours,
-  sprintEstimatedHours,
+  expectedHoursPerDev = 0,
+  medianHoursPerDev,
 }: AvgHoursDevKpiProps) {
-  const [mode, setMode] = React.useState<"project" | "sprint">("project");
+  const [mode, setMode] = React.useState<"average" | "median">("average");
 
-  const hasSprintData =
-    sprintRealHours !== undefined && sprintEstimatedHours !== undefined;
-
-  // Datos activos según el toggle
-  const activeHours    = mode === "project" ? totalHours : (sprintRealHours ?? 0);
-  const activeExpected =
-    mode === "project"
-      ? expectedHoursPerDev
-      : sprintEstimatedHours! > 0 && totalDevs > 0
-      ? Math.round((sprintEstimatedHours! / totalDevs) * 10) / 10
-      : expectedHoursPerDev;
-
-  // Cálculo del promedio
   const avg = totalDevs > 0
-    ? Math.round((activeHours / totalDevs) * 10) / 10
+    ? Math.round((totalHours / totalDevs) * 10) / 10
     : 0;
+
+  const hasMedian = medianHoursPerDev !== undefined;
+  const displayValue = mode === "average" ? avg : (medianHoursPerDev ?? 0);
 
   return (
     <KpiCard
-      title="Average hours per developer"
+      title="Hours per developer"
       icon={<Clock4 />}
-      value={avg}
+      value={displayValue}
       suffix="hrs"
       bottomContent={
         <div className="flex flex-col gap-4 w-full">
-
-          {hasSprintData && (
+          {hasMedian && (
             <div className="flex rounded-lg border border-border overflow-hidden w-full">
-              {(["project", "sprint"] as const).map((m) => (
+              {(["average", "median"] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
@@ -61,50 +47,22 @@ export default function AvgHoursDevKpi({
                       : "text-muted-foreground hover:bg-muted",
                   ].join(" ")}
                 >
-                  {m === "project" ? "Project" : "Sprint"}
+                  {m === "average" ? "Average" : "Median"}
                 </button>
               ))}
             </div>
           )}
-          {/* ── CategoryBar con marcador ── */}
-          {/* <div className="flex flex-col gap-2">
-            <div className="flex justify-between text-xs text-muted-foreground px-0.5">
-              <span>Normal (≤100%)</span>
-              <span>Extra (≤120%)</span>
-              <span>Burnout</span>
-            </div>
 
-            <CategoryBar
-              values={[...BAR_VALUES]}
-              colors={["emerald", "amber", "rose"]}
-              marker={{
-                value: markerPosition,
-                tooltip: `${percentage}% del objetivo por dev`,
-                showAnimation: true,
-              }}
-              className="py-1"
-              showLabels={false}
-            />
-
-            <div className="flex justify-between text-xs text-muted-foreground tabular-nums px-0.5">
-              <span>0%</span>
-              <span>100%</span>
-              <span>120%</span>
-              <span>140%+</span>
-            </div>
-
-            <p className="kpi-explainer-text">
-              Estado actual: <span className="font-semibold text-foreground">{percentage}%</span> del objetivo por dev.
+          {expectedHoursPerDev > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Target per dev:{" "}
+              <span className="font-semibold text-foreground">{expectedHoursPerDev}</span> hrs
             </p>
-          </div> */}
-
-          <p className="text-sm text-muted-foreground">
-            Target per dev: <span className="font-semibold text-foreground">{activeExpected}</span> hrs
-          </p>
+          )}
 
           <p className="text-sm text-muted-foreground border-t border-border pt-3">
             <span className="font-semibold text-foreground">{totalDevs}</span> devs ·{" "}
-            <span className="font-semibold text-foreground">{activeHours}</span> total hrs
+            <span className="font-semibold text-foreground">{totalHours}</span> total hrs
           </p>
         </div>
       }
