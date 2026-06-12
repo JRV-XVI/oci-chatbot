@@ -1,0 +1,167 @@
+@startuml
+
+class com.cloudforge.api.forgetask.service.KPIService {
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{method} -buildDisplayName ( firstName : String , lastName : String , username : String ) : String
+	{method} +calculateKPIs ( tasks : java.util.List ) : com.cloudforge.api.forgetask.dto.KPIMetrics
+	{method} +calculateKPIs ( tasks : java.util.List , expectedTaskCounts : java.util.Map ) : com.cloudforge.api.forgetask.dto.KPIMetrics
+	{method} +getProjectKpisSummary ( projectId : Integer , sprintId : Integer ) : com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO
+	{method} +getRealHoursBySprintUser ( sprintId : Integer ) : java.util.List
+	{method} +getRealHoursByUser ( sprintId : Integer ) : java.util.List
+	{method} +getRealHoursTasksByUser ( username : String , sprintId : Integer ) : java.util.List
+	{method} +getTaskDistributionByStatus ( tasks : java.util.List ) : java.util.Map
+	{method} +getTimeMetricsSummary ( tasks : java.util.List ) : java.util.Map
+}
+
+
+class com.cloudforge.api.forgetask.service.LLMService {
+	{field} -llmConfig : com.cloudforge.api.forgetask.config.LLMConfig
+	{field} {static} -logger : org.slf4j.Logger
+	{field} -restTemplate : org.springframework.web.client.RestTemplate
+	{method} -callLLMAPI ( prompt : String , model : String ) : com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO
+	{method} -callLLMAPIWithFallback ( prompt : String ) : com.cloudforge.api.forgetask.dto.LLMChatCompletionDTO
+	{method} +generateText ( prompt : String ) : String
+	{method} -getFallbackModels ( configuredModel : String ) : java.util.List
+	{method} +isConfigured () : boolean
+	{method} -isModelNotFound ( responseBody : String ) : boolean
+	{method} -normalizeBaseUrl ( apiUrl : String ) : String
+}
+
+
+class com.cloudforge.api.forgetask.service.PDFGeneratorService {
+	{field} {static} -BOLD_PATTERN : java.util.regex.Pattern
+	{field} {static} -CSS : String
+	{field} {static} -DISPLAY_DATE_FORMAT : java.time.format.DateTimeFormatter
+	{field} {static} -FILE_DATE_FORMAT : java.time.format.DateTimeFormatter
+	{field} {static} -ITALIC_PATTERN : java.util.regex.Pattern
+	{field} {static} -KNOWN_SECTION_HEADINGS : [Ljava.lang.String;
+	{field} {static} -METADATA_PATTERN : java.util.regex.Pattern
+	{field} {static} -logger : org.slf4j.Logger
+	{method} -applyInlinePattern ( input : String , pattern : java.util.regex.Pattern , tag : String ) : String
+	{method} -buildCoverPage ( projectId : Integer , sprintId : Integer , generatedAt : String ) : String
+	{method} -buildDocumentControl ( projectId : Integer , sprintId : Integer , generatedAt : String ) : String
+	{method} -buildExecutiveSummary ( reportContent : String , projectId : Integer , sprintId : Integer , generatedAt : String , efficiencyRate : double ) : String
+	{method} -buildHoursTable ( userHours : java.util.List , totalRealHours : double , projectId : Integer , sprintId : Integer ) : String
+	{method} -buildHtml ( reportContent : String , projectId : Integer , sprintId : Integer , metrics : java.util.Map , userHours : java.util.List ) : String
+	{method} -buildKpiDashboard ( totalTasks : int , doneTasks : int , inProgress : int , review : int , ready : int , backlog : int , efficiency : double , progress : int , variance : double , projectId : Integer , sprintId : Integer ) : String
+	{method} -buildNarrativeSection ( reportContent : String , projectId : Integer , sprintId : Integer ) : String
+	{method} -buildPageCss ( projectId : Integer , sprintId : Integer ) : String
+	{method} -buildSprintComparisonTable ( comparisonText : String , projectId : Integer , sprintId : Integer ) : String
+	{method} -buildTasksTable ( userHours : java.util.List , projectId : Integer , sprintId : Integer ) : String
+	{method} -capabilityDescription ( efficiency : double ) : String
+	{method} -capabilityLevel ( efficiency : double ) : String
+	{method} -capabilityNumber ( efficiency : double ) : int
+	{method} -cleanNarrative ( text : String ) : String
+	{method} -doubleVal ( m : java.util.Map , key : String , def : double ) : double
+	{method} -escapeCss ( text : String ) : String
+	{method} -escapeHtml ( text : String ) : String
+	{method} -extractListItems ( text : String ) : java.util.List
+	{method} -extractSection ( reportContent : String , headingName : String ) : String
+	{method} -firstParagraphs ( text : String , maxParagraphs : int ) : String
+	{method} -formatInline ( text : String ) : String
+	{method} -formatNarrative ( text : String ) : String
+	{method} +generateFilename ( projectId : Integer , sprintId : Integer ) : String
+	{method} +generatePDF ( reportContent : String , projectId : Integer , sprintId : Integer ) : [B
+	{method} +generatePDF ( reportContent : String , projectId : Integer , sprintId : Integer , metrics : java.util.Map , userHours : java.util.List ) : [B
+	{method} -intVal ( m : java.util.Map , key : String , def : int ) : int
+	{method} -isContinuationLine ( line : String ) : boolean
+	{method} -isHeading ( line : String , heading : String ) : boolean
+	{method} -isKnownHeading ( line : String ) : boolean
+	{method} -isListPlaceholderLine ( line : String ) : boolean
+	{method} -kpiCard ( label : String , value : String , color : String , state : String , note : String ) : String
+	{method} -kpiColor ( value : double , greenThreshold : double , yellowThreshold : double ) : String
+	{method} -normalizeBreaks ( text : String ) : String
+	{method} -normalizeHeading ( source : String ) : String
+	{method} -normalizeNarrativeLines ( text : String ) : java.util.List
+	{method} -pageHeader ( projectId : Integer , sprintId : Integer ) : String
+	{method} -renderActionsSection ( text : String ) : String
+	{method} -renderHtmlToPdf ( html : String ) : [B
+	{method} -renderInsightsSection ( text : String ) : String
+	{method} -renderRiskSection ( riskText : String ) : String
+	{method} -splitIntoFour ( text : String ) : java.util.List
+	{method} -splitParagraphs ( text : String ) : java.util.List
+	{method} -stateText ( value : double , greenThreshold : double , yellowThreshold : double ) : String
+}
+
+
+class com.cloudforge.api.forgetask.service.ReportGeneratorService {
+	{field} {static} -logger : org.slf4j.Logger
+	{method} -buildFormattedReport ( sprintInfo : String , tasksSummary : String , kpiAnalysis : String , aiContent : String ) : String
+	{method} -buildKPIAnalysis ( tasks : java.util.List ) : String
+	{method} -buildRagContextBlock ( sprintId : Integer , projectId : Integer ) : String
+	{method} -buildReportPrompt ( sprintInfo : String , tasksSummary : String , kpiAnalysis : String , userHoursSummary : String , projectId : Integer , sprintId : Integer ) : String
+	{method} -buildSprintInfo ( sprintId : Integer ) : String
+	{method} -buildTasksSummary ( tasks : java.util.List ) : String
+	{method} -buildUserHoursSummary ( userHours : java.util.List ) : String
+	{method} -doubleFrom ( value : Object ) : double
+	{method} +generateManagementReport ( projectId : Integer , sprintId : Integer , tasks : java.util.List ) : String
+	{method} +generateManagementReport ( projectId : Integer , sprintId : Integer , tasks : java.util.List , userHours : java.util.List ) : String
+	{method} -intFrom ( value : Object ) : int
+}
+
+
+class com.cloudforge.api.forgetask.service.SprintChunkBuilder {
+	{field} {static} -DATE_FMT : java.time.format.DateTimeFormatter
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} {static} -logger : org.slf4j.Logger
+	{method} +buildSprintChunk ( idSprint : int ) : String
+}
+
+
+class com.cloudforge.api.forgetask.service.SprintEmbeddingService {
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} {static} -logger : org.slf4j.Logger
+	{method} +indexSprint ( idSprint : int , idProject : int , sprintTitle : String ) : void
+}
+
+
+class com.cloudforge.api.forgetask.service.TelegramReportService {
+	{field} {static} -logger : org.slf4j.Logger
+	{field} -sprintController : com.cloudforge.api.forgetask.controller.SprintController
+	{field} -taskController : com.cloudforge.api.forgetask.controller.TaskController
+	{method} +generateAndSendReport ( chatId : long , projectId : Integer , sprintId : Integer , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
+	{method} -sendMessage ( chatId : long , text : String , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
+	{method} -sendPDFDocument ( chatId : long , filename : String , fileBytes : [B , telegramClient : org.telegram.telegrambots.meta.generics.TelegramClient ) : void
+}
+
+
+class com.cloudforge.api.forgetask.service.VectorContextRetriever {
+	{field} -jdbcTemplate : org.springframework.jdbc.core.JdbcTemplate
+	{field} {static} -logger : org.slf4j.Logger
+	{field} -topK : int
+	{method} +retrieveSprintContext ( queryText : String , excludeSprintId : int , idProject : int ) : java.util.List
+}
+
+
+class com.cloudforge.api.forgetask.service.auth.AuthService {
+	{field} -jwtUtil : com.cloudforge.api.forgetask.security.JwtUtil
+	{field} -passwordEncoder : org.springframework.security.crypto.password.PasswordEncoder
+	{field} -projectRepository : com.cloudforge.api.forgetask.repository.ProjectRepository
+	{field} -userRepo : com.cloudforge.api.forgetask.repository.UserAccountRepository
+	{field} -userRoleRepository : com.cloudforge.api.forgetask.repository.UserRoleRepository
+	{method} +login ( request : com.cloudforge.api.forgetask.dto.auth.LoginRequestDTO ) : com.cloudforge.api.forgetask.dto.auth.LoginResponseDTO
+	{method} +signup ( request : com.cloudforge.api.forgetask.dto.auth.SignupRequestDTO ) : com.cloudforge.api.forgetask.dto.auth.LoginResponseDTO
+}
+
+
+class com.cloudforge.api.forgetask.service.invite.InviteService {
+	{field} -inviteRepo : com.cloudforge.api.forgetask.repository.ProjectInviteRepository
+	{method} +consumeInvite ( token : String ) : com.cloudforge.api.forgetask.model.ProjectInvite
+	{method} +createInvite ( request : com.cloudforge.api.forgetask.dto.invite.CreateInviteRequestDTO ) : String
+	{method} +validateToken ( token : String ) : com.cloudforge.api.forgetask.dto.invite.ValidateInviteResponseDTO
+}
+
+
+
+
+com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.KPIService : kpiService
+com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.LLMService : llmService
+com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.SprintChunkBuilder : sprintChunkBuilder
+com.cloudforge.api.forgetask.service.ReportGeneratorService *--  com.cloudforge.api.forgetask.service.VectorContextRetriever : vectorContextRetriever
+com.cloudforge.api.forgetask.service.SprintEmbeddingService *--  com.cloudforge.api.forgetask.service.SprintChunkBuilder : chunkBuilder
+com.cloudforge.api.forgetask.service.TelegramReportService *--  com.cloudforge.api.forgetask.service.PDFGeneratorService : pdfGeneratorService
+com.cloudforge.api.forgetask.service.TelegramReportService *--  com.cloudforge.api.forgetask.service.ReportGeneratorService : reportGeneratorService
+com.cloudforge.api.forgetask.service.auth.AuthService *--  com.cloudforge.api.forgetask.service.invite.InviteService : inviteService
+
+
+@enduml

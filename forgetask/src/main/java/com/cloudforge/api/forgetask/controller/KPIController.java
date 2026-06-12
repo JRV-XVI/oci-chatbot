@@ -236,4 +236,9 @@ public class KPIController {
         }
     }
 
+
+    @GetMapping("/PRUEBA1")
+    public void prueba() {
+        System.out.println("PRUEBA1");
+    }
 }

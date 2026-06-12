@@ -1,0 +1,26 @@
+@startuml
+
+class com.cloudforge.api.forgetask.security.JwtAuthFilter {
+	{method} #doFilterInternal ( request : jakarta.servlet.http.HttpServletRequest , response : jakarta.servlet.http.HttpServletResponse , filterChain : jakarta.servlet.FilterChain ) : void
+	{method} -extractToken ( request : jakarta.servlet.http.HttpServletRequest ) : String
+}
+
+
+class com.cloudforge.api.forgetask.security.JwtUtil {
+	{field} -expirationMs : long
+	{field} -secret : String
+	{method} +generateToken ( email : String ) : String
+	{method} +generateToken ( email : String , idProject : Integer ) : String
+	{method} +getEmailFromToken ( token : String ) : String
+	{method} +getIdProjectFromToken ( token : String ) : Integer
+	{method} -getSigningKey () : java.security.Key
+	{method} +validateToken ( token : String ) : boolean
+}
+
+
+
+
+com.cloudforge.api.forgetask.security.JwtAuthFilter *--  com.cloudforge.api.forgetask.security.JwtUtil : jwtUtil
+
+
+@enduml

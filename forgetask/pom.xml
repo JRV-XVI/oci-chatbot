@@ -143,6 +143,136 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+			<!-- ═══════════════════════════════════════════════════════════
+			     PlantUML Generator — C4 Level 4 (Code) Diagrams
+			     Genera un diagrama .puml por cada capa técnica del backend.
+			     Ejecutar manualmente: mvn generate-test-sources
+			     Salida: forgetask/docs/diagrams/
+			     ═══════════════════════════════════════════════════════════ -->
+			<plugin>
+				<groupId>de.elnarion.maven</groupId>
+				<artifactId>plantuml-generator-maven-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+
+					<!-- ── Diagrama 1: Controllers ──────────────────────────────
+					     Clases que exponen los endpoints REST de la API.
+					     Cada Controller mapea las rutas HTTP (GET, POST, PUT, DELETE)
+					     y delega la lógica al Service correspondiente.
+					     Ejemplo: SprintController, TaskController, AuthController
+					     ─────────────────────────────────────────────────────── -->
+					<execution>
+						<id>generate-controller-diagram</id>
+						<goals><goal>generate</goal></goals>
+						<phase>generate-test-sources</phase>
+						<configuration>
+							<outputDirectory>${project.basedir}/docs/diagrams</outputDirectory>
+							<outputFilename>controller.puml</outputFilename>
+							<scanPackages>
+								<scanPackage>com.cloudforge.api.forgetask.controller</scanPackage>
+							</scanPackages>
+							<addJPAAnnotations>false</addJPAAnnotations>
+							<hideFields>false</hideFields>
+							<hideMethods>false</hideMethods>
+						</configuration>
+					</execution>
+
+					<!-- ── Diagrama 2: Services ─────────────────────────────────
+					     Clases que contienen la lógica de negocio de la aplicación.
+					     Son el núcleo del backend: validan datos, orquestan
+					     operaciones y coordinan con los repositorios.
+					     Ejemplo: KPIService, AuthService, InviteService
+					     ─────────────────────────────────────────────────────── -->
+					<execution>
+						<id>generate-service-diagram</id>
+						<goals><goal>generate</goal></goals>
+						<phase>generate-test-sources</phase>
+						<configuration>
+							<outputDirectory>${project.basedir}/docs/diagrams</outputDirectory>
+							<outputFilename>service.puml</outputFilename>
+							<scanPackages>
+								<scanPackage>com.cloudforge.api.forgetask.service</scanPackage>
+							</scanPackages>
+							<addJPAAnnotations>false</addJPAAnnotations>
+							<hideFields>false</hideFields>
+							<hideMethods>false</hideMethods>
+						</configuration>
+					</execution>
+
+					<!-- ── Diagrama 3: Models ───────────────────────────────────
+					     Entidades JPA que representan las tablas de Oracle DB.
+					     Muestran la estructura de datos persistida: atributos,
+					     tipos y relaciones entre entidades.
+					     Ejemplo: Project, UserAccount, UserRole, ProjectInvite
+					     hideMethods=true porque los modelos no tienen lógica,
+					     solo campos — el diagrama queda más limpio así.
+					     ─────────────────────────────────────────────────────── -->
+					<execution>
+						<id>generate-model-diagram</id>
+						<goals><goal>generate</goal></goals>
+						<phase>generate-test-sources</phase>
+						<configuration>
+							<outputDirectory>${project.basedir}/docs/diagrams</outputDirectory>
+							<outputFilename>model.puml</outputFilename>
+							<scanPackages>
+								<scanPackage>com.cloudforge.api.forgetask.model</scanPackage>
+							</scanPackages>
+							<addJPAAnnotations>true</addJPAAnnotations>
+							<hideFields>false</hideFields>
+							<hideMethods>true</hideMethods>
+						</configuration>
+					</execution>
+
+					<!-- ── Diagrama 4: Security ─────────────────────────────────
+					     Clases que implementan la autenticación JWT.
+					     JwtAuthFilter intercepta cada request y valida el token.
+					     JwtUtil genera y verifica tokens JWT.
+					     Son el mecanismo que protege todos los endpoints.
+					     ─────────────────────────────────────────────────────── -->
+					<execution>
+						<id>generate-security-diagram</id>
+						<goals><goal>generate</goal></goals>
+						<phase>generate-test-sources</phase>
+						<configuration>
+							<outputDirectory>${project.basedir}/docs/diagrams</outputDirectory>
+							<outputFilename>security.puml</outputFilename>
+							<scanPackages>
+								<scanPackage>com.cloudforge.api.forgetask.security</scanPackage>
+							</scanPackages>
+							<addJPAAnnotations>false</addJPAAnnotations>
+							<hideFields>false</hideFields>
+							<hideMethods>false</hideMethods>
+						</configuration>
+					</execution>
+
+					<!-- ── Diagrama 5: DTOs ─────────────────────────────────────
+					     Data Transfer Objects: clases que definen la "forma"
+					     de los datos que viajan entre el frontend y el backend.
+					     Documentan el contrato de la API — qué campos acepta
+					     cada request y qué devuelve cada response.
+					     Ejemplo: LoginRequestDTO, TaskDTO, KPIMetrics,
+					              CreateInviteRequestDTO, SprintOptionDTO
+					     ─────────────────────────────────────────────────────── -->
+					<execution>
+						<id>generate-dto-diagram</id>
+						<goals><goal>generate</goal></goals>
+						<phase>generate-test-sources</phase>
+						<configuration>
+							<outputDirectory>${project.basedir}/docs/diagrams</outputDirectory>
+							<outputFilename>dto.puml</outputFilename>
+							<scanPackages>
+								<scanPackage>com.cloudforge.api.forgetask.dto</scanPackage>
+							</scanPackages>
+							<addJPAAnnotations>false</addJPAAnnotations>
+							<hideFields>false</hideFields>
+							<hideMethods>true</hideMethods>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 
