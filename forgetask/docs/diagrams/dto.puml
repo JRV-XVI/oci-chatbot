@@ -77,6 +77,8 @@ class com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO {
 	{field} -avgTasksPerDev : double
 	{field} -estimatedHours : double
 	{field} -expectedHoursPerDev : double
+	{field} -medianHoursPerDev : double
+	{field} -medianTasksPerDev : double
 	{field} -realHours : double
 	{field} -sprintDevs : int
 	{field} -sprintEstimatedHours : double
@@ -95,6 +97,8 @@ class com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO {
 	{method} +estimatedHours () : double
 	{method} +expectedHoursPerDev () : double
 	{method} +hashCode () : int
+	{method} +medianHoursPerDev () : double
+	{method} +medianTasksPerDev () : double
 	{method} +realHours () : double
 	{method} +sprintDevs () : int
 	{method} +sprintEstimatedHours () : double

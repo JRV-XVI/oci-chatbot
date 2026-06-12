@@ -5,7 +5,7 @@ class com.cloudforge.api.forgetask.service.KPIService {
 	{method} -buildDisplayName ( firstName : String , lastName : String , username : String ) : String
 	{method} +calculateKPIs ( tasks : java.util.List ) : com.cloudforge.api.forgetask.dto.KPIMetrics
 	{method} +calculateKPIs ( tasks : java.util.List , expectedTaskCounts : java.util.Map ) : com.cloudforge.api.forgetask.dto.KPIMetrics
-	{method} +getProjectKpisSummary ( projectId : Integer ) : com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO
+	{method} +getProjectKpisSummary ( projectId : Integer , sprintId : Integer ) : com.cloudforge.api.forgetask.dto.ProjectKpisSummaryDTO
 	{method} +getRealHoursBySprintUser ( sprintId : Integer ) : java.util.List
 	{method} +getRealHoursByUser ( sprintId : Integer ) : java.util.List
 	{method} +getRealHoursTasksByUser ( username : String , sprintId : Integer ) : java.util.List

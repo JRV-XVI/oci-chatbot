@@ -18,7 +18,7 @@ class com.cloudforge.api.forgetask.controller.KPIController {
 	{field} -kpiService : com.cloudforge.api.forgetask.service.KPIService
 	{method} +calculateKPIs ( request : com.cloudforge.api.forgetask.controller.KPIController$KPICalculationRequest ) : org.springframework.http.ResponseEntity
 	{method} +calculateKPIsSimple ( tasks : java.util.List ) : org.springframework.http.ResponseEntity
-	{method} +getProjectKpisSummary ( projectId : Integer ) : org.springframework.http.ResponseEntity
+	{method} +getProjectKpisSummary ( projectId : Integer , sprintId : Integer ) : org.springframework.http.ResponseEntity
 	{method} +getRealHoursBySprintUser ( sprintId : Integer ) : org.springframework.http.ResponseEntity
 	{method} +getRealHoursByUser ( sprintId : Integer ) : org.springframework.http.ResponseEntity
 	{method} +getRealHoursTasksByUser ( username : String , sprintId : Integer ) : org.springframework.http.ResponseEntity
