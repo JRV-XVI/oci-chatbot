@@ -34,32 +34,32 @@ backend = container "Backend" "API REST y lógica de negocio" "Spring Boot (Java
     // Apuntan a service.puml porque la lógica de sprints vive en los Services.
 
     sprintCreator = component "Sprint Creator" "Crea sprints; valida datos y persiste" "Sprint Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/JRV-XVI/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
     sprintEditor = component "Sprint Editor" "Modifica atributos de un sprint existente" "Sprint Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/JRV-XVI/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
     sprintRemover = component "Sprint Remover" "Elimina sprints y datos relacionados" "Sprint Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/JRV-XVI/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
 
     // ── Task Domain ──────────────────────────────────────────────────────────
     // Apuntan a service.puml porque la lógica de tareas vive en los Services.
 
     taskCreator = component "Task Creator" "Crea tareas asociadas a un sprint" "Task Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/JRV-XVI/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
     taskEditor = component "Task Editor" "Modifica atributos de una tarea" "Task Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/JRV-XVI/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
     taskAssigner = component "Task Assigner" "Asigna desarrolladores responsables" "Task Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
     taskStatusChanger = component "Task Status Changer" "Gestiona transiciones de estado" "Task Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
     taskRemover = component "Task Remover" "Elimina tareas de forma segura" "Task Domain" {
-        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/service.puml"
+        url "https://github.com/jrv-xvi/oci-chatbot/blob/main/forgetask/docs/diagrams/controller.puml"
     }
 
     // ── Analytics Domain ─────────────────────────────────────────────────────

@@ -5,7 +5,7 @@
   "description" : "Basado en model-1.md — Actions/Actors Approach",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2026-06-10T05:18:22Z",
+  "lastModifiedDate" : "2026-06-12T21:57:23Z",
   "model" : {
     "deploymentNodes" : [ {
       "description" : "Ambiente de Oracle",
@@ -17,7 +17,7 @@
         "id" : "85",
         "name" : "Build Pipeline",
         "properties" : {
-          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9.c2129234-598d-4d02-92e3-02a878a85dce"
+          "structurizr.dsl.identifier" : "c65c885f-3d35-4f19-8b5d-fcc7215e02f6.12f2b1c5-2d55-41dd-8810-8ee593d1db9a.8da27eb8-2269-4a72-ac0a-2b5702b396e7"
         },
         "tags" : "Element,Infrastructure Node"
       }, {
@@ -26,7 +26,7 @@
         "id" : "86",
         "name" : "Deploy Stage",
         "properties" : {
-          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9.1660ee63-9a25-40b5-acbd-4130c36f2616"
+          "structurizr.dsl.identifier" : "c65c885f-3d35-4f19-8b5d-fcc7215e02f6.12f2b1c5-2d55-41dd-8810-8ee593d1db9a.83902978-af96-4fc9-8bd5-caa21a8e43de"
         },
         "tags" : "Element,Infrastructure Node"
       }, {
@@ -35,14 +35,14 @@
         "id" : "87",
         "name" : "Test Stage",
         "properties" : {
-          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9.3bb0b389-7c56-45c2-95cc-437edc26d341"
+          "structurizr.dsl.identifier" : "c65c885f-3d35-4f19-8b5d-fcc7215e02f6.12f2b1c5-2d55-41dd-8810-8ee593d1db9a.505bd6a6-1cad-4813-91de-e2ac5db47e01"
         },
         "tags" : "Element,Infrastructure Node"
       } ],
       "instances" : "1",
       "name" : "OCI Environment",
       "properties" : {
-        "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.a68ad436-83e3-40f6-a959-e19f66a67da9"
+        "structurizr.dsl.identifier" : "c65c885f-3d35-4f19-8b5d-fcc7215e02f6.12f2b1c5-2d55-41dd-8810-8ee593d1db9a"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Oracle Cloud"
@@ -53,14 +53,14 @@
       "instances" : "1",
       "name" : "GitHub Actions",
       "properties" : {
-        "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.5d828b7a-1872-4a8f-8a5b-cab3a91fe3f1"
+        "structurizr.dsl.identifier" : "c65c885f-3d35-4f19-8b5d-fcc7215e02f6.ee276715-287f-4235-a23a-a4f50e0c0670"
       },
       "softwareSystemInstances" : [ {
         "environment" : "Produccion",
         "id" : "89",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "812e0042-5a64-4aef-9004-1d2af96227d9.5d828b7a-1872-4a8f-8a5b-cab3a91fe3f1.4cc54ee1-4ce1-4e90-9a47-956c8c723b1a"
+          "structurizr.dsl.identifier" : "c65c885f-3d35-4f19-8b5d-fcc7215e02f6.ee276715-287f-4235-a23a-a4f50e0c0670.7ee51e88-88c7-4368-82b8-27510cc19a4b"
         },
         "softwareSystemId" : "5",
         "tags" : "Software System Instance"
