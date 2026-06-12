@@ -12,6 +12,7 @@ import { ProgressBar } from "./ProgressBar";
 interface KpiCardProps {
   title?: string;
   value?: number;
+  decimalPlaces?: number;
   prefix?: string;
   suffix?: string;
   badge?: string;
@@ -34,6 +35,7 @@ interface KpiCardProps {
 export default function KpiCard({
   title,
   value,
+  decimalPlaces = 0,
   suffix,
   badge,
   badgeType = "up",
@@ -60,22 +62,18 @@ export default function KpiCard({
     donutColors && donutColors.length > 0 ? donutColors : AvailableChartColors;
 
   return (
-    // ✅ CAMBIO: padding aumentado de p-4 → p-6, gap de gap-2 → gap-5
     <Card className="p-6 flex flex-col gap-5">
 
       {/* ── Header ── */}
       {(hasTitle || icon) && (
-        // ✅ CAMBIO: items-start para alinear mejor el ícono con el título
         <div className="flex items-start justify-between gap-3">
           {hasTitle ? (
-            // ✅ CAMBIO: text-xs → text-sm, agregado font-medium y tracking-wide
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider leading-tight">
               {title}
             </p>
           ) : (
             <span />
           )}
-          {/* ✅ CAMBIO: ícono agrandado de w-4 h-4 → w-5 h-5, con fondo sutil */}
           {icon && (
             <span className="shrink-0 p-2 rounded-lg bg-muted text-muted-foreground [&>svg]:w-5 [&>svg]:h-5">
               {icon}
@@ -91,6 +89,7 @@ export default function KpiCard({
             <div className="flex items-end gap-2 flex-wrap">
               <NumberTicker
                 value={value}
+                decimalPlaces={decimalPlaces}
                 className="text-5xl font-bold tracking-tight tabular-nums leading-none"
               />
               {suffix && (
@@ -157,16 +156,13 @@ export default function KpiCard({
         {progressData && (
           <div className="flex flex-col gap-3 mt-1">
             <div className="flex items-center justify-between">
-              {/* ✅ CAMBIO: text-xs → text-sm */}
               <span className="text-sm font-medium text-muted-foreground">
                 {progressData.label || "Progreso"}
               </span>
-              {/* ✅ CAMBIO: porcentaje más grande y con color del badge */}
               <span className={`text-base font-bold ${badgeColor.split(" ")[0]}`}>
                 {Math.round((progressData.value / progressData.target) * 100)}%
               </span>
             </div>
-            {/* ✅ CAMBIO: altura de la barra aumentada con className personalizado */}
             <ProgressBar
               value={progressData.value}
               max={progressData.target}
@@ -184,7 +180,6 @@ export default function KpiCard({
         )}
 
         {/* ── Custom bottom content ── */}
-        {/* ✅ CAMBIO: mt-1 → mt-2 para más respiro */}
         {bottomContent && <div className="mt-2">{bottomContent}</div>}
       </div>
     </Card>

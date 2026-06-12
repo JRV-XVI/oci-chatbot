@@ -224,10 +224,11 @@ public class KPIController {
 
     @GetMapping("/project/{projectId}/summary")
     public ResponseEntity<ProjectKpisSummaryDTO> getProjectKpisSummary(
-        @PathVariable Integer projectId
+        @PathVariable Integer projectId,
+        @RequestParam(required = false) Integer sprintId
     ) {
         try {
-            ProjectKpisSummaryDTO summary = kpiService.getProjectKpisSummary(projectId);
+            ProjectKpisSummaryDTO summary = kpiService.getProjectKpisSummary(projectId, sprintId);
             return ResponseEntity.ok(summary);
         } catch (Exception e) {
             e.printStackTrace();
