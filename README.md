@@ -2,6 +2,10 @@
 
 A group project management and productivity tool with Telegram integration.
 
+## Application Demo
+
+[![Watch the Video Demo for the Application (Spanish)](https://drive.google.com)](https://drive.google.com/file/d/11Xh_zHSG885igKpak81RfzBNRsKjxhiX/view?usp=sharing)
+
 ## Run with Docker (backend + frontend)
 
 This repo contains 2 services that can be built and run in containers:
