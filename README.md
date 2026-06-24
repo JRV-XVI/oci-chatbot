@@ -1,6 +1,6 @@
 # oci-chatbot
 
-This is a test for pipeline
+Una herramienta de administración de proyectos y productividad grupal, con integración desde Telegram.
 
 ## Ejecutar con Docker (backend + frontend)
 
