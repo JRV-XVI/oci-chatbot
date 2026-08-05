@@ -69,6 +69,14 @@ class BasePage:
     def elements(self, locator: tuple[str, str]) -> list[WebElement]:
         return self.driver.find_elements(*locator)
 
+    def is_present(self, locator: tuple[str, str], timeout: float = 0.5) -> bool:
+        """Check if an element is present in the DOM without waiting long."""
+        try:
+            WebDriverWait(self.driver, timeout).until(ec.presence_of_element_located(locator))
+            return True
+        except TimeoutException:
+            return False
+
     def click(self, locator: tuple[str, str], timeout: int | None = None) -> None:
         try:
             self.wait_react_hydrated(locator, timeout=4)
